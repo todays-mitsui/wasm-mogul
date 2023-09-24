@@ -2,7 +2,7 @@
 
 imo
 
-![imo](https://github.com/todays-mitsui/wasm-tuber/assets/3040456/b0b37ae0-a944-45a6-b572-29c4d5db9cde "imo")
+![imo](https://github.com/todays-mitsui/wasm-tuber/assets/3040456/28a49381-285b-44b3-ad66-2c04693033a2 "imo")
 
 ## How to install
 
