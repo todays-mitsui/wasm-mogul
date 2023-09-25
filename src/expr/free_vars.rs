@@ -1,8 +1,14 @@
-use crate::expr::{Expr, Identifier};
+use crate::expr::Expr;
 use std::collections::HashSet;
 
 #[derive(Debug, PartialEq)]
 pub struct FreeVars<'a>(pub HashSet<&'a str>);
+
+impl FreeVars<'_> {
+    pub fn contains<Id: AsRef<str>>(&self, id: Id) -> bool {
+        self.0.contains(id.as_ref())
+    }
+}
 
 impl<'a> From<&'a Expr> for FreeVars<'a> {
     fn from(expr: &'a Expr) -> Self {

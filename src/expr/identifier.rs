@@ -46,6 +46,12 @@ impl From<String> for Identifier {
     }
 }
 
+impl AsRef<str> for Identifier {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
 impl Display for Identifier {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", &self.0)

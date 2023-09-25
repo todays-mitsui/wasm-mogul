@@ -7,6 +7,7 @@ mod func;
 mod parser;
 mod to_string;
 
+use expr::unlambda as unlambda_impl;
 use parser::parse_expr;
 use wasm_bindgen::prelude::*;
 
@@ -14,6 +15,12 @@ use wasm_bindgen::prelude::*;
 pub fn parse(src: &str) {
     let result = parse_expr(src);
     log!("{:?}", result);
+}
+
+#[wasm_bindgen]
+pub fn unlambda(src: &str) {
+    let expr = parse_expr(src).expect("parse error");
+    log!("{}", unlambda_impl(expr));
 }
 
 #[wasm_bindgen(start)]
