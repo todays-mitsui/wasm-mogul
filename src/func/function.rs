@@ -24,8 +24,20 @@ impl Func {
         &self.body
     }
 
+    /// 関数の引数の個数
+    ///
+    /// 0 以上の整数値を返す
     pub fn arity(&self) -> usize {
         self.params.len()
+    }
+
+    /// 関数に引数を与え評価した結果を返す
+    pub fn apply(&self, args: Vec<Expr>) -> Expr {
+        let mut body = self.body.clone();
+        for (param, arg) in self.params.iter().zip(args) {
+            body = body.substitute(param, &arg);
+        }
+        body
     }
 }
 
@@ -85,5 +97,27 @@ mod tests {
             expr::a(expr::a("x", "z"), expr::a("y", "z")),
         );
         assert_eq!(f.arity(), 3);
+    }
+
+    #[test]
+    fn test_apply() {
+        let f = new("i", vec!["x"], "x");
+        assert_eq!(f.apply(vec![expr::v("a")]), expr::v("a"));
+
+        let f = new("k", vec!["x", "y"], "x");
+        assert_eq!(f.apply(vec![expr::v("a"), expr::v("b")]), expr::v("a"));
+
+        let f = new(
+            "s",
+            vec!["x", "y", "z"],
+            expr::a(expr::a("x", "z"), expr::a("y", "z")),
+        );
+        assert_eq!(
+            f.apply(vec![expr::v("a"), expr::v("b"), expr::v("c")]),
+            expr::a(expr::a("a", "c"), expr::a("b", "c"))
+        );
+
+        let f = new("XX", vec!["x"], expr::a("x", "x"));
+        assert_eq!(f.apply(vec![expr::v("a")]), expr::a("a", "a"));
     }
 }

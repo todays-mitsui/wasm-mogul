@@ -1,5 +1,6 @@
 #[macro_use]
 mod browser;
+mod calc;
 mod command;
 mod context;
 mod expr;
@@ -7,7 +8,7 @@ mod func;
 mod parser;
 mod to_string;
 
-use expr::unlambda as unlambda_impl;
+use calc::unlambda as unlambda_impl;
 use parser::parse_expr;
 use wasm_bindgen::prelude::*;
 

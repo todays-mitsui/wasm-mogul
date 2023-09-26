@@ -9,12 +9,17 @@ use std::collections::HashMap;
 pub struct Context(HashMap<Identifier, Func>);
 
 impl Context {
-    pub fn arity(&self, id: &str) -> Option<usize> {
-        self.0.get(&id.into()).map(|f| f.arity())
+    pub fn get(&self, id: &Identifier) -> Option<&Func> {
+        self.0.get(id)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&Identifier, &Func)> {
         self.0.iter()
+    }
+
+    #[cfg(test)]
+    pub fn arity(&self, id: &str) -> Option<usize> {
+        self.0.get(&id.into()).map(|f| f.arity())
     }
 
     #[cfg(test)]
@@ -58,16 +63,6 @@ mod tests {
         let context: Context = setup();
 
         assert_eq!(context.count(), 3);
-        assert_eq!(context.arity("i"), Some(1));
-        assert_eq!(context.arity("k"), Some(2));
-        assert_eq!(context.arity("s"), Some(3));
-        assert_eq!(context.arity("UNDEFINED"), None);
-    }
-
-    #[test]
-    fn test_arity() {
-        let context: Context = setup();
-
         assert_eq!(context.arity("i"), Some(1));
         assert_eq!(context.arity("k"), Some(2));
         assert_eq!(context.arity("s"), Some(3));
