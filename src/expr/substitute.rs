@@ -34,7 +34,6 @@ impl Expr {
     /// );
     /// ```
     pub fn substitute(self, param: &Identifier, arg: &Expr) -> Expr {
-        // TODO: arg: Expr にしたい
         let mut vars: BoundVars = HashSet::new();
         let free_vars = FreeVars::from(arg);
         self.substitute_impl(param, arg, &free_vars, &mut vars)
@@ -48,40 +47,57 @@ impl Expr {
         bound_vars: &mut BoundVars,
     ) -> Expr {
         match self {
-            Expr::Variable(id) => {
-                if &id == param {
-                    arg.clone()
-                } else {
-                    expr::v(id)
+            // param と同名の変数は arg に置き換える
+            Expr::Variable(ref id) if id == param => arg.clone(),
+
+            // さもなくば、そのまま返す
+            Expr::Variable(_) => self,
+
+            // シンボルは置換の対象にならない
+            Expr::Symbol(_) => self,
+
+            // 再帰的に置換を行う
+            Expr::Apply { lhs, rhs } => {
+                let lhs = lhs.substitute_impl(param, arg, free_vars, &mut bound_vars.clone());
+                let rhs = rhs.substitute_impl(param, arg, free_vars, &mut bound_vars.clone());
+                Expr::Apply {
+                    lhs: Box::new(lhs),
+                    rhs: Box::new(rhs),
                 }
             }
 
-            Expr::Symbol(_) => self,
+            // param と同名の引数を持つラムダ抽象は内部に自由変数としての param を持たない
+            // そのため即座に検索を打ち切って良い
+            Expr::Lambda {
+                param: ref p,
+                body: _,
+            } if p == param => self,
 
-            Expr::Apply { lhs, rhs } => Expr::Apply {
-                lhs: Box::new(lhs.substitute_impl(param, arg, free_vars, &mut bound_vars.clone())),
-                rhs: Box::new(rhs.substitute_impl(param, arg, free_vars, &mut bound_vars.clone())),
-            },
+            // arg の中の自由変数とラムダ抽象の引数 p が衝突する場合
+            // ラムダ抽象の引数 p を適切にリネームする必要がある (α変換)
+            // リネームしなければ引数としての p と自由変数としての p が区別できなくなってしまう
+            Expr::Lambda { param: p, body } if free_vars.contains(&p) => {
+                // p を適切にリネームする
+                // リネーム後の名前はどの束縛変数とも被ってはいけない
+                let new_param: Identifier =
+                    p.rename(&bound_vars.iter().map(|id| id.as_ref()).collect());
 
+                // body の中の全ての p をリネームした new_param に置き換える
+                let mut body = *body;
+                replace(&mut body, &p, &new_param);
+
+                bound_vars.insert(new_param.clone());
+                // 再起的に置換を行う
+                expr::l(
+                    new_param.clone(),
+                    body.substitute_impl(param, arg, free_vars, bound_vars),
+                )
+            }
+
+            // 上記以外の場合は素朴に再起的に置換を行う
             Expr::Lambda { param: p, body } => {
-                if &p == param {
-                    expr::l(p, *body)
-                } else if free_vars.contains(&p) {
-                    let new_param: Identifier =
-                        p.rename(&bound_vars.iter().map(|id| id.as_ref()).collect());
-                    bound_vars.insert(new_param.clone());
-
-                    let mut body = *body;
-                    replace(&mut body, &p, &new_param);
-
-                    expr::l(
-                        new_param.clone(),
-                        body.substitute_impl(param, arg, free_vars, bound_vars),
-                    )
-                } else {
-                    bound_vars.insert(p.clone());
-                    expr::l(p, body.substitute_impl(param, arg, free_vars, bound_vars))
-                }
+                bound_vars.insert(p.clone());
+                expr::l(p, body.substitute_impl(param, arg, free_vars, bound_vars))
             }
         }
     }
