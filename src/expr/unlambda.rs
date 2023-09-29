@@ -1,6 +1,10 @@
 use super::free_vars::FreeVars;
 use crate::expr::{self, Expr, Identifier};
 
+// TODO: ski 以外の出現を許さないバージョンの unlambda も必要
+// TODO: sk 以外の出現を許さないバージョンの unlambda も必要
+// TODO: ι 以外の出現を許さないバージョンの unlambda も必要
+
 pub fn unlambda(expr: Expr) -> Expr {
     match expr {
         Expr::Variable(_) => expr,

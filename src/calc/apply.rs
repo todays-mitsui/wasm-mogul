@@ -2,12 +2,18 @@ use crate::context::Context;
 use crate::expr::Expr;
 use anyhow::{anyhow, Result};
 
-pub fn apply(context: &Context, expr: Expr, args: Vec<Expr>) -> Result<Expr> {
+pub fn apply(context: &Context, expr: &mut Expr, args: Vec<Expr>) -> Result<()> {
     match expr {
-        Expr::Lambda { param, body } => Ok(body.substitute(&param, &args[0])),
+        Expr::Lambda { param, body } => {
+            body.substitute(param, &args[0]);
+            Ok(())
+        }
 
-        Expr::Variable(id) => match context.get(&id) {
-            Some(func) => Ok(func.apply(args)),
+        Expr::Variable(id) => match context.get(id) {
+            Some(func) => {
+                *expr = func.apply(args);
+                Ok(())
+            }
             None => Err(anyhow!("Undefined function: {}", id)),
         },
 

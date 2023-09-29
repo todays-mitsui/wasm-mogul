@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use super::bound_vars::BoundVars;
 use std::fmt::Display;
 
 /// ラムダ式や関数定義における識別子を表現する
@@ -10,26 +10,22 @@ impl Identifier {
         &self.0
     }
 
-    pub fn rename(&self, vars: &HashSet<&str>) -> Self {
+    pub fn rename(&self, vars: &BoundVars) -> Self {
         let base_name = self.0.to_uppercase();
 
-        if !contains(vars, &base_name) {
+        if !vars.contains(base_name.as_str()) {
             return Self(base_name);
         }
 
         let mut name = base_name.clone();
         let mut i = -1;
-        while contains(vars, &name) {
+        while vars.contains(name.as_str()) {
             i += 1;
             name = format!("{}{}", base_name, i);
         }
 
         return Self(name);
     }
-}
-
-fn contains(vars: &HashSet<&str>, name: &str) -> bool {
-    vars.iter().any(|id| *id == name)
 }
 
 // ========================================================================== //
@@ -66,7 +62,7 @@ mod tests {
 
     #[test]
     fn test_new_name() {
-        let mut set: HashSet<&str> = HashSet::new();
+        let mut set = BoundVars::new();
 
         set.insert("x");
         set.insert("X");

@@ -35,7 +35,7 @@ impl Func {
     pub fn apply(&self, args: Vec<Expr>) -> Expr {
         let mut body = self.body.clone();
         for (param, arg) in self.params.iter().zip(args) {
-            body = body.substitute(param, &arg);
+            body.substitute(param, &arg);
         }
         body
     }

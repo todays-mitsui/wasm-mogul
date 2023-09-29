@@ -1,3 +1,4 @@
+mod bound_vars;
 mod expression;
 mod free_vars;
 mod identifier;

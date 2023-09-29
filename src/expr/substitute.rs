@@ -1,8 +1,6 @@
+use super::bound_vars::BoundVars;
 use super::free_vars::FreeVars;
-use crate::expr::{self, Expr, Identifier};
-use std::collections::HashSet;
-
-type BoundVars = HashSet<Identifier>; // TODO: HashSet<&str> にしたい
+use crate::expr::{Expr, Identifier};
 
 impl Expr {
     /// 指定した識別子を別の式で置き換えた新しい式を得る
@@ -33,37 +31,35 @@ impl Expr {
     ///     expr::l("Y", expr::a("y", "Y"))
     /// );
     /// ```
-    pub fn substitute(self, param: &Identifier, arg: &Expr) -> Expr {
-        let mut vars: BoundVars = HashSet::new();
+    pub fn substitute(&mut self, param: &Identifier, arg: &Expr) {
+        let bound_vars = BoundVars::new();
         let free_vars = FreeVars::from(arg);
-        self.substitute_impl(param, arg, &free_vars, &mut vars)
+        self.substitute_impl(param, arg, &free_vars, bound_vars);
     }
 
-    fn substitute_impl(
-        self,
+    fn substitute_impl<'a>(
+        &'a mut self,
         param: &Identifier,
         arg: &Expr,
         free_vars: &FreeVars,
-        bound_vars: &mut BoundVars,
-    ) -> Expr {
+        mut bound_vars: BoundVars,
+    ) {
         match self {
             // param と同名の変数は arg に置き換える
-            Expr::Variable(ref id) if id == param => arg.clone(),
+            Expr::Variable(ref id) if id == param => {
+                *self = arg.clone();
+            }
 
             // さもなくば、そのまま返す
-            Expr::Variable(_) => self,
+            Expr::Variable(_) => {}
 
             // シンボルは置換の対象にならない
-            Expr::Symbol(_) => self,
+            Expr::Symbol(_) => {}
 
             // 再帰的に置換を行う
             Expr::Apply { lhs, rhs } => {
-                let lhs = lhs.substitute_impl(param, arg, free_vars, &mut bound_vars.clone());
-                let rhs = rhs.substitute_impl(param, arg, free_vars, &mut bound_vars.clone());
-                Expr::Apply {
-                    lhs: Box::new(lhs),
-                    rhs: Box::new(rhs),
-                }
+                lhs.substitute_impl(param, arg, free_vars, bound_vars.clone());
+                rhs.substitute_impl(param, arg, free_vars, bound_vars.clone());
             }
 
             // param と同名の引数を持つラムダ抽象は内部に自由変数としての param を持たない
@@ -71,33 +67,30 @@ impl Expr {
             Expr::Lambda {
                 param: ref p,
                 body: _,
-            } if p == param => self,
+            } if p == param => {}
 
             // arg の中の自由変数とラムダ抽象の引数 p が衝突する場合
             // ラムダ抽象の引数 p を適切にリネームする必要がある (α変換)
             // リネームしなければ引数としての p と自由変数としての p が区別できなくなってしまう
-            Expr::Lambda { param: p, body } if free_vars.contains(&p) => {
-                // p を適切にリネームする
-                // リネーム後の名前はどの束縛変数とも被ってはいけない
-                let new_param: Identifier =
-                    p.rename(&bound_vars.iter().map(|id| id.as_ref()).collect());
+            Expr::Lambda {
+                param: ref mut p,
+                body,
+            } => {
+                if free_vars.contains(p) {
+                    // p を適切にリネームする
+                    // リネーム後の名前はどの束縛変数とも被ってはいけない
+                    let new_p = p.rename(&bound_vars);
 
-                // body の中の全ての p をリネームした new_param に置き換える
-                let mut body = *body;
-                replace(&mut body, &p, &new_param);
+                    // body の中の全ての p をリネームした new_param に置き換える
+                    replace(body, p, &new_p);
 
-                bound_vars.insert(new_param.clone());
-                // 再起的に置換を行う
-                expr::l(
-                    new_param.clone(),
-                    body.substitute_impl(param, arg, free_vars, bound_vars),
-                )
-            }
+                    *p = new_p;
+                }
 
-            // 上記以外の場合は素朴に再起的に置換を行う
-            Expr::Lambda { param: p, body } => {
                 bound_vars.insert(p.clone());
-                expr::l(p, body.substitute_impl(param, arg, free_vars, bound_vars))
+
+                // 再帰的に置換を行う
+                body.substitute_impl(param, arg, free_vars, bound_vars);
             }
         }
     }
@@ -138,19 +131,21 @@ fn replace(expr: &mut Expr, old: &Identifier, new: &Identifier) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::expr;
 
     #[test]
     fn test_expr_substitute() {
         // ^z.x [x := y] => ^z.y
-        assert_eq!(
-            expr::l("z", "x").substitute(&"x".into(), &"y".into()),
-            expr::l("z", "y")
-        );
+        let mut e = expr::l("z", "x");
+        e.substitute(&"x".into(), &"y".into());
+        assert_eq!(e, expr::l("z", "y"));
 
         // ^Y.^y.`xY [x := y] => ^Y.^Y0.`yY
+        let mut e = expr::l("Y", expr::l("y", expr::a("x", "Y")));
+        e.substitute(&"x".into(), &"y".into());
         assert_eq!(
-            expr::l("Y", expr::l("y", expr::a("x", "Y"))).substitute(&"x".into(), &"y".into()),
-            expr::l("Y", expr::l("Y0", expr::a("y", "Y")))
+            e.to_string(),
+            expr::l("Y", expr::l("Y0", expr::a("y", "Y"))).to_string()
         );
     }
 
