@@ -143,10 +143,7 @@ mod tests {
         // ^Y.^y.`xY [x := y] => ^Y.^Y0.`yY
         let mut e = expr::l("Y", expr::l("y", expr::a("x", "Y")));
         e.substitute(&"x".into(), &"y".into());
-        assert_eq!(
-            e.to_string(),
-            expr::l("Y", expr::l("Y0", expr::a("y", "Y"))).to_string()
-        );
+        assert_eq!(e, expr::l("Y", expr::l("Y0", expr::a("y", "Y"))));
     }
 
     #[test]

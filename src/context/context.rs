@@ -9,6 +9,10 @@ use std::collections::HashMap;
 pub struct Context(HashMap<Identifier, Func>);
 
 impl Context {
+    pub fn new() -> Self {
+        Self(HashMap::new())
+    }
+
     pub fn get(&self, id: &Identifier) -> Option<&Func> {
         self.0.get(id)
     }
@@ -34,7 +38,7 @@ impl From<Vec<Func>> for Context {
         for func in v {
             context.insert(func.name().into(), func);
         }
-        Context(context)
+        Self(context)
     }
 }
 
