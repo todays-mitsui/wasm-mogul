@@ -8,14 +8,14 @@ pub struct EvalSteps<'a> {
     expr: Expr,
     stack: Stack<'a>,
     context: &'a Context,
-    step: Step,
+    next_step: NextStep,
 }
 
 /// 簡約のステップ
 /// 最左最外簡約を行うために LeftTree → RightTree の順に簡約を試みる
 /// 式全体を簡約し終えて正規形を得たら Done となる、それ以上簡約するべきものは何も無い
 #[derive(Debug, Clone, PartialEq)]
-enum Step {
+enum NextStep {
     LeftTree,
     RightTree(usize),
     Done,
@@ -27,7 +27,7 @@ impl EvalSteps<'_> {
             expr,
             stack: Stack::new(),
             context,
-            step: Step::LeftTree,
+            next_step: NextStep::LeftTree,
         }
     }
 
@@ -62,19 +62,19 @@ impl EvalSteps<'_> {
 }
 
 impl Iterator for EvalSteps<'_> {
-    type Item = Expr;
+    type Item = EvalStep;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.step {
-            Step::LeftTree => self.left_tree(),
-            Step::RightTree(n) => self.right_tree(n),
-            Step::Done => None,
+        match self.next_step {
+            NextStep::LeftTree => self.left_tree(),
+            NextStep::RightTree(n) => self.right_tree(n),
+            NextStep::Done => None,
         }
     }
 }
 
 impl EvalSteps<'_> {
-    fn left_tree(&mut self) -> Option<Expr> {
+    fn left_tree(&mut self) -> Option<EvalStep> {
         while let Expr::Apply { lhs, rhs } = self.expr.clone() {
             self.expr = *lhs;
             self.stack.push(EvalSteps::new(*rhs, self.context));
@@ -92,34 +92,40 @@ impl EvalSteps<'_> {
             );
             assert!(result.is_ok());
 
-            Some(self.expr())
+            Some(EvalStep { expr: self.expr() })
         } else {
-            self.step = Step::RightTree(0);
+            self.next_step = NextStep::RightTree(0);
 
             self.next()
         }
     }
 
-    fn right_tree(&mut self, n: usize) -> Option<Expr> {
+    fn right_tree(&mut self, n: usize) -> Option<EvalStep> {
         match self.stack.nth(n) {
             // スタックの n 番目の枝を取得し、その枝の簡約を試みる
             Some(step) => match step.next() {
-                Some(_) => Some(self.expr()),
+                Some(_) => Some(EvalStep { expr: self.expr() }),
 
                 // n 番目の枝が簡約済みなら、n+1 番目の枝へ進む
                 None => {
-                    self.step = Step::RightTree(n + 1);
+                    self.next_step = NextStep::RightTree(n + 1);
                     self.next()
                 }
             },
 
             // n がスタックの長さを超えているなら、もう簡約するべきものは何も無い
             None => {
-                self.step = Step::Done;
+                self.next_step = NextStep::Done;
                 self.next()
             }
         }
     }
+}
+
+#[derive(Debug, PartialEq)]
+struct EvalStep {
+    expr: Expr,
+    // ここに「次のステップでの簡約位置」などのメタ情報を持たせる想定
 }
 
 // ========================================================================== //
@@ -198,11 +204,8 @@ mod tests {
 
         let mut steps = EvalSteps::new(expr, &context);
 
-        assert_eq!(
-            steps.next().map(|e| e.to_string()),
-            Some(expr::s("a")).map(|e| e.to_string())
-        );
-        assert_eq!(steps.next().map(|e| e.to_string()), None);
+        assert_eq!(steps.next().map(|step| step.expr), Some(expr::s("a")));
+        assert_eq!(steps.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -214,8 +217,8 @@ mod tests {
 
         let mut steps = EvalSteps::new(expr, &context);
 
-        assert_eq!(steps.next(), Some(expr::l("y", ":a")));
-        assert_eq!(steps.next(), None);
+        assert_eq!(steps.next().map(|step| step.expr), Some(expr::l("y", ":a")));
+        assert_eq!(steps.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -227,9 +230,12 @@ mod tests {
 
         let mut steps = EvalSteps::new(expr, &context);
 
-        assert_eq!(steps.next(), Some(expr::a(expr::l("y", ":a"), ":b")));
-        assert_eq!(steps.next(), Some(":a".into()));
-        assert_eq!(steps.next(), None);
+        assert_eq!(
+            steps.next().map(|step| step.expr),
+            Some(expr::a(expr::l("y", ":a"), ":b"))
+        );
+        assert_eq!(steps.next().map(|step| step.expr), Some(":a".into()));
+        assert_eq!(steps.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -240,7 +246,7 @@ mod tests {
 
         let mut steps = EvalSteps::new(expr, &context);
 
-        assert_eq!(steps.next(), None);
+        assert_eq!(steps.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -251,7 +257,7 @@ mod tests {
 
         let mut steps = EvalSteps::new(expr, &context);
 
-        assert_eq!(steps.next(), None);
+        assert_eq!(steps.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -263,12 +269,12 @@ mod tests {
         let mut steps = EvalSteps::new(expr, &context);
 
         assert_eq!(
-            steps.next(),
+            steps.next().map(|step| step.expr),
             Some(expr::a(expr::a(expr::a("k", "i"), ":a"), ":b"))
         );
-        assert_eq!(steps.next(), Some(expr::a("i", ":b")));
-        assert_eq!(steps.next(), Some(":b".into()));
-        assert_eq!(steps.next(), None);
+        assert_eq!(steps.next().map(|step| step.expr), Some(expr::a("i", ":b")));
+        assert_eq!(steps.next().map(|step| step.expr), Some(":b".into()));
+        assert_eq!(steps.next().map(|step| step.expr), None);
     }
 
     #[test]
