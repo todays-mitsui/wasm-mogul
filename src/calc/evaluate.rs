@@ -31,24 +31,24 @@ impl EvalSteps<'_> {
         }
     }
 
-    pub fn eval_last(&mut self, limit: usize) -> (Option<Expr>, bool) {
-        assert!(0 < limit);
+    // pub fn eval_last(&mut self, limit: usize) -> (Option<Expr>, bool) {
+    //     assert!(0 < limit);
 
-        if let Some(mut e) = self.next() {
-            for _ in 0..limit - 1 {
-                if let Some(next) = self.next() {
-                    e = next;
-                } else {
-                    return (Some(e), false);
-                }
-            }
+    //     if let Some(mut e) = self.next() {
+    //         for _ in 0..limit - 1 {
+    //             if let Some(next) = self.next() {
+    //                 e = next;
+    //             } else {
+    //                 return (Some(e), false);
+    //             }
+    //         }
 
-            // TODO: ここの true は嘘をつくことがある、peekable で先読みして正しい結果を返すように変える
-            (Some(e), true)
-        } else {
-            (None, false)
-        }
-    }
+    //         // TODO: ここの true は嘘をつくことがある、peekable で先読みして正しい結果を返すように変える
+    //         (Some(e), true)
+    //     } else {
+    //         (None, false)
+    //     }
+    // }
 
     fn expr(&self) -> Expr {
         let mut expr = self.expr.clone();
@@ -123,7 +123,7 @@ impl EvalSteps<'_> {
 }
 
 #[derive(Debug, PartialEq)]
-struct EvalStep {
+pub struct EvalStep {
     expr: Expr,
     // ここに「次のステップでの簡約位置」などのメタ情報を持たせる想定
 }
