@@ -8,7 +8,8 @@ mod func;
 mod parser;
 mod to_string;
 
-use calc::unlambda_shallow;
+use calc::{unlambda_shallow, Eval, EvalStep};
+use context::Context;
 use parser::parse_expr;
 use wasm_bindgen::prelude::*;
 
@@ -24,16 +25,20 @@ pub fn unlambda(src: &str) {
     log!("{}", unlambda_shallow(expr));
 }
 
+#[wasm_bindgen]
+pub fn eval_(src: &str) {
+    let expr = parse_expr(src).expect("parse error");
+    let context = Context::default();
+
+    let eval = Eval::new(expr, &context);
+
+    for EvalStep { expr } in eval.take(1000) {
+        log!("{}", expr);
+    }
+}
+
 #[wasm_bindgen(start)]
 pub fn main_js() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
-
-    let e = expr::l("x", expr::a("x", ":y"));
-    log!("{:}", e);
-
-    let i = "i".to_string();
-    let f = func::new(i, vec!["x"], "x");
-    log!("{:}", f);
-
     Ok(())
 }

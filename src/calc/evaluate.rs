@@ -125,7 +125,7 @@ impl Eval<'_> {
 
 #[derive(Debug, PartialEq)]
 pub struct EvalStep {
-    expr: Expr,
+    pub expr: Expr,
     // ここに「次のステップでの簡約位置」などのメタ情報を持たせる想定
 }
 

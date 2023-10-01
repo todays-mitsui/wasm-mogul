@@ -3,6 +3,7 @@ mod arity;
 mod evaluate;
 mod unlambda;
 
+pub use evaluate::{Eval, EvalStep};
 pub use unlambda::{
     unlambda_iota, unlambda_recursive, unlambda_recursive_, unlambda_shallow, unlambda_shallow_,
     RecursiveStrategy, ShallowStrategy,

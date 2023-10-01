@@ -86,7 +86,7 @@ fn to_string(tokens: &mut Vec<Token>) -> String {
 }
 
 fn is_upper_ident(s: &str) -> bool {
-    let regex_upper_ident: Regex = Regex::new(r"^[A-Z_]+$").unwrap();
+    let regex_upper_ident: Regex = Regex::new(r"^[A-Z0-9_]+$").unwrap();
     regex_upper_ident.is_match(s)
 }
 
