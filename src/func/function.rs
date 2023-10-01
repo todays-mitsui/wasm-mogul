@@ -1,5 +1,4 @@
-use crate::expr::Expr;
-use crate::expr::Identifier;
+use crate::expr::{self, Expr, Identifier};
 
 /// 定義済み関数を表現する
 ///
@@ -51,6 +50,16 @@ where
         name: name.into(),
         params: params.into_iter().map(|i| i.into()).collect(),
         body: body.into(),
+    }
+}
+
+impl From<Func> for Expr {
+    fn from(f: Func) -> Expr {
+        let mut expr = f.body;
+        for param in f.params.into_iter().rev() {
+            expr = expr::l(param, expr);
+        }
+        expr
     }
 }
 
