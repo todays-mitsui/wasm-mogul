@@ -1,15 +1,29 @@
+mod command;
 mod expression;
 
+use crate::command::Command;
 use crate::expr::Expr;
+use anyhow::{anyhow, Result};
 use combine::EasyParser;
+pub use command::command;
 pub use expression::expr;
 
-pub fn parse_expr(s: &str) -> Result<Expr, String> {
-    let (expr, rest) = expr().easy_parse(s).map_err(|e| format!("{:#?}", e))?;
+pub fn parse_expr(s: &str) -> Result<Expr> {
+    let (expr, rest) = expr().easy_parse(s).map_err(|e| anyhow!("{}", e))?;
 
     if rest.is_empty() {
         Ok(expr)
     } else {
-        Err(format!("unexpected token: {}", rest))
+        Err(anyhow!("unexpected token: {}", rest))
+    }
+}
+
+pub fn parse_command(s: &str) -> Result<Command> {
+    let (command, rest) = command().easy_parse(s).map_err(|e| anyhow!("{}", e))?;
+
+    if rest.is_empty() {
+        Ok(command)
+    } else {
+        Err(anyhow!("unexpected token: {}", rest))
     }
 }
