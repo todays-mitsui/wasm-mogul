@@ -1,0 +1,24 @@
+@charset "UTF-8";
+
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
+#container {
+  height: 600px;
+  padding: 8px;
+  overflow: scroll;
+  border: 1px solid #333;
+  font-family: monospace;
+}
+
+#form {
+  display: flex;
+  margin-top: 8px;
+  gap: 8px;
+}
+
+#form input {
+  flex-grow: 1;
+  font-family: monospace;
+}

@@ -1,11 +1,11 @@
 import("../pkg/index.js")
   .then(module => {
     console.log({
-      eval_: module.eval_,
+      lambda_calculus: module.lambda_calculus,
       parse: module.parse,
       unlambda: module.unlambda,
     });
-    globalThis.eval_ = module.eval_;
+    globalThis.lambda_calculus = module.lambda_calculus;
     globalThis.parse = module.parse;
     globalThis.unlambda = module.unlambda;
   })
