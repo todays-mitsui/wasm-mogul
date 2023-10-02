@@ -40,7 +40,10 @@ jobs:
         # ./dist にビルドされたファイル一式が配置される
         run: npm run build
       - name: Build doc
-        run: cargo doc --no-deps --target-dir ./dist/doc/
+        # ./target/doc にビルドされたドキュメントが配置される、その後 ./dist/doc に移動
+        run: |
+          cargo doc --no-deps
+          mv ./target/doc ./dist/doc
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload dist
