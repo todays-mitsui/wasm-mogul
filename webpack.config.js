@@ -11,18 +11,31 @@ module.exports = {
   },
   output: {
     path: dist,
-    filename: "[name].js"
+    filename: "[name].js",
   },
   devServer: {
-    contentBase: dist,
+    static: {
+      directory: dist,
+    },
   },
   plugins: [
-    new CopyPlugin([
-      path.resolve(__dirname, "static")
-    ]),
+    new CopyPlugin({
+      patterns: [
+        { from: path.resolve(__dirname, "static"), to: dist },
+      ],
+    }),
 
     new WasmPackPlugin({
       crateDirectory: __dirname,
     }),
-  ]
+  ],
+  experiments: {
+    asyncWebAssembly: true,
+  },
+  devtool: 'source-map',
+  performance: {
+    assetFilter: function (assetFilename) {
+      return !/\.(map|wasm)$/.test(assetFilename);
+    },
+  },
 };
