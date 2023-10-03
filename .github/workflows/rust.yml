@@ -49,7 +49,7 @@ jobs:
           cargo doc --no-deps
           echo "<meta http-equiv=\"refresh\" content=\"0; url=wasm_tuber\">" > target/doc/index.html
           mv ./target/doc ./dist/doc
-      - name: Fix permissions
+      - name: Fix Permissions
         run: |
           chmod -c -R +rX "dist/" | while read line; do
             echo "::warning title=Invalid file permissions automatically fixed::$line"
