@@ -1,4 +1,4 @@
-name: Rust
+name: Deploy to GitHub Pages
 
 on:
   push:
