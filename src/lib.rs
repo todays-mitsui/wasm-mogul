@@ -34,18 +34,23 @@ pub fn lambda_calculus(src: &str) {
 
     let expr = parse_expr_with_ecmascript_style(src).expect("parse error");
 
-    let p = document.create_element("p").unwrap();
-    p.set_text_content(Some(ECMAScriptStyle(&expr).to_string().as_str()));
-    container.append_child(&p).unwrap();
+    let ol = document.create_element("ol").unwrap();
+    ol.set_attribute("start", "0").unwrap();
+
+    let li = document.create_element("li").unwrap();
+    li.set_text_content(Some(ECMAScriptStyle(&expr).to_string().as_str()));
+    ol.append_child(&li).unwrap();
 
     let context = Context::default();
     let eval = Eval::new(expr, &context);
 
+    container.append_child(&ol).unwrap();
+
     for EvalStep { expr } in eval.take(1000) {
         log!("{}", ECMAScriptStyle(&expr));
-        let p = document.create_element("p").unwrap();
-        p.set_text_content(Some(ECMAScriptStyle(&expr).to_string().as_str()));
-        container.append_child(&p).unwrap();
+        let li = document.create_element("li").unwrap();
+        li.set_text_content(Some(ECMAScriptStyle(&expr).to_string().as_str()));
+        ol.append_child(&li).unwrap();
     }
 }
 
