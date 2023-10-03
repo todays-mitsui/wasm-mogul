@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Lambda Calculus</title>
+    <title>SKI Mogul - Lambda Calculus</title>
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
@@ -11,10 +11,14 @@
       <input
         type="text"
         id="src"
+        placeholder="ラムダ式を入力, ex: IS_ZERO(SUB(6, ADD(2, 3)))"
         value="EQ(SUB(MUL(3, 5), 7), 8)"
         autofocus
       >
-      <button id="submit">run</button>
+      <button
+        id="submit"
+        title="式を評価"
+      >Run</button>
     </form>
     <script src="index.js"></script>
     <script src="main.js"></script>
