@@ -66,6 +66,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      - name: 😴 for 10 seconds
+        uses: jakejarvis/wait-action@master
+        with:
+          time: "10s"
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v2
