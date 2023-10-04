@@ -10,8 +10,9 @@ mod to_string;
 
 use calc::{unlambda_shallow, Eval, EvalStep};
 use context::Context;
-use parser::{parse_expr, parse_expr_with_ecmascript_style};
-use to_string::ECMAScriptStyle;
+use js_sys;
+use parser::{parse_expr, parse_expr_with_ecmascript_style, parse_expr_with_lazy_k_style};
+use to_string::{ECMAScriptStyle, LazyKStyle};
 use wasm_bindgen::prelude::*;
 use web_sys::{Document, Event};
 
@@ -28,30 +29,50 @@ pub fn unlambda(src: &str) {
 }
 
 #[wasm_bindgen]
-pub fn lambda_calculus(src: &str) {
-    let document = browser::document().unwrap();
-    let container = browser::container().unwrap();
+#[derive(Copy, Clone, Debug)]
+pub enum Style {
+    ECMAScript = "ECMAScript",
+    LazyK = "Lazy_K",
+}
 
-    let expr = parse_expr_with_ecmascript_style(src).expect("parse error");
+#[wasm_bindgen(getter_with_clone)]
+pub struct CalcResult {
+    pub expr: String,
+    pub steps: Box<[JsValue]>,
+}
 
-    let ol = document.create_element("ol").unwrap();
-    ol.set_attribute("start", "0").unwrap();
-
-    let li = document.create_element("li").unwrap();
-    li.set_text_content(Some(ECMAScriptStyle(&expr).to_string().as_str()));
-    ol.append_child(&li).unwrap();
+#[wasm_bindgen]
+pub fn lambda_calculus(src: &str, style: Style) -> CalcResult {
+    let expr = match style {
+        Style::ECMAScript => parse_expr_with_ecmascript_style(src).expect("parse error"),
+        Style::LazyK => parse_expr_with_lazy_k_style(src).expect("parse error"),
+        _ => unreachable!(),
+    };
 
     let context = Context::default();
-    let eval = Eval::new(expr, &context);
+    let eval = Eval::new(expr.clone(), &context);
 
-    container.append_child(&ol).unwrap();
+    let steps: Box<[JsValue]> = eval
+        .take(1000)
+        .map(|EvalStep { expr }| {
+            match style {
+                Style::ECMAScript => ECMAScriptStyle(&expr).to_string(),
+                Style::LazyK => LazyKStyle(&expr).to_string(),
+                _ => unreachable!(),
+            }
+            .into()
+        })
+        .collect::<Vec<_>>()
+        .into_boxed_slice();
 
-    for EvalStep { expr } in eval.take(1000) {
-        log!("{}", ECMAScriptStyle(&expr));
-        let li = document.create_element("li").unwrap();
-        li.set_text_content(Some(ECMAScriptStyle(&expr).to_string().as_str()));
-        ol.append_child(&li).unwrap();
-    }
+    return CalcResult {
+        expr: match style {
+            Style::ECMAScript => ECMAScriptStyle(&expr).to_string(),
+            Style::LazyK => LazyKStyle(&expr).to_string(),
+            _ => unreachable!(),
+        },
+        steps,
+    };
 }
 
 #[wasm_bindgen(start)]
