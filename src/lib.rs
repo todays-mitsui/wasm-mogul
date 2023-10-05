@@ -8,25 +8,11 @@ mod func;
 mod parser;
 mod to_string;
 
-use calc::{unlambda_shallow, Eval, EvalStep};
+use calc::{Eval, EvalStep};
 use context::Context;
-use js_sys;
-use parser::{parse_expr, parse_expr_with_ecmascript_style, parse_expr_with_lazy_k_style};
+use parser::{parse_expr_with_ecmascript_style, parse_expr_with_lazy_k_style};
 use to_string::{ECMAScriptStyle, LazyKStyle};
 use wasm_bindgen::prelude::*;
-use web_sys::{Document, Event};
-
-#[wasm_bindgen]
-pub fn parse(src: &str) {
-    let result = parse_expr(src);
-    log!("{:?}", result);
-}
-
-#[wasm_bindgen]
-pub fn unlambda(src: &str) {
-    let expr = parse_expr(src).expect("parse error");
-    log!("{}", unlambda_shallow(expr));
-}
 
 #[wasm_bindgen]
 #[derive(Copy, Clone, Debug)]
