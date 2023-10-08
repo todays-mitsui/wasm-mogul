@@ -30,54 +30,56 @@ body {
   background-color: #fafafabb;
 }
 
+#container li {
+  position: relative;
+  margin: .6em 0;
+}
+
 #container ol {
   margin: 0;
   padding-inline-start: 32px;
 }
-
-#container li::marker {
+#container ol li::marker {
   color: transparent;
   font-size: 60%;
 }
-#container li:nth-child(1)::marker,
-#container li:nth-child(2)::marker,
-#container li:nth-child(3)::marker,
-#container li:nth-child(4)::marker,
-#container li:nth-child(5)::marker,
-#container li:nth-child(6)::marker,
-#container li:nth-child(7)::marker,
-#container li:nth-child(8)::marker,
-#container li:nth-child(9)::marker,
-#container li:nth-child(10)::marker,
-#container li:nth-child(11)::marker,
-#container li:nth-child(12)::marker,
-#container li:nth-child(13)::marker,
-#container li:nth-child(14)::marker,
-#container li:nth-child(15)::marker,
-#container li:nth-child(16)::marker,
-#container li:nth-child(17)::marker,
-#container li:nth-child(18)::marker,
-#container li:nth-child(19)::marker,
-#container li:nth-child(20)::marker,
-#container li:nth-child(10n+1)::marker,
-#container li:last-child::marker {
+#container ol li:nth-child(1)::marker,
+#container ol li:nth-child(2)::marker,
+#container ol li:nth-child(3)::marker,
+#container ol li:nth-child(4)::marker,
+#container ol li:nth-child(5)::marker,
+#container ol li:nth-child(6)::marker,
+#container ol li:nth-child(7)::marker,
+#container ol li:nth-child(8)::marker,
+#container ol li:nth-child(9)::marker,
+#container ol li:nth-child(10)::marker,
+#container ol li:nth-child(11)::marker,
+#container ol li:nth-child(12)::marker,
+#container ol li:nth-child(13)::marker,
+#container ol li:nth-child(14)::marker,
+#container ol li:nth-child(15)::marker,
+#container ol li:nth-child(16)::marker,
+#container ol li:nth-child(17)::marker,
+#container ol li:nth-child(18)::marker,
+#container ol li:nth-child(19)::marker,
+#container ol li:nth-child(20)::marker,
+#container ol li:nth-child(10n+1)::marker,
+#container ol li:last-child::marker {
   color: #666;
 }
-
-#container li:not(:first-child) {
+#container ol li:not(:first-child) {
   padding-left: 1.3em;
 }
-
-#container li {
-  position: relative;
-  margin: .8em 0;
-}
-#container li:not(:first-child)::after {
+#container ol li:not(:first-child)::before {
   content: "→";
   color: #666;
   position: absolute;
   left: 0;
   top: 0;
+}
+
+#container ul {
+  list-style: none;
 }
 
 #form {
