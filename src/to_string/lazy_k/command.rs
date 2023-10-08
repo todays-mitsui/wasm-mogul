@@ -1,5 +1,5 @@
-use super::super::style::LazyKStyle;
-use crate::command::Command;
+use crate::engine::Command;
+use crate::style::LazyKStyle;
 use std::fmt::Display;
 
 impl Display for LazyKStyle<'_, Command> {
@@ -12,7 +12,7 @@ impl Display for LazyKStyle<'_, Command> {
             Command::EvalLast(e) => write!(f, "! {}", e),
             Command::EvalHead(len, e) => write!(f, "!{} {}", len, LazyKStyle(e)),
             Command::EvalTail(len, e) => write!(f, "!-{} {}", len, LazyKStyle(e)),
-            Command::Info(i) => write!(f, "? {}", i),
+            Command::Search(i) => write!(f, "? {}", i),
             Command::Global => write!(f, "?"),
             Command::Unlambda(e) => write!(f, "?? {}", LazyKStyle(e)),
         }
@@ -29,7 +29,7 @@ impl Display for LazyKStyle<'_, &Command> {
             Command::EvalLast(e) => write!(f, "! {}", e),
             Command::EvalHead(len, e) => write!(f, "!{} {}", len, LazyKStyle(e)),
             Command::EvalTail(len, e) => write!(f, "!-{} {}", len, LazyKStyle(e)),
-            Command::Info(i) => write!(f, "? {}", i),
+            Command::Search(i) => write!(f, "? {}", i),
             Command::Global => write!(f, "?"),
             Command::Unlambda(e) => write!(f, "?? {}", LazyKStyle(e)),
         }
@@ -40,7 +40,7 @@ impl Display for LazyKStyle<'_, &Command> {
 
 #[cfg(test)]
 mod tests {
-    use crate::command;
+    use crate::engine::command;
     use crate::expr;
     use crate::func;
 
@@ -117,8 +117,8 @@ mod tests {
     }
 
     #[test]
-    fn test_info() {
-        assert_eq!(command::info("i").to_string(), "? i");
+    fn test_search() {
+        assert_eq!(command::search("i").to_string(), "? i");
     }
 
     #[test]

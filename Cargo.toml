@@ -26,6 +26,8 @@ console_error_panic_hook = "0.1.7"
 anyhow = "1.0"
 combine = "4.6.6"
 regex = "1.9.1"
+serde = { version = "1.0.188", features = ["derive"] }
+serde-wasm-bindgen = "0.6.0"
 
 wee_alloc = { version = "0.4.2", optional = true }
 

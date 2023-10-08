@@ -1,5 +1,5 @@
-use super::super::style::ECMAScriptStyle;
 use crate::func::Func;
+use crate::style::ECMAScriptStyle;
 use std::fmt::Display;
 
 impl Display for ECMAScriptStyle<'_, Func> {

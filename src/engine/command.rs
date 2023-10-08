@@ -11,7 +11,7 @@ pub enum Command {
     EvalLast(Expr),        // β変結果のみ表示
     EvalHead(usize, Expr), // β変換列の先頭のみ表示
     EvalTail(usize, Expr), // β変換列の末尾のみ表示
-    Info(Identifier),      // Global から定義済み関数を検索
+    Search(Identifier),    // Global から定義済み関数を検索
     Global,                // Global 全体を表示
     Unlambda(Expr),        // Expr からラムダ抽象を除去する
 }
@@ -40,8 +40,8 @@ pub fn eval_tail<E: Into<Expr>>(n: usize, expr: E) -> Command {
     Command::EvalTail(n, expr.into())
 }
 
-pub fn info<Id: Into<Identifier>>(id: Id) -> Command {
-    Command::Info(id.into())
+pub fn search<Id: Into<Identifier>>(id: Id) -> Command {
+    Command::Search(id.into())
 }
 
 pub fn global() -> Command {
