@@ -16,8 +16,9 @@ use engine::Engine;
 use engine::Output;
 use parser::{parse_command, parse_expr};
 use serde::Serialize;
+use std::fmt::Display;
 pub use style::Style;
-use style::{ECMAScriptStyle, LazyKStyle};
+use style::{ECMAScriptStyle, Factor, LazyKStyle};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(getter_with_clone)]
@@ -35,7 +36,7 @@ pub fn lambda_calculus(input: &str, style: Style) -> JsValue {
     let mut engine = Engine::new(context);
     let output = engine.run(command);
 
-    serde_wasm_bindgen::to_value(&JsOutput::from(output)).unwrap()
+    serde_wasm_bindgen::to_value(&JsOutput::from((&style, output))).unwrap()
 }
 
 #[wasm_bindgen(start)]
@@ -75,8 +76,25 @@ pub enum JsOutput {
     },
 }
 
-impl From<Output> for JsOutput {
-    fn from(output: Output) -> Self {
+impl From<(&Style, Output)> for JsOutput {
+    fn from((style, output): (&Style, Output)) -> Self {
+        let expr_to_string = |expr| {
+            let _: &crate::expr::Expr = expr;
+            match style {
+                Style::ECMAScript => ECMAScriptStyle(expr).to_string(),
+                Style::LazyK => LazyKStyle(expr).to_string(),
+                _ => unreachable!(),
+            }
+        };
+        let func_to_string = |func| {
+            let _: &crate::func::Func = func;
+            match style {
+                Style::ECMAScript => ECMAScriptStyle(func).to_string(),
+                Style::LazyK => LazyKStyle(func).to_string(),
+                _ => unreachable!(),
+            }
+        };
+
         match output {
             Output::Del {
                 input: id,
@@ -86,38 +104,41 @@ impl From<Output> for JsOutput {
                 result: context
                     .to_vec()
                     .iter()
-                    .map(|func| func.to_string())
+                    .map(|func| func_to_string(func))
                     .collect(),
             },
             Output::Update {
                 input: func,
                 result: context,
             } => Self::Update {
-                input: func.to_string(),
+                input: func_to_string(&func),
                 result: context
                     .to_vec()
                     .iter()
-                    .map(|func| func.to_string())
+                    .map(|func| func_to_string(func))
                     .collect(),
             },
             Output::Eval { input: expr, steps } => Self::Eval {
-                input: expr.to_string(),
-                steps: steps.into_iter().map(JsEvalStep::from).collect(),
+                input: expr_to_string(&expr),
+                steps: steps
+                    .into_iter()
+                    .map(|expr| JsEvalStep::from((style, expr)))
+                    .collect(),
             },
             Output::Search { input: id, result } => Self::Search {
                 input: id.to_string(),
-                result: result.map(|func| func.to_string()),
+                result: result.as_ref().map(|func| func_to_string(func)),
             },
             Output::Global { result: context } => Self::Global {
                 result: context
                     .to_vec()
                     .iter()
-                    .map(|func| func.to_string())
+                    .map(|func| func_to_string(func))
                     .collect(),
             },
             Output::Unlambda { input, result } => Self::Unlambda {
-                input: input.to_string(),
-                result: result.to_string(),
+                input: expr_to_string(&input),
+                result: expr_to_string(&result),
             },
         }
     }
@@ -128,10 +149,14 @@ pub struct JsEvalStep {
     expr: String, // Expr
 }
 
-impl From<EvalStep> for JsEvalStep {
-    fn from(EvalStep { expr }: EvalStep) -> Self {
+impl From<(&Style, EvalStep)> for JsEvalStep {
+    fn from((style, EvalStep { expr }): (&Style, EvalStep)) -> Self {
         Self {
-            expr: LazyKStyle(&expr).to_string(),
+            expr: match style {
+                Style::ECMAScript => ECMAScriptStyle(&expr).to_string(),
+                Style::LazyK => LazyKStyle(&expr).to_string(),
+                _ => unreachable!(),
+            },
         }
     }
 }
