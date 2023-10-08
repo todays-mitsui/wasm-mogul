@@ -1,3 +1,5 @@
+import { appendOl, appendUl } from './append.js';
+
 async function main() {
   const form = document.getElementById('form');
   const input = document.getElementById('src');
@@ -20,6 +22,8 @@ async function main() {
  */
 function onSubmit(module, input, container) {
   const src = input.value;
+  if (!src.trim()) { return; }  // 何も入力されていないなら何もしない
+
   input.value = '';
   const output = module.lambda_calculus(src, 'ECMAScript');
 
@@ -38,86 +42,33 @@ function showOutput(container, output) {
     case 'Del': {
       const { input: id, result: context } = output;
       console.log({ id, context });
-
-      const ol = document.createElement('ol');
-      ol.setAttribute('start', '0');
-      container.appendChild(ol);
-
-      const li = document.createElement('li');
-      li.textContent = `${id} = ${id}`;
-      ol.appendChild(li);
+      appendOl(container, [`${id} = ${id}`]);
     } break;
 
     case 'Update': {
       const { input: func } = output;
-
-      const ol = document.createElement('ol');
-      ol.setAttribute('start', '0');
-      container.appendChild(ol);
-
-      const li = document.createElement('li');
-      li.textContent = func;
-      ol.appendChild(li);
+      appendOl(container, [func]);
     } break;
 
     case 'Eval': {
       const { input: expr, steps } = output;
-
-      const ol = document.createElement('ol');
-      ol.setAttribute('start', '0');
-      container.appendChild(ol);
-
-      const li = document.createElement('li');
-      li.textContent = expr;
-      ol.appendChild(li);
-
-      for (const { expr } of steps) {
-        const li = document.createElement('li');
-        li.textContent = expr;
-        ol.appendChild(li);
-      }
+      appendOl(container, [expr, ...steps.map(({ expr }) => expr)]);
     } break;
 
     case 'Search': {
       const { input: id, result: func } = output;
-
-      const ol = document.createElement('ol');
-      ol.setAttribute('start', '0');
-      container.appendChild(ol);
-
-      const li = document.createElement('li');
-      li.textContent = func == null
-        ? `${id} = ${id}`
-        : func;
-      ol.appendChild(li);
+      appendOl(container, [func == null ? `${id} = ${id}` : func]);
     } break;
 
     case 'Global': {
       const { result: context } = output;
       console.log({ context });
-
-      const ol = document.createElement('ol');
-      ol.setAttribute('start', '0');
-      container.appendChild(ol);
-
-      for (const func of context) {
-        const li = document.createElement('li');
-        li.textContent = func;
-        ol.appendChild(li);
-      }
+      appendUl(container, context);
     } break;
 
     case 'Unlambda': {
       const { input, result } = output;
-
-      const ol = document.createElement('ol');
-      ol.setAttribute('start', '0');
-      container.appendChild(ol);
-
-      const li = document.createElement('li');
-      li.textContent = `${input} == ${result}`;
-      ol.appendChild(li);
-
+      appendOl(container, [`${input} == ${result}`]);
     } break;
   }
 }
