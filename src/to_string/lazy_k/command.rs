@@ -14,7 +14,9 @@ impl Display for LazyKStyle<'_, Command> {
             Command::EvalTail(len, e) => write!(f, "!-{} {}", len, LazyKStyle(e)),
             Command::Search(i) => write!(f, "? {}", i),
             Command::Global => write!(f, "?"),
-            Command::Unlambda(e) => write!(f, "?? {}", LazyKStyle(e)),
+            Command::Unlambda(level, e) => {
+                write!(f, "{} {}", "~".repeat((*level).into()), LazyKStyle(e))
+            }
         }
     }
 }
@@ -31,7 +33,9 @@ impl Display for LazyKStyle<'_, &Command> {
             Command::EvalTail(len, e) => write!(f, "!-{} {}", len, LazyKStyle(e)),
             Command::Search(i) => write!(f, "? {}", i),
             Command::Global => write!(f, "?"),
-            Command::Unlambda(e) => write!(f, "?? {}", LazyKStyle(e)),
+            Command::Unlambda(level, e) => {
+                write!(f, "{} {}", "~".repeat((*level).into()), LazyKStyle(e))
+            }
         }
     }
 }

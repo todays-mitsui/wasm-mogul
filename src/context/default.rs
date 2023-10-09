@@ -12,6 +12,23 @@ impl Default for Context {
                 vec!["x", "y", "z"],
                 expr::a(expr::a("x", "z"), expr::a("y", "z")),
             ),
+            func::new(
+                "ι",
+                vec!["f"],
+                expr::a(
+                    expr::a(
+                        "f",
+                        expr::l(
+                            "x",
+                            expr::l(
+                                "y",
+                                expr::l("z", expr::a(expr::a("x", "z"), expr::a("y", "z"))),
+                            ),
+                        ),
+                    ),
+                    expr::l("x", expr::l("y", "x")),
+                ),
+            ),
             func::new("TRUE", Vec::<&str>::new(), expr::l("x", expr::l("y", "x"))),
             func::new("FALSE", Vec::<&str>::new(), expr::l("x", expr::l("y", "y"))),
             func::new(
