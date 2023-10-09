@@ -1,6 +1,9 @@
 use super::Command;
 use super::Output;
-use crate::calc::{unlambda_shallow, Eval};
+use crate::calc::{
+    unlambda_iota, unlambda_recursive, unlambda_recursive_, unlambda_shallow, Eval,
+    RecursiveStrategy,
+};
 use crate::context::Context;
 
 pub struct Engine {
@@ -71,9 +74,15 @@ impl Engine {
                 result: self.context.clone(),
             },
 
-            Command::Unlambda(e) => Output::Unlambda {
+            Command::Unlambda(level, e) => Output::Unlambda {
                 input: e.clone(),
-                result: unlambda_shallow(e),
+                result: match level {
+                    1 => unlambda_shallow(e),
+                    2 => unlambda_recursive(&self.context, e),
+                    3 => unlambda_recursive_(&RecursiveStrategy::SK, &self.context, e),
+                    4 => unlambda_iota(&self.context, e),
+                    _ => panic!("not implemented"),
+                },
             },
 
             _ => panic!("not implemented"),

@@ -14,7 +14,9 @@ impl Display for ECMAScriptStyle<'_, Command> {
             Command::EvalTail(len, e) => write!(f, "!-{} {}", len, ECMAScriptStyle(e)),
             Command::Search(i) => write!(f, "? {}", i),
             Command::Global => write!(f, "?"),
-            Command::Unlambda(e) => write!(f, "?? {}", ECMAScriptStyle(e)),
+            Command::Unlambda(level, e) => {
+                write!(f, "{} {}", "~".repeat((*level).into()), ECMAScriptStyle(e))
+            }
         }
     }
 }
@@ -31,7 +33,9 @@ impl Display for ECMAScriptStyle<'_, &Command> {
             Command::EvalTail(len, e) => write!(f, "!-{} {}", len, ECMAScriptStyle(e)),
             Command::Search(i) => write!(f, "? {}", i),
             Command::Global => write!(f, "?"),
-            Command::Unlambda(e) => write!(f, "?? {}", ECMAScriptStyle(e)),
+            Command::Unlambda(level, e) => {
+                write!(f, "{} {}", "~".repeat((*level).into()), ECMAScriptStyle(e))
+            }
         }
     }
 }

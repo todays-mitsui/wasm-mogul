@@ -68,7 +68,7 @@ function showOutput(container, output) {
 
     case 'Unlambda': {
       const { input, result } = output;
-      appendOl(container, [`${input} == ${result}`]);
+      appendOl(container, [`${input} ~ ${result}`]);
     } break;
   }
 }

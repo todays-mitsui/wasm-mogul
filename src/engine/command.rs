@@ -13,7 +13,7 @@ pub enum Command {
     EvalTail(usize, Expr), // β変換列の末尾のみ表示
     Search(Identifier),    // Global から定義済み関数を検索
     Global,                // Global 全体を表示
-    Unlambda(Expr),        // Expr からラムダ抽象を除去する
+    Unlambda(u8, Expr),    // Expr からラムダ抽象を除去する
 }
 
 pub fn del<Id: Into<Identifier>>(id: Id) -> Command {
@@ -48,6 +48,6 @@ pub fn global() -> Command {
     Command::Global
 }
 
-pub fn unlambda<E: Into<Expr>>(expr: E) -> Command {
-    Command::Unlambda(expr.into())
+pub fn unlambda<E: Into<Expr>>(level: u8, expr: E) -> Command {
+    Command::Unlambda(level, expr.into())
 }

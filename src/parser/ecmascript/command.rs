@@ -1,6 +1,8 @@
 use combine::parser::char::{char, digit, spaces, string};
 use combine::parser::choice::choice;
-use combine::{attempt, eof, many, many1, optional, parser, ParseError, Parser, Stream};
+use combine::{
+    attempt, count_min_max, eof, many, many1, optional, parser, ParseError, Parser, Stream,
+};
 
 use super::super::identifier::identifier;
 use super::expression::expr;
@@ -176,10 +178,12 @@ where
     <Input::Error as ParseError<Input::Token, Input::Range, Input::Position>>::StreamError:
         From<::std::num::ParseIntError>,
 {
+    let level = count_min_max(1, 4, char('~')).map(|str: String| str.len() as u8);
+
     spaces()
-        .skip(string("??"))
-        .with(expr())
-        .map(Command::Unlambda)
+        .with(level)
+        .and(spaces().with(expr()))
+        .map(|(level, expr)| Command::Unlambda(level, expr))
 }
 
 // ========================================================================== //
@@ -376,8 +380,25 @@ mod tests {
     #[test]
     fn test_unlambda() {
         assert_eq!(
-            unlambda().easy_parse("??x=>x"),
-            Ok((Command::Unlambda(expr::l("x", "x")), ""))
+            unlambda().easy_parse("~x=>x"),
+            Ok((Command::Unlambda(1, expr::l("x", "x")), ""))
         );
+
+        assert_eq!(
+            unlambda().easy_parse("~~x=>x"),
+            Ok((Command::Unlambda(2, expr::l("x", "x")), ""))
+        );
+
+        assert_eq!(
+            unlambda().easy_parse("~~~x=>x"),
+            Ok((Command::Unlambda(3, expr::l("x", "x")), ""))
+        );
+
+        assert_eq!(
+            unlambda().easy_parse("~~~~x=>x"),
+            Ok((Command::Unlambda(4, expr::l("x", "x")), ""))
+        );
+
+        assert!(unlambda().easy_parse("~~~~~x=>x").is_err());
     }
 }

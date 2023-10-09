@@ -9,7 +9,7 @@ where
     Input: Stream<Token = char>,
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
 {
-    spaces().with(choice((short_identifier(), long_identifier())))
+    spaces().with(choice((short_identifier(), iota(), long_identifier())))
 }
 
 fn short_identifier<Input>() -> impl Parser<Input, Output = Identifier>
@@ -30,6 +30,14 @@ where
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
 {
     many1(choice((digit(), upper(), char('_')))).map(|s: String| s.into())
+}
+
+fn iota<Input>() -> impl Parser<Input, Output = Identifier>
+where
+    Input: Stream<Token = char>,
+    Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
+{
+    char('ι').map(|c| "ι".into())
 }
 
 // ========================================================================== //
