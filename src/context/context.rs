@@ -1,5 +1,6 @@
 use crate::expr::Identifier;
 use crate::func::Func;
+use regex::Regex;
 use std::collections::HashMap;
 
 /// 定義済みの名前空間を表現する
@@ -17,6 +18,14 @@ impl Context {
         self.0.get(id)
     }
 
+    pub fn def(&mut self, func: Func) {
+        self.0.insert(func.name().into(), func);
+    }
+
+    pub fn del(&mut self, id: &Identifier) {
+        self.0.remove(id);
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = (&Identifier, &Func)> {
         self.0.iter()
     }
@@ -30,6 +39,26 @@ impl Context {
     pub fn count(&self) -> usize {
         self.0.len()
     }
+
+    pub fn to_vec(self) -> Vec<Func> {
+        let mut vec = self
+            .0
+            .into_iter()
+            .map(|(_, f)| feature(f))
+            .collect::<Vec<(Feature, Func)>>();
+
+        vec.sort_by(|l, r| {
+            let l = &l.0;
+            let r = &r.0;
+            r.short
+                .cmp(&l.short)
+                .then(l.name.to_lowercase().cmp(&r.name.to_lowercase()))
+                .then(r.name.cmp(&l.name))
+                .then(l.index.cmp(&r.index))
+        });
+
+        vec.into_iter().map(|(_, f)| f).collect()
+    }
 }
 
 impl From<Vec<Func>> for Context {
@@ -40,6 +69,35 @@ impl From<Vec<Func>> for Context {
         }
         Self(context)
     }
+}
+
+// ========================================================================== //
+
+struct Feature {
+    short: bool,
+    name: String,
+    index: Option<usize>,
+}
+
+fn feature<'a>(func: Func) -> (Feature, Func) {
+    let pattern = Regex::new(r"\A(.*?)(\d*)\z").unwrap();
+
+    let name = func.name();
+    let (name, index) = match pattern.captures(name).map(|c| c.extract()) {
+        Some((_, [s, n])) => (s, usize::from_str_radix(n, 10).ok()),
+        None => (name, None),
+    };
+
+    let short = index.is_none() && name.len() == 1;
+
+    (
+        Feature {
+            short,
+            name: name.to_string(),
+            index,
+        },
+        func,
+    )
 }
 
 // ========================================================================== //

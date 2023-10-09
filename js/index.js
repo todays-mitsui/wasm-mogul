@@ -1,3 +1,5 @@
+import { appendOl, appendUl } from './append.js';
+
 async function main() {
   const form = document.getElementById('form');
   const input = document.getElementById('src');
@@ -20,29 +22,55 @@ async function main() {
  */
 function onSubmit(module, input, container) {
   const src = input.value;
+  if (!src.trim()) { return; }  // 何も入力されていないなら何もしない
+
   input.value = '';
-  const { expr, steps } = module.lambda_calculus(src, 'ECMAScript');
-  console.log({ src, expr, steps });
+  const output = module.lambda_calculus(src, 'ECMAScript');
 
-  const ol = document.createElement('ol');
-  ol.setAttribute('start', '0');
-
-  container.appendChild(ol);
-
-  const li = document.createElement('li');
-  li.textContent = expr;
-  ol.appendChild(li);
-
-  for (const step of steps) {
-    const li = document.createElement('li');
-    li.textContent = step;
-    ol.appendChild(li);
-  }
+  showOutput(container, output);
 
   container.scrollTo({
     top: container.scrollHeight,
     behavior: 'smooth',
   });
+}
+
+function showOutput(container, output) {
+  console.log(output);
+
+  switch (output.type) {
+    case 'Del': {
+      const { input: id, result: context } = output;
+      console.log({ id, context });
+      appendOl(container, [`${id} = ${id}`]);
+    } break;
+
+    case 'Update': {
+      const { input: func } = output;
+      appendOl(container, [func]);
+    } break;
+
+    case 'Eval': {
+      const { input: expr, steps } = output;
+      appendOl(container, [expr, ...steps.map(({ expr }) => expr)]);
+    } break;
+
+    case 'Search': {
+      const { input: id, result: func } = output;
+      appendOl(container, [func == null ? `${id} = ${id}` : func]);
+    } break;
+
+    case 'Global': {
+      const { result: context } = output;
+      console.log({ context });
+      appendUl(container, context);
+    } break;
+
+    case 'Unlambda': {
+      const { input, result } = output;
+      appendOl(container, [`${input} == ${result}`]);
+    } break;
+  }
 }
 
 document.addEventListener('DOMContentLoaded', main);

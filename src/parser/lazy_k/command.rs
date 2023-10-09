@@ -4,7 +4,7 @@ use combine::{attempt, eof, many1, parser, ParseError, Parser, Stream};
 
 use super::super::identifier::identifier;
 use super::expression::expr;
-use crate::command::Command;
+use crate::engine::Command;
 use crate::expr::{Expr, Identifier};
 use crate::func;
 
@@ -22,7 +22,7 @@ where
         attempt(eval_tail()),
         eval_last(),
         attempt(unlambda()),
-        attempt(info()),
+        attempt(search()),
         global(),
     ))
     .skip(spaces())
@@ -133,7 +133,7 @@ where
 
 // ========================================================================== //
 
-fn info<Input>() -> impl Parser<Input, Output = Command>
+fn search<Input>() -> impl Parser<Input, Output = Command>
 where
     Input: Stream<Token = char>,
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
@@ -141,7 +141,7 @@ where
     spaces()
         .skip(char('?'))
         .with(identifier())
-        .map(Command::Info)
+        .map(Command::Search)
 }
 
 fn global<Input>() -> impl Parser<Input, Output = Command>
@@ -172,7 +172,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::command::Command;
+    use crate::engine::Command;
     use crate::expr;
     use combine::EasyParser;
 
@@ -207,7 +207,7 @@ mod tests {
 
         assert_eq!(
             command().easy_parse("? a"),
-            Ok((Command::Info("a".into()), ""))
+            Ok((Command::Search("a".into()), ""))
         );
 
         assert_eq!(command().easy_parse("?"), Ok((Command::Global, "")));
@@ -261,7 +261,7 @@ mod tests {
 
         assert_eq!(
             command().easy_parse("? a"),
-            Ok((Command::Info("a".into()), ""))
+            Ok((Command::Search("a".into()), ""))
         );
 
         assert_eq!(command().easy_parse("?"), Ok((Command::Global, "")));
@@ -334,11 +334,14 @@ mod tests {
     }
 
     #[test]
-    fn test_info() {
-        assert_eq!(info().easy_parse("?a"), Ok((Command::Info("a".into()), "")));
+    fn test_search() {
         assert_eq!(
-            info().easy_parse("? a"),
-            Ok((Command::Info("a".into()), ""))
+            search().easy_parse("?a"),
+            Ok((Command::Search("a".into()), ""))
+        );
+        assert_eq!(
+            search().easy_parse("? a"),
+            Ok((Command::Search("a".into()), ""))
         );
     }
 

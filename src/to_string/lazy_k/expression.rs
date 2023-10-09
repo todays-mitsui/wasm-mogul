@@ -1,5 +1,5 @@
-use super::super::style::LazyKStyle;
 use crate::expr::Expr;
+use crate::style::LazyKStyle;
 use regex::Regex;
 use std::fmt::Display;
 

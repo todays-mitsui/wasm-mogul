@@ -1,6 +1,6 @@
-use super::super::style::LazyKStyle;
 use crate::context::Context;
 use crate::func::Func;
+use crate::style::LazyKStyle;
 use regex::Regex;
 use std::fmt::Display;
 

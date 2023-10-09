@@ -1,5 +1,5 @@
-use super::super::style::ECMAScriptStyle;
-use crate::command::Command;
+use crate::engine::Command;
+use crate::style::ECMAScriptStyle;
 use std::fmt::Display;
 
 impl Display for ECMAScriptStyle<'_, Command> {
@@ -12,7 +12,7 @@ impl Display for ECMAScriptStyle<'_, Command> {
             Command::EvalLast(e) => write!(f, "! {}", ECMAScriptStyle(e)),
             Command::EvalHead(len, e) => write!(f, "!{} {}", len, ECMAScriptStyle(e)),
             Command::EvalTail(len, e) => write!(f, "!-{} {}", len, ECMAScriptStyle(e)),
-            Command::Info(i) => write!(f, "? {}", i),
+            Command::Search(i) => write!(f, "? {}", i),
             Command::Global => write!(f, "?"),
             Command::Unlambda(e) => write!(f, "?? {}", ECMAScriptStyle(e)),
         }
@@ -29,7 +29,7 @@ impl Display for ECMAScriptStyle<'_, &Command> {
             Command::EvalLast(e) => write!(f, "! {}", ECMAScriptStyle(e)),
             Command::EvalHead(len, e) => write!(f, "!{} {}", len, ECMAScriptStyle(e)),
             Command::EvalTail(len, e) => write!(f, "!-{} {}", len, ECMAScriptStyle(e)),
-            Command::Info(i) => write!(f, "? {}", i),
+            Command::Search(i) => write!(f, "? {}", i),
             Command::Global => write!(f, "?"),
             Command::Unlambda(e) => write!(f, "?? {}", ECMAScriptStyle(e)),
         }
