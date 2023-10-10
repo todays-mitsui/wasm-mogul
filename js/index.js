@@ -1,74 +1,81 @@
 import { appendOl, appendUl } from './append.js';
+import { initDetails } from './details.js';
+import { initRandomSpell } from './randomSpell.js';
+import { initSettings } from './settings.js';
 
 async function main() {
-  const form = document.getElementById('form');
-  const input = document.getElementById('src');
+  initDetails();
+  initSettings();
+  initRandomSpell();
+
+  const outputBox = document.querySelector('#output');
+  const form = document.querySelector('#input form');
+  const input = document.querySelector('#input input');
 
   const module = await import('../pkg/index.js');
 
-  console.log('ready to calculate');
-  console.log({ lambda_calculus: module.lambda_calculus });
-
   form.addEventListener('submit', function (event) {
     event.preventDefault();
-    onSubmit(module, input, container);
+    onSubmit(module, input, outputBox);
   });
 }
 
 /**
  * @param {{ lambda_calculus: (src: string, style: 'ECMAScript' | 'Lazy_K') => { expr: string; steps: string[]; } }} module
  * @param {HTMLInputElement} input
- * @param {HTMLDivElement} container
+ * @param {HTMLDivElement} outputBox
  */
-function onSubmit(module, input, container) {
+function onSubmit(module, input, outputBox) {
   const src = input.value;
   if (!src.trim()) { return; }  // 何も入力されていないなら何もしない
 
   input.value = '';
   const output = module.lambda_calculus(src, 'ECMAScript');
 
-  showOutput(container, output);
+  showOutput(outputBox, output);
 
-  container.scrollTo({
-    top: container.scrollHeight,
+  outputBox.scrollTo({
+    top: outputBox.scrollHeight,
     behavior: 'smooth',
   });
+
+  input.focus();
 }
 
-function showOutput(container, output) {
+function showOutput(outputBox, output) {
   console.log(output);
 
   switch (output.type) {
     case 'Del': {
       const { input: id, result: context } = output;
       console.log({ id, context });
-      appendOl(container, [`${id} = ${id}`]);
+      appendOl(outputBox, [`${id} = ${id}`]);
     } break;
 
     case 'Update': {
       const { input: func } = output;
-      appendOl(container, [func]);
+      appendOl(outputBox, [func]);
     } break;
 
     case 'Eval': {
       const { input: expr, steps } = output;
-      appendOl(container, [expr, ...steps.map(({ expr }) => expr)]);
+      appendOl(outputBox, [expr, ...steps.map(({ expr }) => expr)]);
     } break;
 
     case 'Search': {
       const { input: id, result: func } = output;
-      appendOl(container, [func == null ? `${id} = ${id}` : func]);
+      appendOl(outputBox, [func == null ? `${id} = ${id}` : func]);
     } break;
 
     case 'Global': {
       const { result: context } = output;
       console.log({ context });
-      appendUl(container, context);
+      appendUl(outputBox, context);
     } break;
 
     case 'Unlambda': {
       const { input, result } = output;
-      appendOl(container, [`${input} ~ ${result}`]);
+      appendOl(outputBox, [`${input} ~ ${result}`]);
     } break;
   }
 }
