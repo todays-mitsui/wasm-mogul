@@ -1,9 +1,8 @@
+use super::super::identifier::identifier;
+use crate::expr::{self, Expr, Identifier};
 use combine::parser::char::{char, spaces};
 use combine::parser::choice::choice;
-use combine::{parser, ParseError, Parser, Stream};
-
-use super::super::identifier::identifier;
-use crate::expr::{self, Expr};
+use combine::{attempt, many1, parser, ParseError, Parser, Stream};
 
 pub fn expr<Input>() -> impl Parser<Input, Output = Expr>
 where
@@ -80,12 +79,27 @@ parser! {
         spaces()
             .with(choice((char('^'), char('λ'))))
             .with(
-                identifier()
-                .skip(spaces().with(char('.'))
+                params()
+                .skip(spaces().with(char('.')))
             )
-            .and(expr()))
-            .map(|(param, body)| expr::l(param, body))
+            .and(expr())
+            .map(|(params, mut body)| {
+                for param in params.into_iter().rev() {
+                    body = expr::l(param, body)
+                }
+                body
+            })
     }
+}
+
+fn params<Input>() -> impl Parser<Input, Output = Vec<Identifier>>
+where
+    Input: Stream<Token = char>,
+    Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
+    <Input::Error as ParseError<Input::Token, Input::Range, Input::Position>>::StreamError:
+        From<::std::num::ParseIntError>,
+{
+    many1(attempt(spaces().with(identifier())))
 }
 
 // ========================================================================== //
@@ -172,6 +186,23 @@ mod tests {
         assert_eq!(
             expr().easy_parse(" ^ a . λ b . c"),
             Ok((expr::l("a", expr::l("b", "c")), ""))
+        );
+
+        assert_eq!(
+            expr().easy_parse("^ab.c"),
+            Ok((expr::l("a", expr::l("b", "c")), ""))
+        );
+        assert_eq!(
+            expr().easy_parse("λab.c"),
+            Ok((expr::l("a", expr::l("b", "c")), ""))
+        );
+        assert_eq!(
+            expr().easy_parse("^abc.d"),
+            Ok((expr::l("a", expr::l("b", expr::l("c", "d"))), ""))
+        );
+        assert_eq!(
+            expr().easy_parse("λabc.d"),
+            Ok((expr::l("a", expr::l("b", expr::l("c", "d"))), ""))
         );
     }
 }

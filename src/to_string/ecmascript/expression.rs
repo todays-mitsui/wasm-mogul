@@ -78,10 +78,12 @@ impl<'a> Compact<'a> {
                     .join(", ");
 
                 match **e {
-                    Compact::Variable(label) | Compact::Symbol(label) => {
+                    Compact::Variable(label) => {
                         format!("{}({})", label, args)
                     }
-
+                    Compact::Symbol(label) => {
+                        format!(":{}({})", label, args)
+                    }
                     _ => {
                         format!("({})({})", e.to_string(), args)
                     }
@@ -125,6 +127,9 @@ mod tests {
 
         let e = expr::a("x", "y");
         assert_eq!(ECMAScriptStyle(&e).to_string(), "x(y)");
+
+        let e = expr::a(":x", ":y");
+        assert_eq!(ECMAScriptStyle(&e).to_string(), ":x(:y)");
 
         let e = expr::a(expr::a("x", "y"), "z");
         assert_eq!(ECMAScriptStyle(&e).to_string(), "x(y, z)");
