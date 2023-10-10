@@ -100,7 +100,7 @@ impl Display for Token<'_> {
         match self {
             Token::UpperIdent(i) | Token::LowerIdent(i) => write!(f, "{}", i),
             Token::Apply => write!(f, "`"),
-            Token::Lambda => write!(f, "^"),
+            Token::Lambda => write!(f, "λ"),
             Token::Dot => write!(f, "."),
         }
     }
@@ -132,14 +132,14 @@ mod tests {
 
     #[test]
     fn test_to_string() {
-        assert_eq!(LazyKStyle(&expr::l("x", "y")).to_string(), "^x.y");
+        assert_eq!(LazyKStyle(&expr::l("x", "y")).to_string(), "λx.y");
         assert_eq!(
             LazyKStyle(&expr::l("x", expr::a("y", "z"))).to_string(),
-            "^x.`yz"
+            "λx.`yz"
         );
         assert_eq!(
             LazyKStyle(&expr::l("X", expr::a("y", "z"))).to_string(),
-            "^X.`yz"
+            "λX.`yz"
         );
         assert_eq!(LazyKStyle(&expr::a("x", "y")).to_string(), "`xy");
         assert_eq!(LazyKStyle(&expr::a("x", "Y")).to_string(), "`xY");

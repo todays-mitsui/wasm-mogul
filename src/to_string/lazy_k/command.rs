@@ -81,7 +81,7 @@ mod tests {
         assert_eq!(command::eval(expr::v("a")).to_string(), "a");
         assert_eq!(command::eval(expr::s("a")).to_string(), ":a");
         assert_eq!(command::eval(expr::a("a", "b")).to_string(), "`ab");
-        assert_eq!(command::eval(expr::l("x", "y")).to_string(), "^x.y");
+        assert_eq!(command::eval(expr::l("x", "y")).to_string(), "λx.y");
     }
 
     #[test]
@@ -89,7 +89,7 @@ mod tests {
         assert_eq!(command::eval_last(expr::v("a")).to_string(), "! a");
         assert_eq!(command::eval_last(expr::s("a")).to_string(), "! :a");
         assert_eq!(command::eval_last(expr::a("a", "b")).to_string(), "! `ab");
-        assert_eq!(command::eval_last(expr::l("x", "y")).to_string(), "! ^x.y");
+        assert_eq!(command::eval_last(expr::l("x", "y")).to_string(), "! λx.y");
     }
 
     #[test]
@@ -102,7 +102,7 @@ mod tests {
         );
         assert_eq!(
             command::eval_head(42, expr::l("x", "y")).to_string(),
-            "!42 ^x.y"
+            "!42 λx.y"
         );
     }
 
@@ -116,7 +116,7 @@ mod tests {
         );
         assert_eq!(
             command::eval_tail(42, expr::l("x", "y")).to_string(),
-            "!-42 ^x.y"
+            "!-42 λx.y"
         );
     }
 
