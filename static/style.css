@@ -1,115 +1,296 @@
 @charset "UTF-8";
 
-*, *:before, *:after {
-  box-sizing: border-box;
-}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}:where([hidden]:not([hidden='until-found'])){display:none!important}:where(html){-webkit-text-size-adjust:none;color-scheme:dark light}@media (prefers-reduced-motion:no-preference){:where(html:focus-within){scroll-behavior:smooth}}:where(body){line-height:1.5;font-family:system-ui,sans-serif;-webkit-font-smoothing:antialiased}:where(input,button,textarea,select){font:inherit;color:inherit}:where(textarea){resize:vertical;resize:block}:where(button,label,select,summary,[role='button'],[role='option']){cursor:pointer}:where(:disabled){cursor:not-allowed}:where(label:has(>input:disabled),label:has(+input:disabled)){cursor:not-allowed}:where(button){border-style:solid}:where(a){color:inherit;text-underline-offset:.2ex}:where(ul,ol){list-style:none}:where(img,svg,video,canvas,audio,iframe,embed,object){display:block}:where(img,picture,svg){max-inline-size:100%;block-size:auto}:where(p,h1,h2,h3,h4,h5,h6){overflow-wrap:break-word}:where(h1,h2,h3){line-height:calc(1em + 0.5rem)}:where(hr){border:none;border-block-start:1px solid;color:inherit;block-size:0;overflow:visible}:where(:focus-visible){outline:2px solid Highlight;outline-offset:0;scroll-margin-block:10vh}:where(.visually-hidden:not(:focus-within,:active)){clip-path:inset(50%)!important;height:1px!important;width:1px!important;overflow:hidden!important;position:absolute!important;white-space:nowrap!important;border:0!important}
 
-html{
+html, body {
   height: 100%;
   margin: 0;
   padding: 0;
 }
 
-body {
-  display: flex;
+.container {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   height: 100%;
-  margin: 0;
-  padding: 8px;
-  flex-direction: column;
-  background-color: #facd8b;
 }
 
-#container {
-  flex-grow: 1;
-
-  padding: 0 8px 0 0;
-  overflow: scroll;
-  font-family: monospace;
-  border: 1px solid #666;
-  border-radius: 4px;
-  background-color: #fafafabb;
+header {
+  display: flex;
+  padding: 4px 12px;
+  color: #fafafa;
+  background-color: #000;
 }
 
-#container li {
-  position: relative;
-  margin: .6em 0;
+header h1 {
+  font-family: 'Slabo 13px', serif;
+  font-weight: 400;
+  font-size: 1.4rem;
 }
 
-#container ol {
-  margin: 0;
-  padding-inline-start: 32px;
-}
-#container ol li::marker {
-  color: transparent;
-  font-size: 60%;
-}
-#container ol li:nth-child(1)::marker,
-#container ol li:nth-child(2)::marker,
-#container ol li:nth-child(3)::marker,
-#container ol li:nth-child(4)::marker,
-#container ol li:nth-child(5)::marker,
-#container ol li:nth-child(6)::marker,
-#container ol li:nth-child(7)::marker,
-#container ol li:nth-child(8)::marker,
-#container ol li:nth-child(9)::marker,
-#container ol li:nth-child(10)::marker,
-#container ol li:nth-child(11)::marker,
-#container ol li:nth-child(12)::marker,
-#container ol li:nth-child(13)::marker,
-#container ol li:nth-child(14)::marker,
-#container ol li:nth-child(15)::marker,
-#container ol li:nth-child(16)::marker,
-#container ol li:nth-child(17)::marker,
-#container ol li:nth-child(18)::marker,
-#container ol li:nth-child(19)::marker,
-#container ol li:nth-child(20)::marker,
-#container ol li:nth-child(10n+1)::marker,
-#container ol li:last-child::marker {
-  color: #666;
-}
-#container ol li:not(:first-child) {
-  padding-left: 1.3em;
-}
-#container ol li:not(:first-child)::before {
-  content: "→";
-  color: #666;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-#container ul {
+header ul {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 16px;
+  padding: 0;
   list-style: none;
 }
 
-#form {
+header a {
+  color: inherit;
+}
+
+main {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+main > nav {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+}
+
+main > #output {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+}
+
+main > #input {
+  grid-column: 1 / 3;
+  grid-row: 2 / 3;
+}
+
+/* ========================================================================== */
+
+main > nav {
+  position: relative;
+
   display: flex;
-  margin-top: 8px;
+  flex-direction: column;
+  gap: 4px;
+
+  padding: 4px;
+  border-left: 1px solid #999;
+  background-color: #ececf1;
+}
+
+main > nav > details > .inner {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  z-index: 1000;
+
+  height: 100%;
+  width: 400px;
+  max-width: 90vw;
+  padding: 8px 12px;
+
+  background-color: #ececf1;
+  border-left: 1px solid #999;
+  border-right: 1px solid #999;
+
+  overflow-y: scroll;
+}
+
+main > nav > details > summary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 32px;
+  height: 32px;
+
+  color: #333;
+  border-radius: 4px;
+}
+main > nav > details > summary::marker {
+  display: none;
+  content: "";
+}
+main > nav > details[open] > summary,
+main > nav > details > summary:hover {
+  background-color: #ccc;
+}
+
+main > nav .inner h2 {
+  font-size: .9rem;
+  font-weight: 500;
+  color: #666;
+}
+
+#functions summary {
+  font-size: 0;
+}
+#functions summary::before {
+  content: "fx";
+  font-family: 'M PLUS 1 Code', monospace;
+  font-weight: 600;
+  font-size: 22px;
+}
+
+#functions .inner ul {
+  padding-left: .4em;
+}
+#functions .inner code {
+  font-family: 'Inconsolata', monospace;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+#settings fieldset {
+  border: none;
+}
+#settings legend {
+  font-size: .9rem;
+  font-weight: 500;
+  color: #666;
+}
+#settings label {
+  display: flex;
+  padding-left: .4em;
+  align-items: center;
   gap: 8px;
+  margin: .2em 0;
+}
+#settings code {
+  padding: 2px 4px;
+  font-family: 'Inconsolata', monospace;
+  font-size: .9rem;
+  font-weight: 500;
+  border-radius: 4px;
+  background-color: #ddd;
 }
 
-#form input {
-  flex-grow: 1;
-  padding: 8px;
+/* ========================================================================== */
+
+main > #output {
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  background-color: #fafafa;
+}
+
+main > #output ol {
+  counter-reset: ordered-list -1;
+}
+main > #output ol li::before {
+  counter-increment: ordered-list;
+  content: counter(ordered-list);
+}
+main > #output ul li::before {
+  content: "-";
+}
+main > #output ol li:not(:first-child)::after {
+  content: "⇒";
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+  color: #999;
+  text-align: center;
+}
+main > #output ol li:first-child code {
+  grid-column: 2 / 4;
+}
+main > #output ol li:not(:first-child) code {
+  grid-column: 3 / 4;
+}
+main > #output ul li code {
+  grid-column: 2 / 4;
+}
+
+main > #output {
+  font-size: .875em;
+}
+
+:root {
+  --list-margin: 3px;
+}
+main > #output li {
+  display: grid;
+  grid-template-columns: 40px 1em auto;
+  gap: 4px;
+  padding: var(--list-margin) 4px var(--list-margin) 0;
+}
+main > #output li::before {
+  margin: calc(-1 * var(--list-margin)) 0;
+  padding: 5px 6px 5px 0;
+  color: #aaa;
   font-family: monospace;
-  appearance: none;
-  border: none;
-  border: 1px solid #666;
-  border-radius: 4px;
-  background-color: #fafafabb;
+  font-size: .8em;
+  line-height: 1.875;
+  text-align: right;
+  background-color: #ececf1;
+}
+main > #output code {
+  font-family: 'Inconsolata', monospace;
+  line-height: 1.7;
 }
 
-#form button {
-  padding: 0 32px;
-  font-size: 110%;
+main > #output ol:not(:last-child),
+main > #output ul:not(:last-child) {
+  border-bottom: 1px solid #ccc;
+}
+main > #output li:not(:last-child) {
+  border-bottom: 1px solid #ececf1;
+}
 
-  appearance: none;
-  color: #fafafa;
+/* ========================================================================== */
+
+main > #input {
+  position: relative;
+  padding: 2px;
+  border-top: 1px solid #999;
+  background-color: #fafafa;
+}
+
+main > #input .buttons {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  z-index: 1000;
+}
+
+main > #input button {
+  padding: .2em .6em;
+  font-size: .9rem;
+  font-weight: 600;
   border: none;
-  border: 1px solid #666;
-  border-radius: 4px;
   background: none;
-  background: #e19b4d;
+  border: 1px solid #bababa;
+  border-radius: 4px;
+}
+main > #input button:hover {
+  background-color: #ececf1;
+}
+main > #input button:disabled {
+  color: #999;
+  background-color: #ececf1;
+}
 
-  cursor: pointer;
+main > #input button[type=submit] {
+  padding-left: 4em;
+  padding-right: 4em;
+  font-weight: 600;
+}
+main > #input button[type=button] {
+  font-weight: 400;
+}
+
+main > #input input {
+  width: 100%;
+  padding: 42px 12px 16px 20px;
+  border: none;
+  background: none;
+}
+
+main > #input::before {
+  position: absolute;
+  top: 48px;
+  left: 12px;
+  z-index: 1000;
+  content: ">";
+  color: #666;
+  font-family: monospace;
+  font-size: 1.1em;
+  line-height: 1;
+  pointer-events: none;
 }

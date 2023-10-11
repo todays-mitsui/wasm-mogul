@@ -1,34 +1,87 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EQH2RJLMPS"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+<head>
+  <meta charset="UTF-8">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EQH2RJLMPS"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
 
-      gtag('config', 'G-EQH2RJLMPS');
-    </script>
-    <title>SKI Mogul - Lambda Calculus</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    <div id="container"></div>
-    <form id="form" action="">
-      <input
-        type="text"
-        id="src"
-        placeholder="ラムダ式を入力, ex: IS_ZERO(SUB(6, ADD(2, 3)))"
-        value="EQ(SUB(MUL(3, 5), 7), 8)"
-        autofocus
-      >
-      <button
-        id="submit"
-        title="式を評価"
-      >Run</button>
-    </form>
-    <script src="index.js"></script>
-  </body>
+    gtag('config', 'G-EQH2RJLMPS');
+  </script>
+  <title>ski Mogul - Lambda Calculus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inconsolata&family=M+PLUS+1+Code:wght@600&family=Slabo+13px&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>ski Mogul</h1>
+    <ul>
+      <li><a href="https://github.com/todays-mitsui/wasm-tuber" target="_blank">repo</a></li>
+      <li><a href="https://mogul-lang.mudatobunka.org/doc/wasm_tuber/" target="_blank">doc</a></li>
+    </ul>
+  </header>
+  <main>
+    <nav>
+      <details id="functions" name="tool">
+        <summary title="Functions">
+          Functions
+        </summary>
+        <div class="inner">
+          <h2>Functions</h2>
+          <ul></ul>
+        </div>
+      </details>
+      <details id="settings" name="tool">
+        <summary title="Settings">
+          <span class="material-symbols-rounded">settings</span>
+        </summary>
+        <div class="inner">
+          <fieldset>
+            <legend>Expr Display Style</legend>
+            <label>
+              <input type="radio" name="tuber_display_style" value="ECMAScript">
+              <span>ECMAScript Style ex: <code>(x => f(x))(y)</code></span>
+            </label>
+            <label>
+              <input type="radio" name="tuber_display_style" value="Lazy_K">
+              <span>Lazy_K Style ex: <code>`λx.`fx y</code></span>
+            </label>
+          </fieldset>
+        </div>
+      </details>
+      <details id="share" name="tool">
+        <summary title="Share">
+          <span class="material-symbols-rounded">share</span>
+        </summary>
+        <div class="inner">
+          <h2>Share</h2>
+        </div>
+      </details>
+    </nav>
+    <div id="output">
+    </div>
+    <div id="input">
+      <form action="#">
+        <div class="buttons">
+          <button type="button" title="Random Spell">Random</button>
+          <button type="submit">Run</button>
+        </div>
+        <input
+          type="text"
+          autofocus
+        >
+      </form>
+    </div>
+  </main>
+</div>
+
+<script src="index.js"></script>
+</body>
 </html>
