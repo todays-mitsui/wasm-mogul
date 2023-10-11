@@ -6,19 +6,18 @@ mod engine;
 mod expr;
 mod func;
 mod parser;
+mod repository;
 mod style;
 mod to_string;
 
 use anyhow::Result;
-use calc::{Eval, EvalStep};
-use context::Context;
-use engine::Engine;
+use calc::EvalStep;
 use engine::Output;
-use parser::{parse_command, parse_expr};
+use engine::{Command, Engine};
+use parser::parse_command;
+use repository::{get_context, get_display_style, push_func_history};
 use serde::Serialize;
-use std::fmt::Display;
-pub use style::Style;
-use style::{ECMAScriptStyle, Factor, LazyKStyle};
+use style::{DisplayStyle, ECMAScriptStyle, LazyKStyle};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(getter_with_clone)]
@@ -28,21 +27,25 @@ pub struct CalcResult {
 }
 
 #[wasm_bindgen]
-pub fn lambda_calculus(input: &str, style: Style) -> JsValue {
-    log!("input: {}", input);
+pub fn lambda_calculus(input: &str) -> JsValue {
+    let context = get_context().expect("get context error");
     let command = parse_command(input).expect("parse error");
 
-    let context = Context::default();
+    // この処理、Engine の中に入れるべき？
+    if let Command::Update(func) = &command {
+        push_func_history(func).expect("push func history error");
+    }
+
     let mut engine = Engine::new(context);
     let output = engine.run(command);
 
+    let style = get_display_style().expect("get display style error");
     serde_wasm_bindgen::to_value(&JsOutput::from((&style, output))).unwrap()
 }
 
 #[wasm_bindgen(start)]
 pub fn main_js() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
-
     Ok(())
 }
 
@@ -76,21 +79,21 @@ pub enum JsOutput {
     },
 }
 
-impl From<(&Style, Output)> for JsOutput {
-    fn from((style, output): (&Style, Output)) -> Self {
+impl From<(&DisplayStyle, Output)> for JsOutput {
+    fn from((style, output): (&DisplayStyle, Output)) -> Self {
         let expr_to_string = |expr| {
             let _: &crate::expr::Expr = expr;
             match style {
-                Style::ECMAScript => ECMAScriptStyle(expr).to_string(),
-                Style::LazyK => LazyKStyle(expr).to_string(),
+                DisplayStyle::ECMAScript => ECMAScriptStyle(expr).to_string(),
+                DisplayStyle::LazyK => LazyKStyle(expr).to_string(),
                 _ => unreachable!(),
             }
         };
         let func_to_string = |func| {
             let _: &crate::func::Func = func;
             match style {
-                Style::ECMAScript => ECMAScriptStyle(func).to_string(),
-                Style::LazyK => LazyKStyle(func).to_string(),
+                DisplayStyle::ECMAScript => ECMAScriptStyle(func).to_string(),
+                DisplayStyle::LazyK => LazyKStyle(func).to_string(),
                 _ => unreachable!(),
             }
         };
@@ -149,12 +152,12 @@ pub struct JsEvalStep {
     expr: String, // Expr
 }
 
-impl From<(&Style, EvalStep)> for JsEvalStep {
-    fn from((style, EvalStep { expr }): (&Style, EvalStep)) -> Self {
+impl From<(&DisplayStyle, EvalStep)> for JsEvalStep {
+    fn from((style, EvalStep { expr }): (&DisplayStyle, EvalStep)) -> Self {
         Self {
             expr: match style {
-                Style::ECMAScript => ECMAScriptStyle(&expr).to_string(),
-                Style::LazyK => LazyKStyle(&expr).to_string(),
+                DisplayStyle::ECMAScript => ECMAScriptStyle(&expr).to_string(),
+                DisplayStyle::LazyK => LazyKStyle(&expr).to_string(),
                 _ => unreachable!(),
             },
         }
