@@ -43,7 +43,6 @@ export function initRandomSpell() {
     let spell;
     do {
       spell = getRandomSpell(displayStyle);
-      console.log(spell);
     } while (input.value === spell);
 
     input.value = spell;
