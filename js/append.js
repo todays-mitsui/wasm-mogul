@@ -1,6 +1,5 @@
-export function appendOl(container, contents, formatter = null, start = 0) {
+export function appendOl(container, contents, formatter = null) {
   const ol = document.createElement('ol');
-  ol.setAttribute('start', start);
   container.appendChild(ol);
 
   for (const content of contents) {
@@ -13,9 +12,8 @@ export function appendOl(container, contents, formatter = null, start = 0) {
   }
 }
 
-export function appendUl(container, contents, formatter = null, start = 0) {
+export function appendUl(container, contents, formatter = null) {
   const ul = document.createElement('ul');
-  ul.setAttribute('start', start);
   container.appendChild(ul);
 
   for (const content of contents) {
