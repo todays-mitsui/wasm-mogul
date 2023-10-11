@@ -1,10 +1,12 @@
 import { appendOl, appendUl } from './append.js';
 import { initDetails } from './details.js';
+import { initInput } from './input.js';
 import { initRandomSpell } from './randomSpell.js';
 import { initSettings } from './settings.js';
 
 async function main() {
   initDetails();
+  initInput();
   initSettings();
   initRandomSpell();
 
@@ -40,6 +42,7 @@ function onSubmit(module, input, outputBox) {
   });
 
   input.focus();
+  input.dispatchEvent(new Event('input'));
 }
 
 function showOutput(outputBox, output) {

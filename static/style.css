@@ -10,7 +10,7 @@ html, body {
 
 .container {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
   height: 100%;
 }
 
@@ -43,7 +43,7 @@ header a {
 main {
   display: grid;
   grid-template-columns: 1fr auto;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: minmax(0, 1fr) auto;
 }
 
 main > nav {
@@ -113,6 +113,12 @@ main > nav > details > summary:hover {
   background-color: #ccc;
 }
 
+main > nav .inner h2 {
+  font-size: .9rem;
+  font-weight: 500;
+  color: #666;
+}
+
 #functions summary {
   font-size: 0;
 }
@@ -123,11 +129,6 @@ main > nav > details > summary:hover {
   font-size: 22px;
 }
 
-#functions .inner h2 {
-  font-size: .9rem;
-  font-weight: 500;
-  color: #666;
-}
 #functions .inner ul {
   padding-left: .4em;
 }
@@ -169,6 +170,69 @@ main > #output {
   background-color: #fafafa;
 }
 
+main > #output ol {
+  counter-reset: ordered-list -1;
+}
+main > #output ol li::before {
+  counter-increment: ordered-list;
+  content: counter(ordered-list);
+}
+main > #output ul li::before {
+  content: "-";
+}
+main > #output ol li:not(:first-child)::after {
+  content: "⇒";
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+  color: #999;
+  text-align: center;
+}
+main > #output ol li:first-child code {
+  grid-column: 2 / 4;
+}
+main > #output ol li:not(:first-child) code {
+  grid-column: 3 / 4;
+}
+main > #output ul li code {
+  grid-column: 2 / 4;
+}
+
+main > #output {
+  font-size: .875em;
+}
+
+:root {
+  --list-margin: 3px;
+}
+main > #output li {
+  display: grid;
+  grid-template-columns: 40px 1em auto;
+  gap: 4px;
+  padding: var(--list-margin) 4px var(--list-margin) 0;
+}
+main > #output li::before {
+  margin: calc(-1 * var(--list-margin)) 0;
+  padding: 5px 6px 5px 0;
+  color: #aaa;
+  font-family: monospace;
+  font-size: .8em;
+  line-height: 1.875;
+  text-align: right;
+  background-color: #ececf1;
+}
+main > #output code {
+  font-family: 'Inconsolata', monospace;
+  line-height: 1.7;
+}
+
+main > #output ol:not(:last-child),
+main > #output ul:not(:last-child) {
+  border-bottom: 1px solid #ccc;
+}
+main > #output li:not(:last-child) {
+  border-bottom: 1px solid #ececf1;
+}
+
 /* ========================================================================== */
 
 main > #input {
@@ -197,6 +261,10 @@ main > #input button {
 main > #input button:hover {
   background-color: #ececf1;
 }
+main > #input button:disabled {
+  color: #999;
+  background-color: #ececf1;
+}
 
 main > #input button[type=submit] {
   padding-left: 4em;
@@ -209,104 +277,20 @@ main > #input button[type=button] {
 
 main > #input input {
   width: 100%;
-  padding: 42px 12px 16px;
+  padding: 42px 12px 16px 20px;
   border: none;
   background: none;
 }
 
-/* ========================================================================== */
-
-#container {
-  flex-grow: 1;
-
-  padding: 0 8px 0 0;
-  overflow: scroll;
-  font-family: monospace;
-  border: 1px solid #666;
-  border-radius: 4px;
-  background-color: #fafafabb;
-}
-
-#container li {
-  position: relative;
-  margin: .6em 0;
-}
-
-#container ol {
-  margin: 0;
-  padding-inline-start: 32px;
-}
-#container ol li::marker {
-  color: transparent;
-  font-size: 60%;
-}
-#container ol li:nth-child(1)::marker,
-#container ol li:nth-child(2)::marker,
-#container ol li:nth-child(3)::marker,
-#container ol li:nth-child(4)::marker,
-#container ol li:nth-child(5)::marker,
-#container ol li:nth-child(6)::marker,
-#container ol li:nth-child(7)::marker,
-#container ol li:nth-child(8)::marker,
-#container ol li:nth-child(9)::marker,
-#container ol li:nth-child(10)::marker,
-#container ol li:nth-child(11)::marker,
-#container ol li:nth-child(12)::marker,
-#container ol li:nth-child(13)::marker,
-#container ol li:nth-child(14)::marker,
-#container ol li:nth-child(15)::marker,
-#container ol li:nth-child(16)::marker,
-#container ol li:nth-child(17)::marker,
-#container ol li:nth-child(18)::marker,
-#container ol li:nth-child(19)::marker,
-#container ol li:nth-child(20)::marker,
-#container ol li:nth-child(10n+1)::marker,
-#container ol li:last-child::marker {
-  color: #666;
-}
-#container ol li:not(:first-child) {
-  padding-left: 1.3em;
-}
-#container ol li:not(:first-child)::before {
-  content: "→";
-  color: #666;
+main > #input::before {
   position: absolute;
-  left: 0;
-  top: 0;
-}
-
-#container ul {
-  list-style: none;
-}
-
-#form {
-  display: flex;
-  margin-top: 8px;
-  gap: 8px;
-}
-
-#form input {
-  flex-grow: 1;
-  padding: 8px;
+  top: 48px;
+  left: 12px;
+  z-index: 1000;
+  content: ">";
+  color: #666;
   font-family: monospace;
-  appearance: none;
-  border: none;
-  border: 1px solid #666;
-  border-radius: 4px;
-  background-color: #fafafabb;
-}
-
-#form button {
-  padding: 0 32px;
-  font-size: 110%;
-
-  appearance: none;
-  color: #fafafa;
-  border: none;
-  border: 1px solid #666;
-  border-radius: 4px;
-  background: none;
-  background: #e19b4d;
-
-  cursor: pointer;
+  font-size: 1.1em;
+  line-height: 1;
+  pointer-events: none;
 }

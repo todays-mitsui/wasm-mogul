@@ -47,5 +47,7 @@ export function initRandomSpell() {
     } while (input.value === spell);
 
     input.value = spell;
+
+    input.dispatchEvent(new Event('input'));
   });
 }
