@@ -14,7 +14,8 @@ use anyhow::Result;
 use calc::EvalStep;
 use engine::Engine;
 use engine::Output;
-use parser::parse_command;
+use parser::parse_command as parser_parse_command;
+use parser::parse_expr as parser_parse_expr;
 use repository::{get_context, get_display_style, push_history_def, push_history_del};
 use serde::Serialize;
 use style::{DisplayStyle, ECMAScriptStyle, LazyKStyle};
@@ -27,9 +28,9 @@ pub struct CalcResult {
 }
 
 #[wasm_bindgen]
-pub fn lambda_calculus(input: &str) -> JsValue {
+pub fn execute(input: &str) -> JsValue {
     let context = get_context().expect("get context error");
-    let command = parse_command(input).expect("parse error");
+    let command = parser_parse_command(input).expect("parse error");
 
     let mut engine = Engine::new(context);
     let output = engine.run(command);
@@ -71,6 +72,18 @@ pub fn context() -> Box<[JsValue]> {
         .collect();
 
     vec.into_boxed_slice()
+}
+
+#[wasm_bindgen]
+pub fn parse_command(input: &str) {
+    let command = parser_parse_command(input).expect("parse error");
+    log!("command: {:?}", command);
+}
+
+#[wasm_bindgen]
+pub fn parse_expr(input: &str) {
+    let expr = parser_parse_expr(input).expect("parse error");
+    log!("expr: {:?}", expr);
 }
 
 #[wasm_bindgen(start)]

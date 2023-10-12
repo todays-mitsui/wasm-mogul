@@ -1,5 +1,6 @@
 import { appendOl, appendUl } from './append.js';
 import { initDetails } from './details.js';
+import { implant } from './implant.js';
 import { initInput } from './input.js';
 import { initRandomSpell } from './randomSpell.js';
 import { initSettings } from './settings.js';
@@ -24,10 +25,11 @@ async function main() {
     onSubmit(module, input, outputBox);
   });
 
+  implant(module);
 }
 
 /**
- * @param {{ lambda_calculus: (src: string, style: 'ECMAScript' | 'Lazy_K') => { expr: string; steps: string[]; } }} module
+ * @param {{ execute: (src: string, style: 'ECMAScript' | 'Lazy_K') => { expr: string; steps: string[]; } }} module
  * @param {HTMLInputElement} input
  * @param {HTMLDivElement} outputBox
  */
@@ -36,7 +38,7 @@ function onSubmit(module, input, outputBox) {
   if (!src.trim()) { return; }  // 何も入力されていないなら何もしない
 
   input.value = '';
-  const output = module.lambda_calculus(src, 'ECMAScript');
+  const output = module.execute(src, 'ECMAScript');
 
   showOutput(outputBox, output);
 
