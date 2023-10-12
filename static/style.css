@@ -290,8 +290,7 @@ main > #input button:disabled {
 }
 
 main > #input button[type=submit] {
-  padding-left: 4em;
-  padding-right: 4em;
+  width: 160px;
   font-weight: 600;
 }
 main > #input button[type=button] {
