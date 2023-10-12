@@ -3,7 +3,6 @@ mod expression;
 
 use crate::engine::Command;
 use crate::expr::Expr;
-use crate::func::Func;
 use anyhow::{anyhow, Result};
 use combine::EasyParser;
 pub use command::{command, update};
@@ -29,14 +28,14 @@ pub fn parse_command(s: &str) -> Result<Command> {
     }
 }
 
-pub fn parse_func(s: &str) -> Result<Func> {
+pub fn parse_update_or_delete(s: &str) -> Result<Command> {
     let (command, rest) = update().easy_parse(s).map_err(|e| anyhow!("{}", e))?;
 
     if rest.is_empty() {
-        if let Command::Update(func) = command {
-            Ok(func)
-        } else {
-            Err(anyhow!("unexpected command: {}", command))
+        match &command {
+            Command::Update(_) => Ok(command),
+            Command::Del(_) => Ok(command),
+            _ => Err(anyhow!("unexpected command: {}", command)),
         }
     } else {
         Err(anyhow!("unexpected token: {}", rest))

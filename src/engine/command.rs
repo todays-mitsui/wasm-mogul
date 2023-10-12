@@ -16,38 +16,47 @@ pub enum Command {
     Unlambda(u8, Expr),    // Expr からラムダ抽象を除去する
 }
 
+#[cfg(test)]
 pub fn del<Id: Into<Identifier>>(id: Id) -> Command {
     Command::Del(id.into())
 }
 
+#[cfg(test)]
 pub fn update(func: Func) -> Command {
     Command::Update(func)
 }
 
+#[cfg(test)]
 pub fn eval<E: Into<Expr>>(expr: E) -> Command {
     Command::Eval(expr.into())
 }
 
+#[cfg(test)]
 pub fn eval_last<E: Into<Expr>>(expr: E) -> Command {
     Command::EvalLast(expr.into())
 }
 
+#[cfg(test)]
 pub fn eval_head<E: Into<Expr>>(n: usize, expr: E) -> Command {
     Command::EvalHead(n, expr.into())
 }
 
+#[cfg(test)]
 pub fn eval_tail<E: Into<Expr>>(n: usize, expr: E) -> Command {
     Command::EvalTail(n, expr.into())
 }
 
+#[cfg(test)]
 pub fn search<Id: Into<Identifier>>(id: Id) -> Command {
     Command::Search(id.into())
 }
 
+#[cfg(test)]
 pub fn global() -> Command {
     Command::Global
 }
 
+#[cfg(test)]
 pub fn unlambda<E: Into<Expr>>(level: u8, expr: E) -> Command {
     Command::Unlambda(level, expr.into())
 }

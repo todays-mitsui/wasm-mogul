@@ -1,7 +1,9 @@
 use crate::browser::local_storage;
 use crate::context::Context;
+use crate::engine::Command;
+use crate::expr::Identifier;
 use crate::func::Func;
-use crate::parser::parse_func;
+use crate::parser::parse_update_or_delete;
 use crate::style::{DisplayStyle, ECMAScriptStyle};
 use anyhow::{anyhow, Result};
 
@@ -28,13 +30,17 @@ const KEY_FUNC_HISTORY: &str = "tuber_func_history";
 
 pub fn get_context() -> Result<Context> {
     let mut context = Context::default();
-    for func in get_func_history()?.into_iter() {
-        context.def(func);
+    for command in get_func_history()?.into_iter() {
+        match command {
+            Command::Update(func) => context.def(func),
+            Command::Del(id) => context.del(&id),
+            _ => unreachable!(),
+        }
     }
     Ok(context)
 }
 
-fn get_func_history() -> Result<Vec<Func>> {
+fn get_func_history() -> Result<Vec<Command>> {
     let storage = local_storage()?;
 
     let history_string = storage
@@ -45,20 +51,20 @@ fn get_func_history() -> Result<Vec<Func>> {
         return Ok(Vec::new());
     }
 
-    let mut funcs = Vec::new();
-    for func_str in history_string.unwrap().split('\n') {
-        if func_str.trim().is_empty() {
+    let mut commands = Vec::new();
+    for command_str in history_string.unwrap().split('\n') {
+        if command_str.trim().is_empty() {
             continue;
         }
 
-        let func = parse_func(func_str)?;
-        funcs.push(func);
+        let command = parse_update_or_delete(command_str)?;
+        commands.push(command);
     }
 
-    Ok(funcs)
+    Ok(commands)
 }
 
-pub fn push_func_history(func: &Func) -> Result<()> {
+pub fn push_history_def(func: &Func) -> Result<()> {
     let storage = local_storage()?;
 
     let history_string = storage
@@ -72,3 +78,33 @@ pub fn push_func_history(func: &Func) -> Result<()> {
         .set_item(KEY_FUNC_HISTORY, history_string.as_str())
         .map_err(|err| anyhow!("Failed to set func history to localStorage: {:?}", err))
 }
+
+pub fn push_history_del(id: &Identifier) -> Result<()> {
+    let storage = local_storage()?;
+
+    let history_string = storage
+        .get_item(KEY_FUNC_HISTORY)
+        .map_err(|err| anyhow!("Failed to get func history from localStorage: {:?}", err))?;
+
+    let mut history_string = history_string.unwrap_or_default();
+    history_string = history_string + "\n" + format!("{0} = {0}", id).as_str();
+
+    storage
+        .set_item(KEY_FUNC_HISTORY, history_string.as_str())
+        .map_err(|err| anyhow!("Failed to set func history to localStorage: {:?}", err))
+}
+
+// ========================================================================== //
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use wasm_bindgen_test::{wasm_bindgen_test, wasm_bindgen_test_configure};
+
+//     wasm_bindgen_test_configure!(run_in_browser);
+
+//     #[wasm_bindgen_test]
+//     fn test_get_display_style() {
+//         // TODO: テスト書く
+//     }
+// }

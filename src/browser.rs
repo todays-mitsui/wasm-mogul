@@ -1,6 +1,4 @@
 use anyhow::{anyhow, Result};
-use wasm_bindgen::JsCast;
-use wasm_bindgen_futures;
 use web_sys::{Storage, Window};
 
 macro_rules! log {

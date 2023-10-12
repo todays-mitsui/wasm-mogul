@@ -12,10 +12,10 @@ mod to_string;
 
 use anyhow::Result;
 use calc::EvalStep;
+use engine::Engine;
 use engine::Output;
-use engine::{Command, Engine};
 use parser::parse_command;
-use repository::{get_context, get_display_style, push_func_history};
+use repository::{get_context, get_display_style, push_history_def, push_history_del};
 use serde::Serialize;
 use style::{DisplayStyle, ECMAScriptStyle, LazyKStyle};
 use wasm_bindgen::prelude::*;
@@ -31,13 +31,21 @@ pub fn lambda_calculus(input: &str) -> JsValue {
     let context = get_context().expect("get context error");
     let command = parse_command(input).expect("parse error");
 
-    // この処理、Engine の中に入れるべき？
-    if let Command::Update(func) = &command {
-        push_func_history(func).expect("push func history error");
-    }
-
     let mut engine = Engine::new(context);
     let output = engine.run(command);
+
+    match &output {
+        Output::Update {
+            input: func,
+            result: _,
+        } => push_history_def(&func),
+        Output::Del {
+            input: id,
+            result: _,
+        } => push_history_del(id),
+        _ => Ok(()), // 何もしない
+    }
+    .expect("push func history error");
 
     let style = get_display_style().expect("get display style error");
     serde_wasm_bindgen::to_value(&JsOutput::from((&style, output))).unwrap()
