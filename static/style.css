@@ -185,21 +185,38 @@ main > #output ol li::before {
 main > #output ul li::before {
   content: "-";
 }
-main > #output ol li:not(:first-child)::after {
-  content: "⇒";
+
+main > #output ol.eval li:not(:first-child)::after,
+main > #output ul.update li:not(:first-child)::after,
+main > #output ul.unlambda li:not(:first-child)::after {
   grid-column: 2 / 3;
   grid-row: 1 / 2;
   color: #999;
   text-align: center;
 }
-main > #output ol li:first-child code {
+main > #output ol.eval li:first-child code,
+main > #output ul.update li:first-child code,
+main > #output ul.unlambda li:first-child code {
   grid-column: 2 / 4;
 }
-main > #output ol li:not(:first-child) code {
+main > #output ol.eval li:not(:first-child) code,
+main > #output ul.update li:not(:first-child) code,
+main > #output ul.unlambda li:not(:first-child) code {
   grid-column: 3 / 4;
 }
+
 main > #output ul li code {
   grid-column: 2 / 4;
+}
+
+ol.eval li:not(:first-child)::after {
+  content: "⇒";
+}
+ul.update li:not(:first-child)::after {
+  content: "=";
+}
+ul.unlambda li:not(:first-child)::after {
+  content: "≈";
 }
 
 main > #output {
