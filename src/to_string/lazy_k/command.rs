@@ -13,7 +13,7 @@ impl Display for LazyKStyle<'_, Command> {
             Command::EvalHead(len, e) => write!(f, "!{} {}", len, LazyKStyle(e)),
             Command::EvalTail(len, e) => write!(f, "!-{} {}", len, LazyKStyle(e)),
             Command::Search(i) => write!(f, "? {}", i),
-            Command::Global => write!(f, "?"),
+            Command::Context => write!(f, "?"),
             Command::Unlambda(level, e) => {
                 write!(f, "{} {}", "~".repeat((*level).into()), LazyKStyle(e))
             }
@@ -32,7 +32,7 @@ impl Display for LazyKStyle<'_, &Command> {
             Command::EvalHead(len, e) => write!(f, "!{} {}", len, LazyKStyle(e)),
             Command::EvalTail(len, e) => write!(f, "!-{} {}", len, LazyKStyle(e)),
             Command::Search(i) => write!(f, "? {}", i),
-            Command::Global => write!(f, "?"),
+            Command::Context => write!(f, "?"),
             Command::Unlambda(level, e) => {
                 write!(f, "{} {}", "~".repeat((*level).into()), LazyKStyle(e))
             }
@@ -139,7 +139,7 @@ mod tests {
 
     #[test]
     fn test_global() {
-        let command = command::global();
+        let command = command::context();
         assert_eq!(LazyKStyle(&command).to_string(), "?");
     }
 

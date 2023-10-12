@@ -13,7 +13,7 @@ impl Display for ECMAScriptStyle<'_, Command> {
             Command::EvalHead(len, e) => write!(f, "!{} {}", len, ECMAScriptStyle(e)),
             Command::EvalTail(len, e) => write!(f, "!-{} {}", len, ECMAScriptStyle(e)),
             Command::Search(i) => write!(f, "? {}", i),
-            Command::Global => write!(f, "?"),
+            Command::Context => write!(f, "?"),
             Command::Unlambda(level, e) => {
                 write!(f, "{} {}", "~".repeat((*level).into()), ECMAScriptStyle(e))
             }
@@ -32,7 +32,7 @@ impl Display for ECMAScriptStyle<'_, &Command> {
             Command::EvalHead(len, e) => write!(f, "!{} {}", len, ECMAScriptStyle(e)),
             Command::EvalTail(len, e) => write!(f, "!-{} {}", len, ECMAScriptStyle(e)),
             Command::Search(i) => write!(f, "? {}", i),
-            Command::Global => write!(f, "?"),
+            Command::Context => write!(f, "?"),
             Command::Unlambda(level, e) => {
                 write!(f, "{} {}", "~".repeat((*level).into()), ECMAScriptStyle(e))
             }
@@ -142,7 +142,7 @@ mod tests {
 
     #[test]
     fn test_global() {
-        let command = command::global();
+        let command = command::context();
         assert_eq!(ECMAScriptStyle(&command).to_string(), "?");
     }
 

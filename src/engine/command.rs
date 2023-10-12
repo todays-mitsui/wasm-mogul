@@ -11,8 +11,8 @@ pub enum Command {
     EvalLast(Expr),        // β変結果のみ表示
     EvalHead(usize, Expr), // β変換列の先頭のみ表示
     EvalTail(usize, Expr), // β変換列の末尾のみ表示
-    Search(Identifier),    // Global から定義済み関数を検索
-    Global,                // Global 全体を表示
+    Search(Identifier),    // Context から定義済み関数を検索
+    Context,               // Context 全体を表示
     Unlambda(u8, Expr),    // Expr からラムダ抽象を除去する
 }
 
@@ -52,8 +52,8 @@ pub fn search<Id: Into<Identifier>>(id: Id) -> Command {
 }
 
 #[cfg(test)]
-pub fn global() -> Command {
-    Command::Global
+pub fn context() -> Command {
+    Command::Context
 }
 
 #[cfg(test)]

@@ -1,4 +1,4 @@
-const contextBox = document.querySelector('#functions .inner ul');
+const contextBox = document.querySelector('#context .inner ul');
 
 /**
  * @param {string[]} context

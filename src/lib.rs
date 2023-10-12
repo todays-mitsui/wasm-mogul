@@ -113,7 +113,7 @@ pub enum JsOutput {
         input: String,          // Identifier
         result: Option<String>, // Option<Func>
     },
-    Global {
+    Context {
         result: Vec<String>, // Context
     },
     Unlambda {
@@ -175,7 +175,7 @@ impl From<(&DisplayStyle, Output)> for JsOutput {
                 input: id.to_string(),
                 result: result.as_ref().map(|func| func_to_string(func)),
             },
-            Output::Global { result: context } => Self::Global {
+            Output::Context { result: context } => Self::Context {
                 result: context
                     .to_vec()
                     .iter()
