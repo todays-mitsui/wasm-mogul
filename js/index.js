@@ -2,6 +2,7 @@ import { initDetails } from './details.js';
 import { displayEval, displayUpdate, displayDelete, displayUnlambda, displayCodeList } from './display.js';
 import { implant } from './implant.js';
 import { initInput } from './input.js';
+import { showLoader, hideLoader } from './loader.js';
 import { initRandomSpell } from './randomSpell.js';
 import { initSettings } from './settings.js';
 import { updateContext } from './updateContext.js';
@@ -33,12 +34,22 @@ async function main() {
  * @param {HTMLInputElement} input
  * @param {HTMLDivElement} outputBox
  */
-function onSubmit(module, input, outputBox) {
+async function onSubmit(module, input, outputBox) {
   const src = input.value;
   if (!src.trim()) { return; }  // 何も入力されていないなら何もしない
 
+  showLoader();
+
   input.value = '';
-  const output = module.execute(src, 'ECMAScript');
+
+  const output = await new Promise(resolve => {
+    setTimeout(() => {
+      const output = module.execute(src);
+      resolve(output);
+    }, 0);
+  });
+
+  hideLoader();
 
   showOutput(output);
 
