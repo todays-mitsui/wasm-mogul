@@ -3,11 +3,11 @@ import { initDetails } from './details.js';
 import { initInput } from './input.js';
 import { initRandomSpell } from './randomSpell.js';
 import { initSettings } from './settings.js';
+import { updateContext } from './updateContext.js';
 
 async function main() {
   initDetails();
   initInput();
-  initSettings();
   initRandomSpell();
 
   const outputBox = document.querySelector('#output');
@@ -16,10 +16,14 @@ async function main() {
 
   const module = await import('../pkg/index.js');
 
+  updateContext(module.context());
+  initSettings(module);
+
   form.addEventListener('submit', function (event) {
     event.preventDefault();
     onSubmit(module, input, outputBox);
   });
+
 }
 
 /**
@@ -53,11 +57,13 @@ function showOutput(outputBox, output) {
       const { input: id, result: context } = output;
       console.log({ id, context });
       appendOl(outputBox, [`${id} = ${id}`]);
+      updateContext(context);
     } break;
 
     case 'Update': {
-      const { input: func } = output;
+      const { input: func, result: context } = output;
       appendOl(outputBox, [func]);
+      updateContext(context);
     } break;
 
     case 'Eval': {

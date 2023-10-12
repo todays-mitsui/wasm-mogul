@@ -1,4 +1,9 @@
-export function initSettings() {
+import { updateContext } from './updateContext.js';
+
+/**
+ * @param {{ context: () => string[] }} module
+ */
+export function initSettings(module) {
   const displayStyle = getDisplayStyle();
   const radios = document.querySelectorAll(`input[name=${KEY_DISPLAY_STYLE}]`);
 
@@ -7,6 +12,7 @@ export function initSettings() {
 
     radio.addEventListener('change', function (event) {
       setDisplayStyle(radio.value);
+      updateContext(module.context());
     });
   }
 }

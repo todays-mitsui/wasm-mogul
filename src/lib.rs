@@ -51,6 +51,28 @@ pub fn lambda_calculus(input: &str) -> JsValue {
     serde_wasm_bindgen::to_value(&JsOutput::from((&style, output))).unwrap()
 }
 
+#[wasm_bindgen]
+pub fn context() -> Box<[JsValue]> {
+    let style = get_display_style().expect("get display style error");
+    let func_to_string = |func| {
+        let _: &crate::func::Func = func;
+        match style {
+            DisplayStyle::ECMAScript => ECMAScriptStyle(func).to_string(),
+            DisplayStyle::LazyK => LazyKStyle(func).to_string(),
+            _ => unreachable!(),
+        }
+    };
+
+    let context = get_context().expect("get context error");
+    let vec: Vec<JsValue> = context
+        .to_vec()
+        .iter()
+        .map(|func| JsValue::from_str(&func_to_string(func)))
+        .collect();
+
+    vec.into_boxed_slice()
+}
+
 #[wasm_bindgen(start)]
 pub fn main_js() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
