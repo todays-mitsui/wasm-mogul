@@ -1,9 +1,8 @@
-# You must change these to your own details.
 [package]
 name = "wasm_tuber"
-description = "My super awesome Rust, WebAssembly, and Webpack project!"
-version = "0.1.0"
-authors = ["You <you@example.com>"]
+description = "An interpreter that evaluates λ-calculations step by step"
+version = "0.2.0"
+authors = ["Mitsui <todays.mitsui@gmail.com>"]
 categories = ["wasm"]
 readme = "README.md"
 edition = "2021"

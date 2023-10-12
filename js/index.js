@@ -8,6 +8,8 @@ import { initSettings } from './settings.js';
 import { updateContext } from './updateContext.js';
 
 async function main() {
+  console.info('ski Mogul, version 0.2.0');
+
   initDetails();
   initInput();
   initRandomSpell();
