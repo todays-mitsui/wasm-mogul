@@ -166,7 +166,7 @@ where
     Input: Stream<Token = char>,
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
 {
-    spaces().skip(char('?')).map(|_| Command::Global)
+    spaces().skip(char('?')).map(|_| Command::Context)
 }
 
 // ========================================================================== //
@@ -229,7 +229,7 @@ mod tests {
             Ok((Command::Search("a".into()), ""))
         );
 
-        assert_eq!(command().easy_parse("?"), Ok((Command::Global, "")));
+        assert_eq!(command().easy_parse("?"), Ok((Command::Context, "")));
 
         assert!(command().easy_parse("f=g h=i").is_err());
     }
@@ -283,7 +283,7 @@ mod tests {
             Ok((Command::Search("a".into()), ""))
         );
 
-        assert_eq!(command().easy_parse("?"), Ok((Command::Global, "")));
+        assert_eq!(command().easy_parse("?"), Ok((Command::Context, "")));
     }
 
     #[test]
@@ -374,7 +374,7 @@ mod tests {
 
     #[test]
     fn test_global() {
-        assert_eq!(global().easy_parse("?"), Ok((Command::Global, "")));
+        assert_eq!(global().easy_parse("?"), Ok((Command::Context, "")));
     }
 
     #[test]

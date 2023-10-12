@@ -20,7 +20,7 @@ pub enum Output {
         input: Identifier,
         result: Option<Func>,
     },
-    Global {
+    Context {
         result: Context,
     },
     Unlambda {

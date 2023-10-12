@@ -1,13 +1,14 @@
 import { appendOl, appendUl } from './append.js';
 import { initDetails } from './details.js';
+import { implant } from './implant.js';
 import { initInput } from './input.js';
 import { initRandomSpell } from './randomSpell.js';
 import { initSettings } from './settings.js';
+import { updateContext } from './updateContext.js';
 
 async function main() {
   initDetails();
   initInput();
-  initSettings();
   initRandomSpell();
 
   const outputBox = document.querySelector('#output');
@@ -16,14 +17,19 @@ async function main() {
 
   const module = await import('../pkg/index.js');
 
+  updateContext(module.context());
+  initSettings(module);
+
   form.addEventListener('submit', function (event) {
     event.preventDefault();
     onSubmit(module, input, outputBox);
   });
+
+  implant(module);
 }
 
 /**
- * @param {{ lambda_calculus: (src: string, style: 'ECMAScript' | 'Lazy_K') => { expr: string; steps: string[]; } }} module
+ * @param {{ execute: (src: string, style: 'ECMAScript' | 'Lazy_K') => { expr: string; steps: string[]; } }} module
  * @param {HTMLInputElement} input
  * @param {HTMLDivElement} outputBox
  */
@@ -32,7 +38,7 @@ function onSubmit(module, input, outputBox) {
   if (!src.trim()) { return; }  // 何も入力されていないなら何もしない
 
   input.value = '';
-  const output = module.lambda_calculus(src, 'ECMAScript');
+  const output = module.execute(src, 'ECMAScript');
 
   showOutput(outputBox, output);
 
@@ -53,11 +59,13 @@ function showOutput(outputBox, output) {
       const { input: id, result: context } = output;
       console.log({ id, context });
       appendOl(outputBox, [`${id} = ${id}`]);
+      updateContext(context);
     } break;
 
     case 'Update': {
-      const { input: func } = output;
+      const { input: func, result: context } = output;
       appendOl(outputBox, [func]);
+      updateContext(context);
     } break;
 
     case 'Eval': {

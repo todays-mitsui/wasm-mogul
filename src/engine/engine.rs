@@ -70,7 +70,7 @@ impl Engine {
                 },
             ),
 
-            Command::Global => Output::Global {
+            Command::Context => Output::Context {
                 result: self.context.clone(),
             },
 
