@@ -1,5 +1,5 @@
-import { appendOl, appendUl } from './append.js';
 import { initDetails } from './details.js';
+import { displayEval, displayUpdate, displayDelete, displayUnlambda, displayCodeList } from './display.js';
 import { implant } from './implant.js';
 import { initInput } from './input.js';
 import { initRandomSpell } from './randomSpell.js';
@@ -40,7 +40,7 @@ function onSubmit(module, input, outputBox) {
   input.value = '';
   const output = module.execute(src, 'ECMAScript');
 
-  showOutput(outputBox, output);
+  showOutput(output);
 
   outputBox.scrollTo({
     top: outputBox.scrollHeight,
@@ -51,42 +51,41 @@ function onSubmit(module, input, outputBox) {
   input.dispatchEvent(new Event('input'));
 }
 
-function showOutput(outputBox, output) {
-  console.log(output);
+function showOutput(output) {
+  console.log({ result: output });
 
   switch (output.type) {
     case 'Del': {
       const { input: id, result: context } = output;
       console.log({ id, context });
-      appendOl(outputBox, [`${id} = ${id}`]);
+      displayDelete(id);
       updateContext(context);
     } break;
 
     case 'Update': {
       const { input: func, result: context } = output;
-      appendOl(outputBox, [func]);
+      displayUpdate(func);
       updateContext(context);
     } break;
 
     case 'Eval': {
       const { input: expr, steps } = output;
-      appendOl(outputBox, [expr, ...steps.map(({ expr }) => expr)]);
+      displayEval(expr, steps.map(({ expr }) => expr));
     } break;
 
     case 'Search': {
       const { input: id, result: func } = output;
-      appendOl(outputBox, [func == null ? `${id} = ${id}` : func]);
+      displayUpdate(func == null ? `${id} = ${id}` : func);
     } break;
 
-    case 'Global': {
+    case 'Context': {
       const { result: context } = output;
-      console.log({ context });
-      appendUl(outputBox, context);
+      displayCodeList(context);
     } break;
 
     case 'Unlambda': {
       const { input, result } = output;
-      appendOl(outputBox, [`${input} ~ ${result}`]);
+      displayUnlambda(input, result);
     } break;
   }
 }
