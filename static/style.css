@@ -154,6 +154,10 @@ main > nav .inner h2 {
   gap: 8px;
   margin: .2em 0;
 }
+#settings small {
+  margin-left: 0.6em;
+  color: #333;
+}
 #settings code {
   padding: 2px 4px;
   font-family: 'Inconsolata', monospace;
