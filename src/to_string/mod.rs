@@ -5,7 +5,7 @@ use crate::context::Context;
 use crate::engine::Command;
 use crate::expr::Expr;
 use crate::func::Func;
-use crate::style::{ECMAScriptStyle, LazyKStyle};
+use crate::style::LazyKStyle;
 use std::fmt::Display;
 
 impl Display for Command {

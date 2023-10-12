@@ -37,7 +37,7 @@ where
     Input: Stream<Token = char>,
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
 {
-    char('ι').map(|c| "ι".into())
+    char('ι').map(|_c| "ι".into())
 }
 
 // ========================================================================== //

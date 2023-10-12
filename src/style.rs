@@ -23,7 +23,7 @@ pub struct ECMAScriptStyle<'a, F: Factor>(pub &'a F);
 
 #[wasm_bindgen]
 #[derive(Copy, Clone, Debug)]
-pub enum Style {
+pub enum DisplayStyle {
     ECMAScript = "ECMAScript",
     LazyK = "Lazy_K",
 }

@@ -216,7 +216,7 @@ main > #output li::before {
   color: #aaa;
   font-family: monospace;
   font-size: .8em;
-  line-height: 1.875;
+  line-height: 2;
   text-align: right;
   background-color: #ececf1;
 }

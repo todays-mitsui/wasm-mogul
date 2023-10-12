@@ -17,6 +17,7 @@ pub fn unlambda_shallow(expr: Expr) -> Expr {
     unlambda_shallow_ski(expr, &ski)
 }
 
+#[allow(dead_code)]
 pub fn unlambda_shallow_(strategy: &ShallowStrategy, expr: Expr) -> Expr {
     match strategy {
         ShallowStrategy::SKI => {
@@ -60,7 +61,8 @@ pub fn unlambda_recursive_(strategy: &RecursiveStrategy, context: &Context, expr
 
 // ========================================================================== //
 
-#[derive(Debug, PartialEq)]
+#[allow(dead_code)]
+#[derive(PartialEq)]
 pub enum ShallowStrategy {
     SKI,
     SKIWith {
@@ -75,7 +77,8 @@ pub enum ShallowStrategy {
     },
 }
 
-#[derive(Debug, PartialEq)]
+#[allow(dead_code)]
+#[derive(PartialEq)]
 pub enum RecursiveStrategy {
     SKI,
     SKIWith {

@@ -33,7 +33,7 @@ where
 
 // ========================================================================== //
 
-fn update<Input>() -> impl Parser<Input, Output = Command>
+pub fn update<Input>() -> impl Parser<Input, Output = Command>
 where
     Input: Stream<Token = char>,
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
