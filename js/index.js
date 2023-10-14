@@ -44,10 +44,15 @@ async function onSubmit(module, input, outputBox) {
 
   input.value = '';
 
-  const output = await new Promise(resolve => {
+  const output = await new Promise((resolve, reject) => {
     setTimeout(() => {
-      const output = module.execute(src);
-      resolve(output);
+      try {
+        const output = module.execute(src);
+        resolve(output);
+      }
+      catch (e) {
+        reject(e);
+      }
     }, 0);
   });
 

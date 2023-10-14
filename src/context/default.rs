@@ -55,7 +55,7 @@ impl Default for Context {
             func::new(
                 "IS_NIL",
                 vec!["x"],
-                expr::a(expr::a("x", expr::l("_", "FALSE")), "TRUE"),
+                expr::a(expr::a("x", expr::l("_", expr::l("_", expr::l("_", "FALSE")))), "TRUE"),
             ),
             func::new(
                 "Y",
@@ -107,6 +107,65 @@ impl Default for Context {
                 "MUL",
                 vec!["m", "n"],
                 expr::l("f", expr::a("m", expr::a("n", "f"))),
+            ),
+            func::new(
+                "DIV",
+                vec!["m", "n"],
+                expr::a(
+                    expr::a(
+                        expr::a(
+                            "Y",
+                            expr::l(
+                                "g",
+                                expr::l(
+                                    "m",
+                                    expr::l(
+                                        "n",
+                                        expr::a(
+                                            expr::a(
+                                                expr::a(expr::a("GTE", "m"), "n"),
+                                                expr::a(
+                                                    expr::a(
+                                                        "CONS",
+                                                        expr::a(
+                                                            "SUCC",
+                                                            expr::a(
+                                                                "CAR",
+                                                                expr::a(
+                                                                    expr::a(
+                                                                        "g",
+                                                                        expr::a(
+                                                                            expr::a("SUB", "m"),
+                                                                            "n"
+                                                                        )
+                                                                    ),
+                                                                    "n"
+                                                                )
+                                                            )
+                                                        )
+                                                    ),
+                                                    expr::a(
+                                                        "CDR",
+                                                        expr::a(
+                                                            expr::a(
+                                                                "g",
+                                                                expr::a(expr::a("SUB", "m"), "n")
+                                                            ),
+                                                            "n"
+                                                        )
+                                                    )
+                                                )
+                                            ),
+                                            expr::a(expr::a("CONS", "0"), "m")
+                                        )
+                                    )
+                                )
+                            )
+                        ),
+                        "m"
+                    ),
+                    "n"
+                )
             ),
             func::new("POW", vec!["m", "n"], expr::a("n", "m")),
             func::new(
