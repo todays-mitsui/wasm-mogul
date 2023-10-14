@@ -1,7 +1,7 @@
 use super::Command;
 use super::Output;
 use crate::calc::{
-    unlambda_iota, unlambda_recursive, unlambda_recursive_, unlambda_shallow, Eval,
+    expand, unlambda_iota, unlambda_recursive, unlambda_recursive_, unlambda_shallow, Eval,
     RecursiveStrategy,
 };
 use crate::context::Context;
@@ -77,7 +77,7 @@ impl Engine {
             Command::Unlambda(level, e) => Output::Unlambda {
                 input: e.clone(),
                 result: match level {
-                    1 => unlambda_shallow(e),
+                    1 => expand(&self.context, e),
                     2 => unlambda_recursive(&self.context, e),
                     3 => unlambda_recursive_(&RecursiveStrategy::SK, &self.context, e),
                     4 => unlambda_iota(&self.context, e),
