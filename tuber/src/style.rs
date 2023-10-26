@@ -2,7 +2,6 @@ use crate::context::Context;
 use crate::engine::Command;
 use crate::expr::Expr;
 use crate::func::Func;
-use wasm_bindgen::prelude::*;
 
 pub trait Factor {}
 
@@ -20,10 +19,3 @@ pub struct LazyKStyle<'a, F: Factor>(pub &'a F);
 
 #[derive(PartialEq, Debug)]
 pub struct ECMAScriptStyle<'a, F: Factor>(pub &'a F);
-
-#[wasm_bindgen]
-#[derive(Copy, Clone, Debug)]
-pub enum DisplayStyle {
-    ECMAScript = "ECMAScript",
-    LazyK = "Lazy_K",
-}

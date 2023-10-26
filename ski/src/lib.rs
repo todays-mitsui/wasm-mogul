@@ -1,24 +1,17 @@
 #[macro_use]
 mod browser;
-mod calc;
-mod context;
-mod engine;
-mod expr;
-mod func;
-mod parser;
 mod repository;
 mod style;
-mod to_string;
 
 use anyhow::Result;
-use calc::EvalStep;
-use engine::Engine;
-use engine::Output;
-use parser::parse_command as parser_parse_command;
-use parser::parse_expr as parser_parse_expr;
 use repository::{get_context, get_display_style, push_history_def, push_history_del};
 use serde::Serialize;
 use style::{DisplayStyle, ECMAScriptStyle, LazyKStyle};
+use tuber::calc::EvalStep;
+use tuber::engine::Engine;
+use tuber::engine::Output;
+use tuber::parser::parse_command as parser_parse_command;
+use tuber::parser::parse_expr as parser_parse_expr;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(getter_with_clone)]

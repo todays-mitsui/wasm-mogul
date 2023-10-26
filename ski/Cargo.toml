@@ -1,5 +1,5 @@
 [package]
-name = "wasm_tuber"
+name = "ski"
 description = "An interpreter that evaluates λ-calculations step by step"
 version = "0.2.0"
 authors = ["Mitsui <todays.mitsui@gmail.com>"]
@@ -39,3 +39,6 @@ rand = "0.8.5"
 wasm-bindgen-test = "0.3.28"
 futures = "0.3.18"
 wasm-bindgen-futures = "0.4.28"
+
+[dependencies.tuber]
+path = "../tuber"
