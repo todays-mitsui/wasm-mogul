@@ -1,27 +1,51 @@
+use super::function;
 use crate::context::Context;
-use crate::style::ECMAScriptStyle;
-use std::fmt::Display;
+use crate::func::Func;
+use regex::Regex;
 
-impl Display for ECMAScriptStyle<'_, Context> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut context = self.0.iter().collect::<Vec<_>>();
+pub fn to_string(context: &Context) -> String {
+    let mut vec = context
+        .iter()
+        .map(|(_, func)| feature(func))
+        .collect::<Vec<(Feature, &Func)>>();
 
-        context.sort_by(|l, r| {
-            let l_name = l.0.as_str();
-            let r_name = r.0.as_str();
-            l_name.cmp(r_name)
-        });
+    vec.sort_by(|l, r| {
+        let l = &l.0;
+        let r = &r.0;
+        r.short
+            .cmp(&l.short)
+            .then(l.name.to_lowercase().cmp(&r.name.to_lowercase()))
+            .then(r.name.cmp(&l.name))
+            .then(l.index.cmp(&r.index))
+    });
 
-        write!(
-            f,
-            "{}",
-            context
-                .iter()
-                .map(|(_, func)| ECMAScriptStyle(func).to_string())
-                .collect::<Vec<_>>()
-                .join("\n")
-        )
-    }
+    format!(
+        "{}",
+        vec.into_iter()
+            .map(|(_, func)| function::to_string(func))
+            .collect::<Vec<_>>()
+            .join("\n")
+    )
+}
+
+struct Feature<'a> {
+    short: bool,
+    name: &'a str,
+    index: Option<usize>,
+}
+
+fn feature<'a>(func: &'a Func) -> (Feature<'a>, &'a Func) {
+    let pattern = Regex::new(r"\A(.*?)(\d*)\z").unwrap();
+
+    let name = func.name();
+    let (name, index) = match pattern.captures(name).map(|c| c.extract()) {
+        Some((_, [s, n])) => (s, usize::from_str_radix(n, 10).ok()),
+        None => (name, None),
+    };
+
+    let short = index.is_none() && name.len() == 1;
+
+    (Feature { short, name, index }, func)
 }
 
 // ========================================================================== //
@@ -50,11 +74,11 @@ mod tests {
         let context = Context::from(functions.to_vec());
 
         assert_eq!(
-            ECMAScriptStyle(&context).to_string(),
+            to_string(&context),
             "
-                K(x, y) = x\n\
                 i(x) = x\n\
                 k(x, y) = x\n\
+                K(x, y) = x\n\
                 l(x, y) = x
             "
             .trim()

@@ -1,34 +1,15 @@
 use crate::func::Func;
-use crate::style::LazyKStyle;
 use regex::Regex;
 use std::fmt::Display;
 
-impl Display for LazyKStyle<'_, Func> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let func: &Func = self.0;
-        let mut tokens = tokens(func);
-        write!(
-            f,
-            "{}{} = {}",
-            "`".to_string().repeat(func.arity()),
-            to_string(&mut tokens),
-            func.body()
-        )
-    }
-}
-
-impl Display for LazyKStyle<'_, &Func> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let func: &Func = self.0;
-        let mut tokens = tokens(func);
-        write!(
-            f,
-            "{}{} = {}",
-            "`".to_string().repeat(func.arity()),
-            to_string(&mut tokens),
-            func.body()
-        )
-    }
+pub fn to_string(func: &Func) -> String {
+    let mut tokens = tokens(func);
+    format!(
+        "{}{} = {}",
+        "`".to_string().repeat(func.arity()),
+        tokens_to_string(&mut tokens),
+        func.body()
+    )
 }
 
 fn tokens<'a>(f: &'a Func) -> Vec<Token<'a>> {
@@ -55,7 +36,7 @@ fn tokens<'a>(f: &'a Func) -> Vec<Token<'a>> {
     tokens
 }
 
-fn to_string(tokens: &mut Vec<Token>) -> String {
+fn tokens_to_string(tokens: &mut Vec<Token>) -> String {
     tokens.reverse();
     let mut str = String::new();
     while tokens.len() > 0 {
@@ -117,12 +98,12 @@ mod tests {
     #[test]
     fn test_to_string() {
         let f = func::new("f", vec!["x", "y"], expr::a("x", "y"));
-        assert_eq!(LazyKStyle(&f).to_string(), "``fxy = `xy");
+        assert_eq!(to_string(&f), "``fxy = `xy");
 
         let f = func::new("F", vec!["X", "Y"], expr::a("X", "Y"));
-        assert_eq!(LazyKStyle(&f).to_string(), "``F X Y = `X Y");
+        assert_eq!(to_string(&f), "``F X Y = `X Y");
 
         let f = func::new("F", vec!["x", "Y"], expr::a("x", "Y"));
-        assert_eq!(LazyKStyle(&f).to_string(), "``FxY = `xY");
+        assert_eq!(to_string(&f), "``FxY = `xY");
     }
 }

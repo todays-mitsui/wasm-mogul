@@ -7,11 +7,11 @@ use anyhow::Result;
 use repository::{get_context, get_display_style, push_history_def, push_history_del};
 use serde::Serialize;
 use style::{DisplayStyle, ECMAScriptStyle, LazyKStyle};
-use tuber::calc::EvalStep;
-use tuber::engine::Engine;
-use tuber::engine::Output;
-use tuber::parser::parse_command as parser_parse_command;
-use tuber::parser::parse_expr as parser_parse_expr;
+use tuber::parse_command as parser_parse_command;
+use tuber::parse_expr as parser_parse_expr;
+use tuber::Engine;
+use tuber::EvalStep;
+use tuber::Output;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(getter_with_clone)]

@@ -1,19 +1,7 @@
 use crate::expr::Expr;
-use crate::style::ECMAScriptStyle;
-use std::fmt::Display;
 
-impl Display for ECMAScriptStyle<'_, Expr> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let expr: &Expr = self.0;
-        write!(f, "{}", Compact::new(expr).to_string())
-    }
-}
-
-impl Display for ECMAScriptStyle<'_, &Expr> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let expr: &Expr = self.0;
-        write!(f, "{}", Compact::new(expr).to_string())
-    }
+pub fn to_string(expr: &Expr) -> String {
+    Compact::new(expr).to_string()
 }
 
 // ========================================================================== //
@@ -120,30 +108,30 @@ mod tests {
     #[test]
     fn test_to_string() {
         let e = expr::v("x");
-        assert_eq!(ECMAScriptStyle(&e).to_string(), "x");
+        assert_eq!(to_string(&e), "x");
 
         let e = expr::s("a");
-        assert_eq!(ECMAScriptStyle(&e).to_string(), ":a");
+        assert_eq!(to_string(&e), ":a");
 
         let e = expr::a("x", "y");
-        assert_eq!(ECMAScriptStyle(&e).to_string(), "x(y)");
+        assert_eq!(to_string(&e), "x(y)");
 
         let e = expr::a(":x", ":y");
-        assert_eq!(ECMAScriptStyle(&e).to_string(), ":x(:y)");
+        assert_eq!(to_string(&e), ":x(:y)");
 
         let e = expr::a(expr::a("x", "y"), "z");
-        assert_eq!(ECMAScriptStyle(&e).to_string(), "x(y, z)");
+        assert_eq!(to_string(&e), "x(y, z)");
 
         let e = expr::a("x", expr::a("y", "z"));
-        assert_eq!(ECMAScriptStyle(&e).to_string(), "x(y(z))");
+        assert_eq!(to_string(&e), "x(y(z))");
 
         let e = expr::l("x", "a");
-        assert_eq!(ECMAScriptStyle(&e).to_string(), "x => a");
+        assert_eq!(to_string(&e), "x => a");
 
         let e = expr::l("x", expr::l("y", "a"));
-        assert_eq!(ECMAScriptStyle(&e).to_string(), "(x, y) => a");
+        assert_eq!(to_string(&e), "(x, y) => a");
 
         let e = expr::a(expr::l("x", "a"), "y");
-        assert_eq!(ECMAScriptStyle(&e).to_string(), "(x => a)(y)");
+        assert_eq!(to_string(&e), "(x => a)(y)");
     }
 }

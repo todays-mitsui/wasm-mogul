@@ -9,7 +9,7 @@ impl Expr {
     /// 束縛変数のリネームを行うことがある (α変換)
     ///
     /// ```
-    /// # use crate::expr::{Expr, Identifier};
+    /// # use crate::expr::{self, Expr, Identifier};
     ///
     /// // ^y.`xy [x := y]
     /// let expr = expr::l("y", expr::a("x", "y"));

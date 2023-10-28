@@ -1,13 +1,12 @@
 use crate::expr::Expr;
-use crate::style::LazyKStyle;
 use regex::Regex;
 use std::fmt::Display;
 
-impl Display for LazyKStyle<'_, Expr> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", to_string(&mut tokens(self.0)))
-    }
+pub fn to_string(expr: &Expr) -> String {
+    tokens_to_string(&mut tokens(expr))
 }
+
+// ========================================================================== //
 
 fn tokens<'a>(expr: &'a Expr) -> Vec<Token<'a>> {
     match expr {
@@ -52,7 +51,7 @@ fn tokens<'a>(expr: &'a Expr) -> Vec<Token<'a>> {
     }
 }
 
-fn to_string(tokens: &mut Vec<Token>) -> String {
+fn tokens_to_string(tokens: &mut Vec<Token>) -> String {
     let mut str = String::new();
     while tokens.len() > 0 {
         match tokens.len() {
@@ -132,22 +131,16 @@ mod tests {
 
     #[test]
     fn test_to_string() {
-        assert_eq!(LazyKStyle(&expr::l("x", "y")).to_string(), "λx.y");
-        assert_eq!(
-            LazyKStyle(&expr::l("x", expr::a("y", "z"))).to_string(),
-            "λx.`yz"
-        );
-        assert_eq!(
-            LazyKStyle(&expr::l("X", expr::a("y", "z"))).to_string(),
-            "λX.`yz"
-        );
-        assert_eq!(LazyKStyle(&expr::a("x", "y")).to_string(), "`xy");
-        assert_eq!(LazyKStyle(&expr::a("x", "Y")).to_string(), "`xY");
-        assert_eq!(LazyKStyle(&expr::a("X", "y")).to_string(), "`Xy");
-        assert_eq!(LazyKStyle(&expr::a("X", "Y")).to_string(), "`X Y");
-        assert_eq!(LazyKStyle(&expr::a("X", ":Y")).to_string(), "`X:Y");
-        assert_eq!(LazyKStyle(&expr::a(":X", "Y")).to_string(), "`:X Y");
-        assert_eq!(LazyKStyle(&expr::a(":X", ":Y")).to_string(), "`:X:Y");
+        assert_eq!(to_string(&expr::l("x", "y")), "λx.y");
+        assert_eq!(to_string(&expr::l("x", expr::a("y", "z"))), "λx.`yz");
+        assert_eq!(to_string(&expr::l("X", expr::a("y", "z"))), "λX.`yz");
+        assert_eq!(to_string(&expr::a("x", "y")), "`xy");
+        assert_eq!(to_string(&expr::a("x", "Y")), "`xY");
+        assert_eq!(to_string(&expr::a("X", "y")), "`Xy");
+        assert_eq!(to_string(&expr::a("X", "Y")), "`X Y");
+        assert_eq!(to_string(&expr::a("X", ":Y")), "`X:Y");
+        assert_eq!(to_string(&expr::a(":X", "Y")), "`:X Y");
+        assert_eq!(to_string(&expr::a(":X", ":Y")), "`:X:Y");
     }
 
     #[test]

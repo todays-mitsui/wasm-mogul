@@ -1,36 +1,31 @@
+use super::function;
 use crate::context::Context;
 use crate::func::Func;
-use crate::style::LazyKStyle;
 use regex::Regex;
-use std::fmt::Display;
 
-impl Display for LazyKStyle<'_, Context> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut vec = self
-            .0
-            .iter()
-            .map(|(_, f)| feature(f))
-            .collect::<Vec<(Feature, &Func)>>();
+pub fn to_string(context: &Context) -> String {
+    let mut vec = context
+        .iter()
+        .map(|(_, func)| feature(func))
+        .collect::<Vec<(Feature, &Func)>>();
 
-        vec.sort_by(|l, r| {
-            let l = &l.0;
-            let r = &r.0;
-            r.short
-                .cmp(&l.short)
-                .then(l.name.to_lowercase().cmp(&r.name.to_lowercase()))
-                .then(r.name.cmp(&l.name))
-                .then(l.index.cmp(&r.index))
-        });
+    vec.sort_by(|l, r| {
+        let l = &l.0;
+        let r = &r.0;
+        r.short
+            .cmp(&l.short)
+            .then(l.name.to_lowercase().cmp(&r.name.to_lowercase()))
+            .then(r.name.cmp(&l.name))
+            .then(l.index.cmp(&r.index))
+    });
 
-        write!(
-            f,
-            "{}",
-            vec.iter()
-                .map(|(_, f)| f.to_string())
-                .collect::<Vec<_>>()
-                .join("\n")
-        )
-    }
+    format!(
+        "{}",
+        vec.into_iter()
+            .map(|(_, func)| function::to_string(func))
+            .collect::<Vec<_>>()
+            .join("\n")
+    )
 }
 
 struct Feature<'a> {
@@ -80,7 +75,7 @@ mod tests {
         let context = Context::from(functions.to_vec());
 
         assert_eq!(
-            LazyKStyle(&context).to_string(),
+            to_string(&context),
             "
                 ``ixy = x\n\
                 ``Ixy = x\n\
@@ -112,7 +107,7 @@ mod tests {
         let context = Context::from(functions.to_vec());
 
         assert_eq!(
-            LazyKStyle(&context).to_string(),
+            to_string(&context),
             "
                 ``ixy = x\n\
                 ``Ixy = x\n\
@@ -142,7 +137,7 @@ mod tests {
         let context = Context::from(functions.to_vec());
 
         assert_eq!(
-            LazyKStyle(&context).to_string(),
+            to_string(&context),
             "
                 ``axy = x\n\
                 ``Axy = x\n\
@@ -174,7 +169,7 @@ mod tests {
         let context = Context::from(functions.to_vec());
 
         assert_eq!(
-            LazyKStyle(&context).to_string(),
+            to_string(&context),
             "
                 ``1xy = x\n\
                 ``2xy = x\n\
