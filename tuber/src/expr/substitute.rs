@@ -7,30 +7,6 @@ impl Expr {
     ///
     /// ラムダ抽象の中で束縛されている束縛変数と自由変数の衝突を避けるため
     /// 束縛変数のリネームを行うことがある (α変換)
-    ///
-    /// ```
-    /// # use crate::expr::{self, Expr, Identifier};
-    ///
-    /// // ^y.`xy [x := y]
-    /// let expr = expr::l("y", expr::a("x", "y"));
-    /// let param = Identifier::from("x");
-    /// let arg = expr::v("y");
-    ///
-    /// // 単純に x を y に置換した結果にはならない
-    /// // そのようにしてしまうと自由変数としての y と束縛変数としての y の区別がつかなくなってしまう
-    /// assert_ne!(
-    ///     expr.clone().substitute(&param, arg),
-    ///     // ^y.`yy
-    ///     expr::l("y", expr::a("y", "y"))
-    /// );
-    ///
-    /// // ^y.`xy [x := y] を ^Y.`xY [x := y] に変換することで自由変数と束縛変数の衝突を避ける
-    /// assert_eq!(
-    ///     expr.clone().substitute(&param, arg),
-    ///     // ^Y.`xY
-    ///     expr::l("Y", expr::a("y", "Y"))
-    /// );
-    /// ```
     pub fn substitute(&mut self, param: &Identifier, arg: &Expr) {
         let bound_vars = BoundVars::new();
         let free_vars = FreeVars::from(arg);

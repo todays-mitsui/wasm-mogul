@@ -1,5 +1,3 @@
 {
-  "rust-analyzer.linkedProjects": [
-    "./ski/Cargo.toml"
-  ]
+  "rust-analyzer.linkedProjects": ["./ski/Cargo.toml", "./tuber/Cargo.toml"]
 }
