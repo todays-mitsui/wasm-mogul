@@ -44,7 +44,7 @@ where
         .skip(spaces().with(char('=')))
         .and(expr())
         .map(|((i, is), rhs)| match rhs {
-            Expr::Variable(j) if is.is_empty() && i == j => return Command::Del(i),
+            Expr::Variable(j) if is.is_empty() && i == j => Command::Del(i),
             _ => Command::Update(func::new(i, is, rhs)),
         })
 }

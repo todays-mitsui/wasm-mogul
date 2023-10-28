@@ -87,7 +87,7 @@ impl Eval<'_> {
 
         if let Some(args) = maybe_args {
             let result = apply(
-                &self.context,
+                self.context,
                 &mut self.current,
                 args.iter().map(|arg| arg.expr()).collect(),
             );

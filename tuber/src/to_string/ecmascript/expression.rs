@@ -46,7 +46,7 @@ impl<'a> Compact<'a> {
                         params.push(param);
                         Compact::Lambda(params, body)
                     }
-                    _ => Compact::Lambda(vec![&param], Box::new(body)),
+                    _ => Compact::Lambda(vec![param], Box::new(body)),
                 }
             }
         }
@@ -54,7 +54,7 @@ impl<'a> Compact<'a> {
 
     fn to_string(&self) -> String {
         match self {
-            Compact::Variable(label) => format!("{}", label),
+            Compact::Variable(label) => label.to_string(),
 
             Compact::Symbol(label) => format!(":{}", label),
 
@@ -80,7 +80,7 @@ impl<'a> Compact<'a> {
 
             Compact::Lambda(params, body) => {
                 if params.len() == 1 {
-                    return format!("{} => {}", params[0], body.to_string());
+                    format!("{} => {}", params[0], body.to_string())
                 } else {
                     format!(
                         "({}) => {}",

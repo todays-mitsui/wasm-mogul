@@ -8,7 +8,7 @@ pub fn to_string(expr: &Expr) -> String {
 
 // ========================================================================== //
 
-fn tokens<'a>(expr: &'a Expr) -> Vec<Token<'a>> {
+fn tokens(expr: &Expr) -> Vec<Token<'_>> {
     match expr {
         Expr::Variable(i) => {
             let label = i.as_str();
@@ -53,7 +53,7 @@ fn tokens<'a>(expr: &'a Expr) -> Vec<Token<'a>> {
 
 fn tokens_to_string(tokens: &mut Vec<Token>) -> String {
     let mut str = String::new();
-    while tokens.len() > 0 {
+    while !tokens.is_empty() {
         match tokens.len() {
             1 => {
                 let t = tokens.pop().unwrap();

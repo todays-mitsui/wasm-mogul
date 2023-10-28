@@ -43,8 +43,8 @@ impl Context {
     pub fn to_vec(self) -> Vec<Func> {
         let mut vec = self
             .0
-            .into_iter()
-            .map(|(_, f)| feature(f))
+            .into_values()
+            .map(feature)
             .collect::<Vec<(Feature, Func)>>();
 
         vec.sort_by(|l, r| {
@@ -79,12 +79,12 @@ struct Feature {
     index: Option<usize>,
 }
 
-fn feature<'a>(func: Func) -> (Feature, Func) {
+fn feature(func: Func) -> (Feature, Func) {
     let pattern = Regex::new(r"\A(.*?)(\d*)\z").unwrap();
 
     let name = func.name();
     let (name, index) = match pattern.captures(name).map(|c| c.extract()) {
-        Some((_, [s, n])) => (s, usize::from_str_radix(n, 10).ok()),
+        Some((_, [s, n])) => (s, n.parse::<usize>().ok()),
         None => (name, None),
     };
 

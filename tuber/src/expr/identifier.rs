@@ -24,7 +24,7 @@ impl Identifier {
             name = format!("{}{}", base_name, i);
         }
 
-        return Self(name);
+        Self(name)
     }
 }
 

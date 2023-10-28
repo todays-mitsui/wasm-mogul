@@ -12,7 +12,7 @@ pub fn to_string(func: &Func) -> String {
     )
 }
 
-fn tokens<'a>(f: &'a Func) -> Vec<Token<'a>> {
+fn tokens(f: &Func) -> Vec<Token<'_>> {
     let mut tokens = f
         .params()
         .iter()
@@ -39,7 +39,7 @@ fn tokens<'a>(f: &'a Func) -> Vec<Token<'a>> {
 fn tokens_to_string(tokens: &mut Vec<Token>) -> String {
     tokens.reverse();
     let mut str = String::new();
-    while tokens.len() > 0 {
+    while !tokens.is_empty() {
         match tokens.len() {
             1 => {
                 let t = tokens.pop().unwrap();

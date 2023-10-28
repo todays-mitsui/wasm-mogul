@@ -26,8 +26,7 @@ fn unlambda_(expr: Expr, param: &Identifier, iota: &Identifier) -> Expr {
     match expr {
         Expr::Variable(id) if &id == param => {
             let iota = expr::v(iota.to_owned());
-            let i = expr::a(iota.clone(), iota);
-            i
+            expr::a(iota.clone(), iota)
         }
         Expr::Variable(_) | Expr::Symbol(_) => {
             let iota = expr::v(iota.to_owned());

@@ -13,8 +13,8 @@ impl Expr {
         self.substitute_impl(param, arg, &free_vars, bound_vars);
     }
 
-    fn substitute_impl<'a>(
-        &'a mut self,
+    fn substitute_impl(
+        &mut self,
         param: &Identifier,
         arg: &Expr,
         free_vars: &FreeVars,

@@ -15,17 +15,14 @@ pub fn to_string(context: &Context) -> String {
         r.short
             .cmp(&l.short)
             .then(l.name.to_lowercase().cmp(&r.name.to_lowercase()))
-            .then(r.name.cmp(&l.name))
+            .then(r.name.cmp(l.name))
             .then(l.index.cmp(&r.index))
     });
 
-    format!(
-        "{}",
-        vec.into_iter()
-            .map(|(_, func)| function::to_string(func))
-            .collect::<Vec<_>>()
-            .join("\n")
-    )
+    vec.into_iter()
+        .map(|(_, func)| function::to_string(func))
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 struct Feature<'a> {
@@ -34,12 +31,12 @@ struct Feature<'a> {
     index: Option<usize>,
 }
 
-fn feature<'a>(func: &'a Func) -> (Feature<'a>, &'a Func) {
+fn feature(func: &Func) -> (Feature<'_>, &Func) {
     let pattern = Regex::new(r"\A(.*?)(\d*)\z").unwrap();
 
     let name = func.name();
     let (name, index) = match pattern.captures(name).map(|c| c.extract()) {
-        Some((_, [s, n])) => (s, usize::from_str_radix(n, 10).ok()),
+        Some((_, [s, n])) => (s, n.parse::<usize>().ok()),
         None => (name, None),
     };
 
