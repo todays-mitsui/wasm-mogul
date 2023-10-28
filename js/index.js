@@ -18,7 +18,7 @@ async function main() {
   const form = document.querySelector('#input form');
   const input = document.querySelector('#input input');
 
-  const module = await import('../pkg/index.js');
+  const module = await import('../ski/pkg/index.js');
 
   updateContext(module.context());
   initSettings(module);

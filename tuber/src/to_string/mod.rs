@@ -40,11 +40,11 @@ pub enum DisplayStyle {
 }
 
 pub trait Format {
-    fn format(&self, style: DisplayStyle) -> String;
+    fn format(&self, style: &DisplayStyle) -> String;
 }
 
 impl Format for Command {
-    fn format(&self, style: DisplayStyle) -> String {
+    fn format(&self, style: &DisplayStyle) -> String {
         match style {
             DisplayStyle::ECMAScript => ecmascript::command::to_string(self),
             DisplayStyle::LazyK => lazy_k::command::to_string(self),
@@ -52,7 +52,7 @@ impl Format for Command {
     }
 }
 impl Format for &Command {
-    fn format(&self, style: DisplayStyle) -> String {
+    fn format(&self, style: &DisplayStyle) -> String {
         match style {
             DisplayStyle::ECMAScript => ecmascript::command::to_string(self),
             DisplayStyle::LazyK => lazy_k::command::to_string(self),
@@ -61,7 +61,7 @@ impl Format for &Command {
 }
 
 impl Format for Context {
-    fn format(&self, style: DisplayStyle) -> String {
+    fn format(&self, style: &DisplayStyle) -> String {
         match style {
             DisplayStyle::ECMAScript => ecmascript::context::to_string(self),
             DisplayStyle::LazyK => lazy_k::context::to_string(self),
@@ -69,7 +69,7 @@ impl Format for Context {
     }
 }
 impl Format for &Context {
-    fn format(&self, style: DisplayStyle) -> String {
+    fn format(&self, style: &DisplayStyle) -> String {
         match style {
             DisplayStyle::ECMAScript => ecmascript::context::to_string(self),
             DisplayStyle::LazyK => lazy_k::context::to_string(self),
@@ -78,7 +78,7 @@ impl Format for &Context {
 }
 
 impl Format for Expr {
-    fn format(&self, style: DisplayStyle) -> String {
+    fn format(&self, style: &DisplayStyle) -> String {
         match style {
             DisplayStyle::ECMAScript => ecmascript::expression::to_string(self),
             DisplayStyle::LazyK => lazy_k::expression::to_string(self),
@@ -86,7 +86,7 @@ impl Format for Expr {
     }
 }
 impl Format for &Expr {
-    fn format(&self, style: DisplayStyle) -> String {
+    fn format(&self, style: &DisplayStyle) -> String {
         match style {
             DisplayStyle::ECMAScript => ecmascript::expression::to_string(self),
             DisplayStyle::LazyK => lazy_k::expression::to_string(self),
@@ -95,7 +95,7 @@ impl Format for &Expr {
 }
 
 impl Format for Func {
-    fn format(&self, style: DisplayStyle) -> String {
+    fn format(&self, style: &DisplayStyle) -> String {
         match style {
             DisplayStyle::ECMAScript => ecmascript::function::to_string(self),
             DisplayStyle::LazyK => lazy_k::function::to_string(self),
@@ -103,7 +103,7 @@ impl Format for Func {
     }
 }
 impl Format for &Func {
-    fn format(&self, style: DisplayStyle) -> String {
+    fn format(&self, style: &DisplayStyle) -> String {
         match style {
             DisplayStyle::ECMAScript => ecmascript::function::to_string(self),
             DisplayStyle::LazyK => lazy_k::function::to_string(self),

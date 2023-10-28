@@ -1,11 +1,6 @@
 use crate::browser::local_storage;
-use crate::context::Context;
-use crate::engine::Command;
-use crate::expr::Identifier;
-use crate::func::Func;
-use crate::parser::parse_update_or_delete;
-use crate::style::{DisplayStyle, ECMAScriptStyle};
 use anyhow::{anyhow, Result};
+use tuber::{parse_update_or_delete, Command, Context, DisplayStyle, Func, Identifier};
 
 const KEY_DISPLAY_STYLE: &str = "tuber_display_style";
 
@@ -72,7 +67,7 @@ pub fn push_history_def(func: &Func) -> Result<()> {
         .map_err(|err| anyhow!("Failed to get func history from localStorage: {:?}", err))?;
 
     let mut history_string = history_string.unwrap_or_default();
-    history_string = history_string + "\n" + ECMAScriptStyle(func).to_string().as_str();
+    history_string = history_string + "\n" + func.to_string().as_str();
 
     storage
         .set_item(KEY_FUNC_HISTORY, history_string.as_str())

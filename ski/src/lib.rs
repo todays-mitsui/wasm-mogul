@@ -6,12 +6,9 @@ mod style;
 use anyhow::Result;
 use repository::{get_context, get_display_style, push_history_def, push_history_del};
 use serde::Serialize;
-use style::{DisplayStyle, ECMAScriptStyle, LazyKStyle};
 use tuber::parse_command as parser_parse_command;
 use tuber::parse_expr as parser_parse_expr;
-use tuber::Engine;
-use tuber::EvalStep;
-use tuber::Output;
+use tuber::{DisplayStyle, Engine, EvalStep, Format, Output};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(getter_with_clone)]
@@ -48,20 +45,12 @@ pub fn execute(input: &str) -> JsValue {
 #[wasm_bindgen]
 pub fn context() -> Box<[JsValue]> {
     let style = get_display_style().expect("get display style error");
-    let func_to_string = |func| {
-        let _: &crate::func::Func = func;
-        match style {
-            DisplayStyle::ECMAScript => ECMAScriptStyle(func).to_string(),
-            DisplayStyle::LazyK => LazyKStyle(func).to_string(),
-            _ => unreachable!(),
-        }
-    };
 
     let context = get_context().expect("get context error");
     let vec: Vec<JsValue> = context
         .to_vec()
         .iter()
-        .map(|func| JsValue::from_str(&func_to_string(func)))
+        .map(|func| JsValue::from_str(func.format(&style).as_str()))
         .collect();
 
     vec.into_boxed_slice()
@@ -117,23 +106,6 @@ pub enum JsOutput {
 
 impl From<(&DisplayStyle, Output)> for JsOutput {
     fn from((style, output): (&DisplayStyle, Output)) -> Self {
-        let expr_to_string = |expr| {
-            let _: &crate::expr::Expr = expr;
-            match style {
-                DisplayStyle::ECMAScript => ECMAScriptStyle(expr).to_string(),
-                DisplayStyle::LazyK => LazyKStyle(expr).to_string(),
-                _ => unreachable!(),
-            }
-        };
-        let func_to_string = |func| {
-            let _: &crate::func::Func = func;
-            match style {
-                DisplayStyle::ECMAScript => ECMAScriptStyle(func).to_string(),
-                DisplayStyle::LazyK => LazyKStyle(func).to_string(),
-                _ => unreachable!(),
-            }
-        };
-
         match output {
             Output::Del {
                 input: id,
@@ -143,22 +115,22 @@ impl From<(&DisplayStyle, Output)> for JsOutput {
                 result: context
                     .to_vec()
                     .iter()
-                    .map(|func| func_to_string(func))
+                    .map(|func| func.format(style))
                     .collect(),
             },
             Output::Update {
                 input: func,
                 result: context,
             } => Self::Update {
-                input: func_to_string(&func),
+                input: func.format(style),
                 result: context
                     .to_vec()
                     .iter()
-                    .map(|func| func_to_string(func))
+                    .map(|func| func.format(style))
                     .collect(),
             },
             Output::Eval { input: expr, steps } => Self::Eval {
-                input: expr_to_string(&expr),
+                input: expr.format(style),
                 steps: steps
                     .into_iter()
                     .map(|expr| JsEvalStep::from((style, expr)))
@@ -166,18 +138,18 @@ impl From<(&DisplayStyle, Output)> for JsOutput {
             },
             Output::Search { input: id, result } => Self::Search {
                 input: id.to_string(),
-                result: result.as_ref().map(|func| func_to_string(func)),
+                result: result.as_ref().map(|func| func.format(style)),
             },
             Output::Context { result: context } => Self::Context {
                 result: context
                     .to_vec()
                     .iter()
-                    .map(|func| func_to_string(func))
+                    .map(|func| func.format(style))
                     .collect(),
             },
             Output::Unlambda { input, result } => Self::Unlambda {
-                input: expr_to_string(&input),
-                result: expr_to_string(&result),
+                input: input.format(style),
+                result: result.format(style),
             },
         }
     }
@@ -191,11 +163,7 @@ pub struct JsEvalStep {
 impl From<(&DisplayStyle, EvalStep)> for JsEvalStep {
     fn from((style, EvalStep { expr }): (&DisplayStyle, EvalStep)) -> Self {
         Self {
-            expr: match style {
-                DisplayStyle::ECMAScript => ECMAScriptStyle(&expr).to_string(),
-                DisplayStyle::LazyK => LazyKStyle(&expr).to_string(),
-                _ => unreachable!(),
-            },
+            expr: expr.format(style),
         }
     }
 }
