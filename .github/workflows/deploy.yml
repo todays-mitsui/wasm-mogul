@@ -53,7 +53,7 @@ jobs:
         # ./dist にビルドされたファイル一式が配置される
         run: npm run build
       - name: Build doc
-        # ./target/doc にビルドされたドキュメントが配置される、その後 ./dist/doc に移動
+        # ./tuber/target/doc にビルドされたドキュメントが配置される、その後 ./dist/doc に移動
         run: |
           cargo doc --no-deps --manifest-path ./tuber/Cargo.toml
           echo "<meta http-equiv=\"refresh\" content=\"0; url=wasm_tuber\">" > ./tuber/target/doc/index.html
