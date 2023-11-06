@@ -23,18 +23,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Cargo Build
-        run: cargo build --verbose --manifest-path tuber/Cargo.toml
+        run: cargo build --verbose --manifest-path ./tuber/Cargo.toml
       - name: Cargo Test
-        run: cargo test --verbose --manifest-path tuber/Cargo.toml
+        run: cargo test --verbose --manifest-path ./tuber/Cargo.toml
 
   test_ski:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Cargo Build
-        run: cargo build --verbose --manifest-path ski/Cargo.toml
+        run: cargo build --verbose --manifest-path ./ski/Cargo.toml
       - name: Cargo Test
-        run: cargo test --verbose --manifest-path ski/Cargo.toml
+        run: cargo test --verbose --manifest-path ./ski/Cargo.toml
 
   build:
     needs:
@@ -55,9 +55,9 @@ jobs:
       - name: Build doc
         # ./target/doc にビルドされたドキュメントが配置される、その後 ./dist/doc に移動
         run: |
-          cargo doc --no-deps --manifest-path tuber/Cargo.toml
-          echo "<meta http-equiv=\"refresh\" content=\"0; url=wasm_tuber\">" > target/doc/index.html
-          mv ./target/doc ./dist/doc
+          cargo doc --no-deps --manifest-path ./tuber/Cargo.toml
+          echo "<meta http-equiv=\"refresh\" content=\"0; url=wasm_tuber\">" > ./tuber/target/doc/index.html
+          mv ./tuber/target/doc ./dist/doc
       - name: Fix Permissions
         run: |
           chmod -c -R +rX "dist/" | while read line; do
