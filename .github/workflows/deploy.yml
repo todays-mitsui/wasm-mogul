@@ -55,7 +55,7 @@ jobs:
       - name: Build doc
         # ./target/doc にビルドされたドキュメントが配置される、その後 ./dist/doc に移動
         run: |
-          cargo doc --no-deps
+          cargo doc --no-deps --manifest-path tuber/Cargo.toml
           echo "<meta http-equiv=\"refresh\" content=\"0; url=wasm_tuber\">" > target/doc/index.html
           mv ./target/doc ./dist/doc
       - name: Fix Permissions
