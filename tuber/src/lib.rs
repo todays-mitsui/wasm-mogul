@@ -7,7 +7,7 @@ mod parser;
 mod style;
 mod to_string;
 
-pub use calc::EvalStep;
+pub use calc::{Eval, EvalStep};
 pub use context::Context;
 pub use engine::{Command, Engine, Output};
 pub use expr::{Expr, Identifier};

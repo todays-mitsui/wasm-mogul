@@ -1,5 +1,6 @@
 #[macro_use]
 mod browser;
+mod js_value;
 mod repository;
 mod style;
 
@@ -8,8 +9,16 @@ use repository::{get_context, get_display_style, push_history_def, push_history_
 use serde::Serialize;
 use tuber::parse_command as parser_parse_command;
 use tuber::parse_expr as parser_parse_expr;
-use tuber::{DisplayStyle, Engine, EvalStep, Format, Output};
+use tuber::{Context, DisplayStyle, Engine, EvalStep, Format, Output};
 use wasm_bindgen::prelude::*;
+
+pub use js_value::JsIdentifier;
+
+#[wasm_bindgen]
+pub fn eval_steps(input: &str) {
+    let context = Context::default();
+    let expr = parser_parse_expr(input).expect("parse error");
+}
 
 #[wasm_bindgen(getter_with_clone)]
 pub struct CalcResult {
