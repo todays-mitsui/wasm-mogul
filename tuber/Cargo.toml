@@ -1,0 +1,15 @@
+[package]
+name = "tuber"
+description = "An interpreter that evaluates λ-calculations step by step"
+version = "0.2.0"
+authors = ["Mitsui <todays.mitsui@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+combine = "4.6.6"
+regex = "1.9.1"
+serde = { version = "1.0.188", features = ["derive"] }
+
+[dev-dependencies]
+rand = "0.8.5"

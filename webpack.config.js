@@ -26,7 +26,11 @@ module.exports = {
     }),
 
     new WasmPackPlugin({
-      crateDirectory: __dirname,
+      crateDirectory: path.resolve(__dirname, "ski"),
+
+      watchDirectories: [
+        path.resolve(__dirname, "tuber/src")
+      ],
     }),
   ],
   experiments: {
