@@ -1,6 +1,7 @@
 mod apply;
 mod arity;
 mod evaluate;
+mod evaluate2;
 mod expand;
 mod unlambda;
 
