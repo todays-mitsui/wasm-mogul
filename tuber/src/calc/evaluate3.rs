@@ -67,9 +67,11 @@ impl Focus {
 
     fn join(&mut self, mut other: Focus) {
         match self {
-            Focus::Done => panic!("すでに簡約が完了しているため Focus を移動できない"),
+            Focus::Done => return,
             Focus::Route(route) => match other {
-                Focus::Done => panic!("すでに簡約が完了しているため Focus を移動できない"),
+                Focus::Done => {
+                    *self = Focus::Done;
+                }
                 Focus::Route(other_route) => {
                     route.extend(other_route);
                 }
