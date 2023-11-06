@@ -30,7 +30,7 @@ impl Focus {
 }
 
 impl Expr {
-    fn walk_to(&mut self, focus: &mut Focus) -> Option<&mut Expr> {
+    fn walk_to(&mut self, focus: &mut Focus) -> Option<(&mut Expr, Vec<&Expr>)> {
         match focus {
             Focus::Done => return None,
             Focus::Route(route) => {
@@ -42,7 +42,15 @@ impl Expr {
                 }
 
                 if route.is_empty() {
-                    Some(expr)
+                    Some((
+                        expr,
+                        args.into_iter()
+                            .map(|arg| {
+                                let expr: &Expr = arg.unwrap();
+                                expr
+                            })
+                            .collect::<Vec<&Expr>>(),
+                    ))
                 } else {
                     let index = focus.shift().unwrap();
 
@@ -104,9 +112,13 @@ mod tests {
         let mut focus = Focus::Route(vec![0]);
 
         let sub_expr = expr.walk_to(&mut focus);
-        let expected = expr::v("i");
+        let mut callee = expr::v("i");
+        let args = vec![expr::v("x")];
 
         assert!(sub_expr.is_some());
-        assert_eq!(*sub_expr.unwrap(), expected);
+        assert_eq!(
+            sub_expr.unwrap(),
+            (&mut callee, args.iter().collect::<Vec<_>>())
+        );
     }
 }
