@@ -1,3 +1,4 @@
+use super::arity::arity;
 use crate::context::Context;
 use crate::expr::Expr;
 
@@ -27,10 +28,58 @@ impl Focus {
             }
         }
     }
+
+    fn into_focus(&mut self, context: &Context, expr: &mut Expr) {
+        let mut focus = self.clone();
+
+        match expr.walk_to(&mut focus) {
+            None => panic!("道なき道を行く？"),
+            Some((callee, args)) => {
+                let maybe_arity = arity(context, callee).and_then(|arity| {
+                    let len = args.len();
+                    if len > 0 && len >= arity {
+                        Some(arity)
+                    } else {
+                        None
+                    }
+                });
+                match maybe_arity {
+                    Some(_) => return,
+                    None => {
+                        for arg in args.into_iter().rev() {
+                            let mut sub_focus = Focus::Route(Vec::new());
+                            sub_focus.into_focus(context, arg);
+
+                            if let Focus::Done = sub_focus {
+                                continue;
+                            } else {
+                                self.join(sub_focus);
+                                return;
+                            }
+                        }
+
+                        *self = Focus::Done;
+                    }
+                }
+            }
+        }
+    }
+
+    fn join(&mut self, mut other: Focus) {
+        match self {
+            Focus::Done => panic!("すでに簡約が完了しているため Focus を移動できない"),
+            Focus::Route(route) => match other {
+                Focus::Done => panic!("すでに簡約が完了しているため Focus を移動できない"),
+                Focus::Route(other_route) => {
+                    route.extend(other_route);
+                }
+            },
+        }
+    }
 }
 
 impl Expr {
-    fn walk_to(&mut self, focus: &mut Focus) -> Option<(&mut Expr, Vec<&Expr>)> {
+    fn walk_to(&mut self, focus: &mut Focus) -> Option<(&mut Expr, Vec<&mut Expr>)> {
         match focus {
             Focus::Done => return None,
             Focus::Route(route) => {
@@ -44,12 +93,7 @@ impl Expr {
                 if route.is_empty() {
                     Some((
                         expr,
-                        args.into_iter()
-                            .map(|arg| {
-                                let expr: &Expr = arg.unwrap();
-                                expr
-                            })
-                            .collect::<Vec<&Expr>>(),
+                        args.into_iter().map(|arg| arg.unwrap()).collect::<Vec<_>>(),
                     ))
                 } else {
                     let index = focus.shift().unwrap();
@@ -61,24 +105,6 @@ impl Expr {
                 }
             }
         }
-    }
-}
-
-// ========================================================================== //
-
-struct Args<'a>(Vec<Option<&'a mut Expr>>);
-
-impl<'a> Args<'a> {
-    fn new() -> Self {
-        Args(Vec::new())
-    }
-
-    fn push(&mut self, expr: &'a mut Expr) {
-        self.0.push(Some(expr));
-    }
-
-    fn nth(&mut self, index: usize) -> Option<&mut Expr> {
-        self.0.get_mut(index)?.take()
     }
 }
 
@@ -111,14 +137,12 @@ mod tests {
         let mut expr = expr::a("f", expr::a("i", "x"));
         let mut focus = Focus::Route(vec![0]);
 
-        let sub_expr = expr.walk_to(&mut focus);
-        let mut callee = expr::v("i");
-        let args = vec![expr::v("x")];
+        let (callee, args) = expr.walk_to(&mut focus).unwrap();
 
-        assert!(sub_expr.is_some());
-        assert_eq!(
-            sub_expr.unwrap(),
-            (&mut callee, args.iter().collect::<Vec<_>>())
-        );
+        let mut expected_callee = expr::v("i");
+        let mut expected_args = vec![expr::v("x")];
+
+        assert_eq!(callee, &mut expected_callee);
+        assert_eq!(args, expected_args.iter_mut().collect::<Vec<_>>());
     }
 }
