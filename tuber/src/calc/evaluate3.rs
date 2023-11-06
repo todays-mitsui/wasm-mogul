@@ -65,7 +65,7 @@ impl Focus {
         }
     }
 
-    fn join(&mut self, mut other: Focus) {
+    fn join(&mut self, other: Focus) {
         match self {
             Focus::Done => return,
             Focus::Route(route) => match other {
@@ -132,6 +132,29 @@ mod tests {
         assert_eq!(focus.shift(), Some(1));
         assert_eq!(focus.shift(), Some(2));
         assert_eq!(focus.shift(), None);
+    }
+
+    #[test]
+    fn test_focus_join() {
+        let mut focus = Focus::Route(vec![0, 1, 2]);
+        let other = Focus::Route(vec![3, 4, 5]);
+        focus.join(other);
+        assert_eq!(focus, Focus::Route(vec![0, 1, 2, 3, 4, 5]));
+
+        let mut focus = Focus::Route(vec![0, 1, 2]);
+        let other = Focus::Done;
+        focus.join(other);
+        assert_eq!(focus, Focus::Done);
+
+        let mut focus = Focus::Done;
+        let other = Focus::Route(vec![3, 4, 5]);
+        focus.join(other);
+        assert_eq!(focus, Focus::Done);
+
+        let mut focus = Focus::Done;
+        let other = Focus::Done;
+        focus.join(other);
+        assert_eq!(focus, Focus::Done);
     }
 
     #[test]
