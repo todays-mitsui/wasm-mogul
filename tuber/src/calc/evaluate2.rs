@@ -3,6 +3,7 @@ use crate::context::Context;
 use crate::expr::Expr;
 use std::{cmp, iter, slice};
 
+#[derive(Debug, PartialEq)]
 pub struct Eval {
     context: Context,
     inventory: Inventory,
@@ -42,6 +43,7 @@ impl Eval {
 
 // ========================================================================== //
 
+#[derive(Debug, PartialEq)]
 struct Inventory {
     focus: Focus,
     callee: Expr,
@@ -112,7 +114,7 @@ impl Inventory {
 
 // ========================================================================== //
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum Focus {
     Callee,
     Arg(usize),
@@ -149,6 +151,7 @@ impl FocusPath {
 
 // ========================================================================== //
 
+#[derive(Debug, PartialEq)]
 struct Args(Vec<Inventory>);
 
 /// ラムダ式の部分式のうち引数部分を保持する両端キュー
@@ -183,8 +186,131 @@ mod tests {
     use super::*;
     use crate::expr;
 
+    fn setup() -> Context {
+        Context::default()
+    }
+
     #[test]
-    fn test_eval_new() {}
+    fn test_eval_new() {
+        let context = setup();
+        let expr = expr::v("x");
+        let eval = Eval::new(context.clone(), expr);
+
+        assert_eq!(
+            eval.inventory,
+            Inventory {
+                focus: Focus::Done,
+                callee: expr::v("x"),
+                args: Args::new(),
+            }
+        );
+
+        // ================================================================== //
+
+        let context = setup();
+        let expr = expr::a("f", "x");
+        let eval = Eval::new(context.clone(), expr);
+
+        assert_eq!(
+            eval.inventory,
+            Inventory {
+                focus: Focus::Done,
+                callee: expr::v("f"),
+                args: Args(vec![Inventory {
+                    focus: Focus::Done,
+                    callee: expr::v("x"),
+                    args: Args::new(),
+                }]),
+            }
+        );
+
+        // ================================================================== //
+
+        let context = setup();
+        let expr = expr::a("i", "x");
+        let eval = Eval::new(context.clone(), expr);
+
+        assert_eq!(
+            eval.inventory,
+            Inventory {
+                focus: Focus::Callee,
+                callee: expr::v("i"),
+                args: Args(vec![Inventory {
+                    focus: Focus::Done,
+                    callee: expr::v("x"),
+                    args: Args::new(),
+                }]),
+            }
+        );
+
+        // ================================================================== //
+
+        let context = setup();
+        let expr = expr::a(":f", expr::a(expr::a("i", ":x"), expr::a("i", ":y")));
+        let eval = Eval::new(context.clone(), expr);
+
+        assert_eq!(
+            eval.inventory,
+            Inventory {
+                focus: Focus::Arg(0),
+                callee: expr::s("f"),
+                args: Args(vec![Inventory {
+                    focus: Focus::Callee,
+                    callee: expr::v("i"),
+                    args: Args(vec![
+                        Inventory {
+                            focus: Focus::Callee,
+                            callee: expr::v("i"),
+                            args: Args(vec![Inventory {
+                                focus: Focus::Done,
+                                callee: expr::s("y"),
+                                args: Args::new(),
+                            }]),
+                        },
+                        Inventory {
+                            focus: Focus::Done,
+                            callee: expr::s("x"),
+                            args: Args::new(),
+                        }
+                    ]),
+                }]),
+            }
+        );
+
+        // ================================================================== //
+
+        let context = setup();
+        let expr = expr::a(":f", expr::a(expr::a(":i", ":x"), expr::a("i", ":y")));
+        let eval = Eval::new(context.clone(), expr);
+
+        assert_eq!(
+            eval.inventory,
+            Inventory {
+                focus: Focus::Arg(0),
+                callee: expr::s("f"),
+                args: Args(vec![Inventory {
+                    focus: Focus::Arg(1),
+                    callee: expr::s("i"),
+                    args: Args(vec![
+                        Inventory {
+                            focus: Focus::Callee,
+                            callee: expr::v("i"),
+                            args: Args(vec![Inventory {
+                                focus: Focus::Done,
+                                callee: expr::s("y"),
+                                args: Args::new(),
+                            }]),
+                        },
+                        Inventory {
+                            focus: Focus::Done,
+                            callee: expr::s("x"),
+                            args: Args::new(),
+                        }
+                    ]),
+                }]),
+            }
+        );
+    }
 
     #[test]
     fn test_eval_focus_path() {
@@ -210,7 +336,7 @@ mod tests {
 
         // // TODO: cannot focus done inventory
         // let expr = expr::a(":f", expr::a(expr::a(":i", ":x"), expr::a("i", ":y")));
-        // let path = FocusPath::Path(vec![0]);
+        // let path = FocusPath::Path(vec![0, 1]);
         // let eval = Eval::new(Context::default(), expr);
         // assert_eq!(eval.focus_path(), path);
     }
