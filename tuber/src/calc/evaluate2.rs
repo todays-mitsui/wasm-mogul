@@ -1,7 +1,7 @@
 use super::arity::arity;
 use crate::context::Context;
 use crate::expr::Expr;
-use std::cmp;
+use std::{cmp, iter, slice};
 
 pub struct Eval {
     context: Context,
@@ -13,6 +13,29 @@ impl Eval {
         Self {
             inventory: Inventory::new(&context, expr),
             context,
+        }
+    }
+
+    fn focus_path(&self) -> FocusPath {
+        match self.inventory.focused() {
+            Focused::Done => FocusPath::Done,
+            Focused::Callee(_) => FocusPath::empty_path(),
+            Focused::Arg { index, inventory } => {
+                let mut path = FocusPath::empty_path();
+                path.push(index);
+
+                let mut inventory = inventory;
+                while let Focused::Arg {
+                    index,
+                    inventory: inner,
+                } = inventory.focused()
+                {
+                    path.push(index);
+                    inventory = inner;
+                }
+
+                path
+            }
         }
     }
 }
@@ -27,13 +50,12 @@ struct Inventory {
 
 impl Inventory {
     fn new(context: &Context, expr: Expr) -> Self {
-        let focus = Focus::Callee;
         let mut callee = expr;
         let mut args = Args::new();
 
         while let Expr::Apply { lhs, rhs } = callee {
             callee = *lhs;
-            args.push(context, *rhs);
+            args.unshift(context, *rhs);
         }
 
         let callable: bool = arity(context, &callee)
@@ -42,13 +64,13 @@ impl Inventory {
 
         if callable {
             Self {
-                focus,
+                focus: Focus::Callee,
                 callee,
                 args,
             }
         } else {
-            for (index, arg) in args.0.iter().rev().enumerate() {
-                if arg.focus() == &Focus::Done {
+            for (index, arg) in args.iter::<(usize, &Inventory)>() {
+                if arg.is_normal() {
                     continue;
                 } else {
                     return Self {
@@ -67,8 +89,24 @@ impl Inventory {
         }
     }
 
-    fn focus(&self) -> &Focus {
-        &self.focus
+    /// 正規形か否かを判定する
+    fn is_normal(&self) -> bool {
+        self.focus == Focus::Done
+    }
+
+    fn focused(&self) -> Focused {
+        match self.focus {
+            Focus::Callee => Focused::Callee(&self.callee),
+            Focus::Arg(index) => Focused::Arg {
+                index,
+                inventory: self.arg(index).unwrap(),
+            },
+            Focus::Done => panic!("cannot focus done inventory"),
+        }
+    }
+
+    fn arg(&self, index: usize) -> Option<&Inventory> {
+        self.args.0.get(index)
     }
 }
 
@@ -81,10 +119,41 @@ enum Focus {
     Done,
 }
 
+enum Focused<'a> {
+    Callee(&'a Expr),
+    Arg {
+        index: usize,
+        inventory: &'a Inventory,
+    },
+    Done,
+}
+
+#[derive(Debug, PartialEq)]
+enum FocusPath {
+    Path(Vec<usize>),
+    Done,
+}
+
+impl FocusPath {
+    fn empty_path() -> Self {
+        Self::Path(Vec::new())
+    }
+
+    fn push(&mut self, index: usize) {
+        match self {
+            Self::Path(path) => path.push(index),
+            Self::Done => panic!("cannot push to done path"),
+        }
+    }
+}
+
 // ========================================================================== //
 
 struct Args(Vec<Inventory>);
 
+/// ラムダ式の部分式のうち引数部分を保持する両端キュー
+/// 実装の都合で内部的には引数を逆順で保持する
+/// ```sxyz を分解して格納した場合、外部的には [x, y, z] として振る舞い、内部的には [z, y, x] というデータを保持する
 impl Args {
     fn new() -> Self {
         Self(Vec::new())
@@ -94,10 +163,55 @@ impl Args {
         self.0.len()
     }
 
-    fn push(&mut self, context: &Context, expr: Expr) {
+    fn unshift(&mut self, context: &Context, expr: Expr) {
         let inventory = Inventory::new(context, expr);
         self.0.push(inventory)
+    }
+
+    // fn iter(&self) -> impl Iterator<Item = (usize, &Inventory)> {
+    // TODO: このように impl Trait の形で書くとうまくいかない
+    // TODO: Error: cannot move out of `args` because it is borrowed
+    fn iter<Iter>(&self) -> iter::Enumerate<iter::Rev<slice::Iter<'_, Inventory>>> {
+        self.0.iter().rev().enumerate()
     }
 }
 
 // ========================================================================== //
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::expr;
+
+    #[test]
+    fn test_eval_new() {}
+
+    #[test]
+    fn test_eval_focus_path() {
+        let expr = expr::a(expr::a(expr::a("s", ":x"), ":y"), ":z");
+        let path = FocusPath::Path(vec![]);
+        let eval = Eval::new(Context::default(), expr);
+        assert_eq!(eval.focus_path(), path);
+
+        let expr = expr::a(":f", expr::a(expr::a("k", ":x"), ":y"));
+        let path = FocusPath::Path(vec![0]);
+        let eval = Eval::new(Context::default(), expr);
+        assert_eq!(eval.focus_path(), path);
+
+        let expr = expr::a(":f", expr::a(":g", expr::a("i", ":x")));
+        let path = FocusPath::Path(vec![0, 0]);
+        let eval = Eval::new(Context::default(), expr);
+        assert_eq!(eval.focus_path(), path);
+
+        let expr = expr::a(":f", expr::a(expr::a("i", ":x"), expr::a("i", ":y")));
+        let path = FocusPath::Path(vec![0]);
+        let eval = Eval::new(Context::default(), expr);
+        assert_eq!(eval.focus_path(), path);
+
+        // // TODO: cannot focus done inventory
+        // let expr = expr::a(":f", expr::a(expr::a(":i", ":x"), expr::a("i", ":y")));
+        // let path = FocusPath::Path(vec![0]);
+        // let eval = Eval::new(Context::default(), expr);
+        // assert_eq!(eval.focus_path(), path);
+    }
+}
