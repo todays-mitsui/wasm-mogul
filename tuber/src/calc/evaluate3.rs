@@ -54,12 +54,15 @@ impl Inventory {
             args.unshift(context, *rhs);
         }
 
-        let maybe_arity = arity(context, &callee).filter(|arity| args.len() >= cmp::max(1, *arity));
+        let arity = arity(context, &callee).filter(|arity| args.len() >= cmp::max(1, *arity));
 
         Self {
             callee,
-            arity: maybe_arity,
-            redex: args.redex(),
+            arity,
+            redex: args
+                .iter::<&Inventory>()
+                .map(|arg| arg.reducible())
+                .collect(),
             args,
         }
     }
@@ -123,14 +126,6 @@ impl Args {
     // TODO: Error: cannot move out of `args` because it is borrowed
     fn iter<Iter>(&self) -> iter::Rev<slice::Iter<'_, Inventory>> {
         self.0.iter().rev()
-    }
-
-    /// 各 arg が簡約可能な部分式を含むかどうかを調べる
-    fn redex(&self) -> Vec<bool> {
-        self.0
-            .iter()
-            .map(|inventory| inventory.reducible())
-            .collect()
     }
 }
 
