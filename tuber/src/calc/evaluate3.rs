@@ -1,7 +1,6 @@
 use super::arity::arity;
 use crate::context::Context;
 use crate::expr::Expr;
-use std::convert::identity;
 use std::{cmp, iter, slice};
 
 struct Eval {
@@ -14,10 +13,30 @@ impl Eval {
         let inventory = Inventory::new(&context, expr);
         Self { context, inventory }
     }
+
+    fn next_path(&self) -> Option<Vec<usize>> {
+        let mut path = Vec::new();
+        let mut inventory = &self.inventory;
+        loop {
+            match inventory.get_reducible() {
+                ReducibleResult::Callee { .. } => {
+                    return Some(path);
+                }
+                ReducibleResult::Arg { index, arg } => {
+                    path.push(index);
+                    inventory = arg;
+                }
+                ReducibleResult::None => {
+                    return None;
+                }
+            }
+        }
+    }
 }
 
 // ========================================================================== //
 
+#[derive(Debug, PartialEq)]
 struct Inventory {
     callee: Expr,
     arity: Option<usize>,
@@ -78,6 +97,7 @@ enum ReducibleResult<'a> {
 /// ラムダ式の部分式のうち引数部分を保持する両端キュー
 /// 実装の都合で内部的には引数を逆順で保持する
 /// ```sxyz を分解して格納した場合、外部的には [x, y, z] として振る舞い、内部的には [z, y, x] というデータを保持する
+#[derive(Debug, PartialEq)]
 struct Args(Vec<Inventory>);
 
 impl Args {
@@ -109,15 +129,93 @@ impl Args {
     fn redex(&self) -> Vec<bool> {
         self.0
             .iter()
-            .map(|inventory| {
-                inventory
-                    .args
-                    .iter::<&Inventory>()
-                    .map(|inner| inner.arity.is_some())
-                    .any(|b| b)
-            })
+            .map(|inventory| inventory.reducible())
             .collect()
     }
 }
 
 // ========================================================================== //
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::expr;
+
+    fn setup() -> Context {
+        Context::default()
+    }
+
+    #[test]
+    fn test_eval_new() {
+        let context = setup();
+
+        let expr = expr::a(":g", expr::a(":f", expr::a("i", ":y")));
+        let eval = Eval::new(context.clone(), expr);
+
+        assert_eq!(
+            eval.inventory,
+            Inventory {
+                callee: expr::s("g"),
+                arity: None,
+                args: Args(vec![Inventory {
+                    callee: expr::s("f"),
+                    arity: None,
+                    args: Args(vec![Inventory {
+                        callee: expr::v("i"),
+                        arity: Some(1),
+                        args: Args(vec![Inventory {
+                            callee: expr::s("y"),
+                            arity: None,
+                            args: Args::new(),
+                            redex: vec![],
+                        },]),
+                        redex: vec![false],
+                    }]),
+                    redex: vec![true],
+                },]),
+                redex: vec![true],
+            }
+        );
+    }
+
+    #[test]
+    fn test_eval_next_path() {
+        let context = setup();
+
+        let expr = expr::s("TRUE");
+        let eval = Eval::new(context.clone(), expr);
+        assert_eq!(eval.next_path(), None);
+
+        let expr = expr::v("TRUE");
+        let eval = Eval::new(context.clone(), expr);
+        assert_eq!(eval.next_path(), None);
+
+        let expr = expr::a(":i", ":x");
+        let eval = Eval::new(context.clone(), expr);
+        assert_eq!(eval.next_path(), None);
+
+        let expr = expr::a("i", ":x");
+        let eval = Eval::new(context.clone(), expr);
+        assert_eq!(eval.next_path(), Some(vec![]));
+
+        let expr = expr::a(expr::a("i", ":x"), ":y");
+        let eval = Eval::new(context.clone(), expr);
+        assert_eq!(eval.next_path(), Some(vec![]));
+
+        let expr = expr::a(":f", expr::a("i", ":x"));
+        let eval = Eval::new(context.clone(), expr);
+        assert_eq!(eval.next_path(), Some(vec![0]));
+
+        let expr = expr::a(expr::a("i", ":x"), expr::a("i", ":y"));
+        let eval = Eval::new(context.clone(), expr);
+        assert_eq!(eval.next_path(), Some(vec![]));
+
+        let expr = expr::a(expr::a(":i", ":x"), expr::a("i", ":y"));
+        let eval = Eval::new(context.clone(), expr);
+        assert_eq!(eval.next_path(), Some(vec![1]));
+
+        let expr = expr::a(":g", expr::a(":f", expr::a("i", ":y")));
+        let eval = Eval::new(context.clone(), expr);
+        assert_eq!(eval.next_path(), Some(vec![0, 0]));
+    }
+}
