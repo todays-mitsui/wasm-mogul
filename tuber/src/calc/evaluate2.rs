@@ -61,7 +61,7 @@ impl Inventory {
         }
 
         let callable: bool = arity(context, &callee)
-            .map(|arity| args.len() >= cmp::max(0, arity))
+            .map(|arity| args.len() >= cmp::max(1, arity))
             .unwrap_or_default();
 
         if callable {
