@@ -32,6 +32,23 @@ impl Eval {
             }
         }
     }
+
+    fn get_next(&self) -> Option<&Inventory> {
+        let mut inventory = &self.inventory;
+        loop {
+            match inventory.get_reducible() {
+                ReducibleResult::Callee { .. } => {
+                    return Some(inventory);
+                }
+                ReducibleResult::Arg { index: _index, arg } => {
+                    inventory = arg;
+                }
+                ReducibleResult::None => {
+                    return None;
+                }
+            }
+        }
+    }
 }
 
 // ========================================================================== //
