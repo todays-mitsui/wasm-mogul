@@ -17,17 +17,17 @@ impl Eval {
 }
 
 impl Iterator for Eval {
-    type Item = Expr;
+    type Item = EvalStep;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // TODO: なんか思ったよりも汚くなったのでリファクタリングが必要
+
         let inventory = self.inventory.get_next()?;
 
-        let arity = inventory.arity?;
-        let args = inventory.args.shift(arity)?;
+        let args = inventory.args.shift(inventory.arity?)?;
         let mut callee = &mut inventory.callee;
 
         apply(&self.context, callee, args).ok()?;
-        let expr = callee.clone();
 
         while let Expr::Apply { lhs, rhs } = callee {
             callee = lhs;
@@ -35,9 +35,13 @@ impl Iterator for Eval {
         }
 
         inventory.callee = callee.to_owned();
+        inventory.arity = arity(&self.context, &inventory.callee)
+            .filter(|arity| inventory.args.len() >= cmp::max(1, *arity));
         inventory.redex = inventory.args.iter().map(|arg| arg.reducible()).collect();
 
-        Some(expr)
+        Some(EvalStep {
+            expr: self.inventory.clone().into(),
+        })
     }
 }
 
@@ -138,7 +142,7 @@ impl Inventory {
 impl From<Inventory> for Expr {
     fn from(inventory: Inventory) -> Self {
         let mut expr = inventory.callee;
-        for arg in inventory.args.0.into_iter() {
+        for arg in inventory.args.0.into_iter().rev() {
             expr = expr::a(expr, Expr::from(arg));
         }
         expr
@@ -247,13 +251,33 @@ impl Iterator for ArgsIter {
 
 // ========================================================================== //
 
+#[derive(Debug, PartialEq)]
+pub struct EvalStep {
+    pub expr: Expr,
+    // ここに「次のステップでの簡約位置」などのメタ情報を持たせる想定
+}
+
+// ========================================================================== //
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::expr;
+    use crate::func;
 
     fn setup() -> Context {
-        Context::default()
+        let i = func::new("i", vec!["x"], "x");
+        let k = func::new("k", vec!["x", "y"], "x");
+        let s = func::new(
+            "s",
+            vec!["x", "y", "z"],
+            expr::a(expr::a("x", "z"), expr::a("y", "z")),
+        );
+
+        let _true = func::new("TRUE", Vec::<&str>::new(), expr::a("k", "i"));
+        let _false = func::new("FALSE", Vec::<&str>::new(), "k");
+
+        Context::from(vec![i, k, s, _true, _false])
     }
 
     #[test]
@@ -328,5 +352,87 @@ mod tests {
         let expr = expr::a(":g", expr::a(":f", expr::a("i", ":y")));
         let inventory = Inventory::new(&context, expr);
         assert_eq!(inventory.next_path(), Some(vec![0, 0]));
+    }
+
+    #[test]
+    fn test_eval_steps_lambda_i() {
+        let context = Context::new();
+
+        let i = expr::l("x", "x");
+        let expr = expr::a(i, ":a");
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(eval.next().map(|step| step.expr), Some(expr::s("a")));
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps_lambda_k_1() {
+        let context = Context::new();
+
+        let k = expr::l("x", expr::l("y", "x"));
+        let expr = expr::a(k, ":a");
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(eval.next().map(|step| step.expr), Some(expr::l("y", ":a")));
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps_lambda_k_2() {
+        let context = Context::new();
+
+        let k = expr::l("x", expr::l("y", "x"));
+        let expr = expr::a(expr::a(k, ":a"), ":b");
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(
+            eval.next().map(|step| step.expr),
+            Some(expr::a(expr::l("y", ":a"), ":b"))
+        );
+        assert_eq!(eval.next().map(|step| step.expr), Some(":a".into()));
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps_func_true_1() {
+        let context = setup();
+
+        let expr = expr::v("TRUE");
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps_func_true_2() {
+        let context = setup();
+
+        let expr = expr::a(":a", "TRUE");
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps_func_true_3() {
+        let context = setup();
+
+        let expr = expr::a(expr::a("TRUE", ":a"), ":b");
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(
+            eval.next().map(|step| step.expr),
+            Some(expr::a(expr::a(expr::a("k", "i"), ":a"), ":b"))
+        );
+        assert_eq!(eval.next().map(|step| step.expr), Some(expr::a("i", ":b")));
+        assert_eq!(eval.next().map(|step| step.expr), Some(":b".into()));
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 }
