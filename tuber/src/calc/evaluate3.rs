@@ -35,6 +35,7 @@ impl Iterator for Eval {
         }
 
         inventory.callee = callee.to_owned();
+        inventory.redex = inventory.args.iter().map(|arg| arg.reducible()).collect();
 
         Some(expr)
     }
