@@ -34,7 +34,7 @@ impl Engine {
             }
 
             Command::Eval(e) => {
-                let eval = Eval::new(e.clone(), &self.context);
+                let eval = Eval::new(self.context.clone(), e.clone());
                 let steps = eval.take(1000).collect::<Vec<_>>();
 
                 Output::Eval { input: e, steps }

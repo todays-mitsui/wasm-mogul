@@ -6,7 +6,7 @@ use std::collections::HashMap;
 /// 定義済みの名前空間を表現する
 ///
 /// 識別子と関数の組を保持する
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Context(HashMap<Identifier, Func>);
 
 impl Context {
