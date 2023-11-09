@@ -20,28 +20,15 @@ impl Iterator for Eval {
     type Item = EvalStep;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // TODO: なんか思ったよりも汚くなったのでリファクタリングが必要
-
         let inventory = self.inventory.get_next()?;
 
-        let args = inventory.args.shift(inventory.arity?)?;
-        let mut callee = &mut inventory.callee;
-
-        apply(&self.context, callee, args).ok()?;
-
-        while let Expr::Apply { lhs, rhs } = callee {
-            callee = lhs;
-            inventory.args.unshift(&self.context, *rhs.to_owned());
+        match inventory.eval(&self.context) {
+            Some(()) => {
+                let expr = self.inventory.clone().into();
+                Some(EvalStep { expr })
+            }
+            None => None,
         }
-
-        inventory.callee = callee.to_owned();
-        inventory.arity = arity(&self.context, &inventory.callee)
-            .filter(|arity| inventory.args.len() >= cmp::max(1, *arity));
-        inventory.redex = inventory.args.iter().map(|arg| arg.reducible()).collect();
-
-        Some(EvalStep {
-            expr: self.inventory.clone().into(),
-        })
     }
 }
 
@@ -76,24 +63,7 @@ impl Inventory {
     }
 
     fn reducible(&self) -> bool {
-        self.arity.is_some() || self.redex.iter().any(|b| *b)
-    }
-
-    fn get_reducible(&mut self) -> ReducibleResult {
-        match self.arity {
-            Some(arity) => ReducibleResult::Callee {
-                expr: &mut self.callee,
-                arity,
-            },
-            None => match self
-                .args
-                .enumerate_mut::<(usize, &mut Inventory)>()
-                .find(|(_index, arg)| arg.reducible())
-            {
-                Some((index, arg)) => ReducibleResult::Arg { index, arg },
-                None => ReducibleResult::None,
-            },
-        }
+        self.arity.is_some() || self.args.iter().any(|arg| arg.reducible())
     }
 
     fn next_path(&self) -> Option<Vec<usize>> {
@@ -137,6 +107,24 @@ impl Inventory {
             }
         }
     }
+
+    fn eval(&mut self, context: &Context) -> Option<()> {
+        let args = self.args.drain(self.arity?)?;
+        let mut callee = &mut self.callee;
+
+        apply(context, callee, args).ok()?;
+
+        while let Expr::Apply { lhs, rhs } = callee {
+            callee = lhs;
+            self.args.unshift(context, *rhs.to_owned());
+        }
+
+        self.callee = callee.to_owned();
+        self.arity =
+            arity(context, &self.callee).filter(|arity| self.args.len() >= cmp::max(1, *arity));
+
+        Some(())
+    }
 }
 
 impl From<Inventory> for Expr {
@@ -147,18 +135,6 @@ impl From<Inventory> for Expr {
         }
         expr
     }
-}
-
-enum ReducibleResult<'a> {
-    Callee {
-        expr: &'a mut Expr,
-        arity: usize,
-    },
-    Arg {
-        index: usize,
-        arg: &'a mut Inventory,
-    },
-    None,
 }
 
 // ========================================================================== //
@@ -178,7 +154,12 @@ impl Args {
         self.0.len()
     }
 
-    fn shift(&mut self, n: usize) -> Option<Vec<Expr>> {
+    fn unshift(&mut self, context: &Context, expr: Expr) {
+        let inventory = Inventory::new(context, expr);
+        self.0.push(inventory)
+    }
+
+    fn drain(&mut self, n: usize) -> Option<Vec<Expr>> {
         let length = self.len();
 
         if length >= n {
@@ -194,15 +175,6 @@ impl Args {
         }
     }
 
-    fn unshift(&mut self, context: &Context, expr: Expr) {
-        let inventory = Inventory::new(context, expr);
-        self.0.push(inventory)
-    }
-
-    fn join(&mut self, other: Self) {
-        self.0.extend(other.0.into_iter().rev())
-    }
-
     fn iter(&self) -> ArgsIter {
         ArgsIter::new(self.to_owned())
     }
@@ -214,13 +186,6 @@ impl Args {
     fn enumerate_mut<Iter>(&mut self) -> iter::Enumerate<iter::Rev<slice::IterMut<'_, Inventory>>> {
         self.0.iter_mut().rev().enumerate()
     }
-
-    // // fn iter(&self) -> impl Iterator<Item = (usize, &Inventory)> {
-    // // TODO: このように impl Trait の形で書くとうまくいかない
-    // // TODO: Error: cannot move out of `args` because it is borrowed
-    // fn iter<Iter>(&self) -> iter::Rev<slice::Iter<'_, Inventory>> {
-    //     self.0.iter().rev()
-    // }
 }
 
 impl From<Vec<Inventory>> for Args {
