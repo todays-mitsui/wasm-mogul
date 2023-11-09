@@ -400,4 +400,162 @@ mod tests {
         assert_eq!(eval.next().map(|step| step.expr), Some(":b".into()));
         assert_eq!(eval.next().map(|step| step.expr), None);
     }
+
+    #[test]
+    fn test_eval_steps_func_i() {
+        let context = setup();
+
+        let expr = expr::a("i", ":a");
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(eval.next().map(|step| step.expr), Some(":a".into()));
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps_func_k_1() {
+        let context = setup();
+
+        let expr = expr::a("k", ":a");
+
+        let mut eval = Eval::new(context, expr);
+
+        // k の arity が2なのに対して引数を1つしか与えていないので簡約されない
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps_func_k_2() {
+        let context = setup();
+
+        let expr = expr::a(expr::a("k", ":a"), ":b");
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(eval.next().map(|step| step.expr), Some(":a".into()));
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps_func_s_1() {
+        let context = setup();
+
+        let expr = expr::a("s", ":a");
+
+        let mut eval = Eval::new(context, expr);
+
+        // s の arity が3なのに対して引数を1つしか与えていないので簡約されない
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps_func_s_2() {
+        let context = setup();
+
+        let expr = expr::a(expr::a("s", ":a"), ":b");
+
+        let mut eval = Eval::new(context, expr);
+
+        // s の arity が3なのに対して引数を2つしか与えていないので簡約されない
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps_func_s_3() {
+        let context = setup();
+
+        let expr = expr::a(expr::a(expr::a("s", ":a"), ":b"), ":c");
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(
+            eval.next().map(|step| step.expr),
+            Some(expr::a(expr::a(":a", ":c"), expr::a(":b", ":c")))
+        );
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps_skk() {
+        let context = setup();
+
+        let expr = expr::a(expr::a(expr::a("s", "k"), "k"), ":a");
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(eval.last().map(|step| step.expr), Some(":a".into()));
+    }
+
+    #[test]
+    fn test_eval_steps_right_tree_1() {
+        let context = setup();
+
+        // `:a``k:b:c
+        let expr = expr::a(expr::s("a"), expr::a(expr::a("k", ":b"), ":c"));
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(eval.next().map(|step| step.expr), Some(expr::a(":a", ":b")));
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps_right_tree_2() {
+        let context = setup();
+
+        // ```:a`i:b`i:c
+        let expr = expr::a(expr::a(":a", expr::a("i", ":b")), expr::a("i", ":c"));
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(
+            eval.next().map(|step| step.expr),
+            Some(expr::a(expr::a(":a", ":b"), expr::a("i", ":c")))
+        );
+        assert_eq!(
+            eval.next().map(|step| step.expr),
+            Some(expr::a(expr::a(":a", ":b"), ":c"))
+        );
+        assert_eq!(eval.next().map(|step| step.expr), None);
+    }
+
+    #[test]
+    fn test_eval_steps() {
+        let context = setup();
+
+        // ```s^x.`x:a^x.`x:b:c
+        let expr = expr::a(
+            expr::a(
+                expr::a("s", expr::l("x", expr::a("x", ":a"))),
+                expr::l("x", expr::a("x", ":b")),
+            ),
+            ":c",
+        );
+
+        let mut eval = Eval::new(context, expr);
+
+        assert_eq!(
+            eval.next().map(|step| step.expr),
+            // ``^x.`x:a:c`^x.`x:b:c
+            Some(expr::a(
+                expr::a(expr::l("x", expr::a("x", ":a")), ":c"),
+                expr::a(expr::l("x", expr::a("x", ":b")), ":c")
+            ))
+        );
+        assert_eq!(
+            eval.next().map(|step| step.expr),
+            // ``:c:a`^x.`x:b:c
+            Some(expr::a(
+                expr::a(":c", ":a"),
+                expr::a(expr::l("x", expr::a("x", ":b")), ":c")
+            ))
+        );
+        assert_eq!(
+            eval.next().map(|step| step.expr),
+            // ``:c:a`:c:b
+            Some(expr::a(expr::a(":c", ":a"), expr::a(":c", ":b")))
+        );
+        assert_eq!(eval.next(), None);
+    }
 }
