@@ -39,7 +39,6 @@ struct Inventory {
     callee: Expr,
     arity: Option<usize>,
     args: Args,
-    redex: Vec<bool>, // あとで独自型に書き換えるかも
 }
 
 impl Inventory {
@@ -57,13 +56,14 @@ impl Inventory {
         Self {
             callee,
             arity,
-            redex: args.iter().map(|arg| arg.reducible()).collect(),
             args,
         }
     }
 
     fn reducible(&self) -> bool {
-        self.arity.is_some() || self.args.iter().any(|arg| arg.reducible())
+        let reducible_callee = || self.arity.is_some();
+        let reducible_args = || self.args.iter().any(|arg| arg.reducible()); // TODO: reducible() が呼び出されるたびに args.iter() を再帰的に辿っていくのが非効率かもしれない、計算結果をキャッシュする機構を考えたい
+        reducible_callee() || reducible_args()
     }
 
     fn next_path(&self) -> Option<Vec<usize>> {
@@ -268,13 +268,9 @@ mod tests {
                             callee: expr::s("y"),
                             arity: None,
                             args: Args::new(),
-                            redex: vec![],
                         },]),
-                        redex: vec![false],
                     }]),
-                    redex: vec![true],
                 },]),
-                redex: vec![true],
             }
         );
     }
