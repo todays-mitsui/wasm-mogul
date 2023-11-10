@@ -2,126 +2,220 @@ use super::apply::apply;
 use super::arity::arity;
 use crate::context::Context;
 use crate::expr::{self, Expr};
+use std::{cmp, iter, slice};
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Eval<'a> {
-    context: &'a Context,
-    cursor: Cursor,
-    current: Expr,
-    stack: Stack<'a>,
+pub struct Eval {
+    context: Context,
+    inventory: Inventory,
 }
 
-/// 簡約のステップ
-/// 最左最外簡約を行うために LeftTree → RightTree の順に簡約を試みる
-/// 式全体を簡約し終えて正規形を得たら Done となる、それ以上簡約するべきものは何も無い
-#[derive(Debug, Clone, PartialEq)]
-enum Cursor {
-    LeftTree,
-    RightTree(usize),
-    Done,
+impl Eval {
+    pub fn new(context: Context, expr: Expr) -> Self {
+        let inventory = Inventory::new(&context, expr);
+        Self { context, inventory }
+    }
 }
 
-impl Eval<'_> {
-    pub fn new(expr: Expr, context: &Context) -> Eval {
-        Eval {
-            context,
-            cursor: Cursor::LeftTree,
-            current: expr,
-            stack: Stack::new(),
+impl Iterator for Eval {
+    type Item = EvalStep;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let inventory = self.inventory.get_next()?;
+
+        match inventory.eval(&self.context) {
+            Some(()) => {
+                let expr = self.inventory.clone().into();
+                Some(EvalStep { expr })
+            }
+            None => None,
+        }
+    }
+}
+
+// ========================================================================== //
+
+#[derive(Clone, Debug, PartialEq)]
+struct Inventory {
+    callee: Expr,
+    arity: Option<usize>,
+    args: Args,
+}
+
+impl Inventory {
+    fn new(context: &Context, expr: Expr) -> Self {
+        let mut callee = expr;
+        let mut args = Args::new();
+
+        while let Expr::Apply { lhs, rhs } = callee {
+            callee = *lhs;
+            args.unshift(context, *rhs);
+        }
+
+        let arity = arity(context, &callee).filter(|arity| args.len() >= cmp::max(1, *arity));
+
+        Self {
+            callee,
+            arity,
+            args,
         }
     }
 
-    // pub fn eval_last(&mut self, limit: usize) -> (Option<Expr>, bool) {
-    //     assert!(0 < limit);
+    fn reducible(&self) -> bool {
+        let reducible_callee = || self.arity.is_some();
+        let reducible_args = || self.args.iter().any(|arg| arg.reducible()); // TODO: reducible() が呼び出されるたびに args.iter() を再帰的に辿っていくのが非効率かもしれない、計算結果をキャッシュする機構を考えたい
+        reducible_callee() || reducible_args()
+    }
 
-    //     if let Some(mut e) = self.next() {
-    //         for _ in 0..limit - 1 {
-    //             if let Some(next) = self.next() {
-    //                 e = next;
-    //             } else {
-    //                 return (Some(e), false);
-    //             }
-    //         }
+    fn next_path(&self) -> Option<Vec<usize>> {
+        let mut path = Vec::new();
+        let mut inventory = self;
+        loop {
+            if let Some(_) = inventory.arity {
+                return Some(path);
+            } else {
+                match inventory
+                    .args
+                    .enumerate::<(usize, &Inventory)>()
+                    .find(|(_index, arg)| arg.reducible())
+                {
+                    Some((index, arg)) => {
+                        path.push(index);
+                        inventory = arg;
+                    }
+                    None => return None,
+                }
+            }
+        }
+    }
 
-    //         // TODO: ここの true は嘘をつくことがある、peekable で先読みして正しい結果を返すように変える
-    //         (Some(e), true)
-    //     } else {
-    //         (None, false)
-    //     }
-    // }
+    fn get_next(&mut self) -> Option<&mut Inventory> {
+        let mut inventory = self;
+        loop {
+            if let Some(_) = inventory.arity {
+                return Some(inventory);
+            } else {
+                match inventory
+                    .args
+                    .enumerate_mut::<(usize, &mut Inventory)>()
+                    .find(|(_index, arg)| arg.reducible())
+                {
+                    Some((_index, arg)) => {
+                        inventory = arg;
+                    }
+                    None => return None,
+                }
+            }
+        }
+    }
 
-    fn expr(&self) -> Expr {
-        let mut expr = self.current.clone();
+    fn eval(&mut self, context: &Context) -> Option<()> {
+        let args = self.args.drain(self.arity?)?;
+        let mut callee = &mut self.callee;
 
-        for arg in self.stack.all() {
-            expr = expr::a(expr, arg.expr());
+        apply(context, callee, args).ok()?;
+
+        while let Expr::Apply { lhs, rhs } = callee {
+            callee = lhs;
+            self.args.unshift(context, *rhs.to_owned());
         }
 
+        self.callee = callee.to_owned();
+        self.arity =
+            arity(context, &self.callee).filter(|arity| self.args.len() >= cmp::max(1, *arity));
+
+        Some(())
+    }
+}
+
+impl From<Inventory> for Expr {
+    fn from(inventory: Inventory) -> Self {
+        let mut expr = inventory.callee;
+        for arg in inventory.args.0.into_iter().rev() {
+            expr = expr::a(expr, Expr::from(arg));
+        }
         expr
     }
 }
 
-impl Iterator for Eval<'_> {
-    type Item = EvalStep;
+// ========================================================================== //
+
+/// ラムダ式の部分式のうち引数部分を保持する両端キュー
+/// 実装の都合で内部的には引数を逆順で保持する
+/// ```sxyz を分解して格納した場合、外部的には [x, y, z] として振る舞い、内部的には [z, y, x] というデータを保持する
+#[derive(Clone, Debug, PartialEq)]
+struct Args(Vec<Inventory>);
+
+impl Args {
+    fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn unshift(&mut self, context: &Context, expr: Expr) {
+        let inventory = Inventory::new(context, expr);
+        self.0.push(inventory)
+    }
+
+    fn drain(&mut self, n: usize) -> Option<Vec<Expr>> {
+        let length = self.len();
+
+        if length >= n {
+            Some(
+                self.0
+                    .drain(length - n..)
+                    .rev()
+                    .map(|inventory| inventory.into())
+                    .collect(),
+            )
+        } else {
+            None
+        }
+    }
+
+    // TODO: ここから下もっとどうにかしたい
+    fn iter(&self) -> ArgsIter {
+        ArgsIter::new(self.to_owned())
+    }
+
+    fn enumerate<Iter>(&self) -> iter::Enumerate<iter::Rev<slice::Iter<'_, Inventory>>> {
+        self.0.iter().rev().enumerate()
+    }
+
+    fn enumerate_mut<Iter>(&mut self) -> iter::Enumerate<iter::Rev<slice::IterMut<'_, Inventory>>> {
+        self.0.iter_mut().rev().enumerate()
+    }
+}
+
+impl From<Vec<Inventory>> for Args {
+    fn from(args: Vec<Inventory>) -> Self {
+        Self(args)
+    }
+}
+
+struct ArgsIter {
+    iter: std::iter::Rev<std::vec::IntoIter<Inventory>>,
+}
+
+impl ArgsIter {
+    fn new(args: Args) -> Self {
+        Self {
+            iter: args.0.into_iter().rev(),
+        }
+    }
+}
+
+impl Iterator for ArgsIter {
+    type Item = Inventory;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.cursor {
-            Cursor::LeftTree => self.left_tree(),
-            Cursor::RightTree(n) => self.right_tree(n),
-            Cursor::Done => None,
-        }
+        self.iter.next()
     }
 }
 
-impl Eval<'_> {
-    fn left_tree(&mut self) -> Option<EvalStep> {
-        // TODO: ここの clone 必要？
-        while let Expr::Apply { lhs, rhs } = self.current.clone() {
-            self.current = *lhs;
-            self.stack.push(Eval::new(*rhs, self.context));
-        }
-
-        let maybe_args = arity(self.context, &self.current)
-            .filter(|a| *a >= 1 || self.stack.len() >= 1)
-            .and_then(|a| self.stack.pop(a));
-
-        if let Some(args) = maybe_args {
-            let result = apply(
-                self.context,
-                &mut self.current,
-                args.iter().map(|arg| arg.expr()).collect(),
-            );
-            assert!(result.is_ok());
-
-            Some(EvalStep { expr: self.expr() })
-        } else {
-            self.cursor = Cursor::RightTree(0);
-
-            self.next()
-        }
-    }
-
-    fn right_tree(&mut self, n: usize) -> Option<EvalStep> {
-        match self.stack.nth(n) {
-            // スタックの n 番目の枝を取得し、その枝の簡約を試みる
-            Some(step) => match step.next() {
-                Some(_) => Some(EvalStep { expr: self.expr() }),
-
-                // n 番目の枝が簡約済みなら、n+1 番目の枝へ進む
-                None => {
-                    self.cursor = Cursor::RightTree(n + 1);
-                    self.next()
-                }
-            },
-
-            // n がスタックの長さを超えているなら、もう簡約するべきものは何も無い
-            None => {
-                self.cursor = Cursor::Done;
-                self.next()
-            }
-        }
-    }
-}
+// ========================================================================== //
 
 #[derive(Debug, PartialEq)]
 pub struct EvalStep {
@@ -131,54 +225,10 @@ pub struct EvalStep {
 
 // ========================================================================== //
 
-#[derive(Debug, Clone, PartialEq)]
-struct Stack<'a>(Vec<Eval<'a>>);
-
-impl<'a> Stack<'a> {
-    fn new() -> Stack<'a> {
-        Stack(Vec::new())
-    }
-
-    fn push(&mut self, expr: Eval<'a>) {
-        self.0.push(expr);
-    }
-
-    fn pop(&mut self, n: usize) -> Option<Vec<Eval>> {
-        let length = self.len();
-
-        if length >= n {
-            Some(self.0.drain(length - n..).rev().collect())
-        } else {
-            None
-        }
-    }
-
-    fn all(&self) -> Vec<Eval> {
-        let mut all = self.0.clone();
-        all.reverse();
-        all
-    }
-
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    /// 末尾から数えて n 番目の要素を取得する
-    fn nth(&mut self, n: usize) -> Option<&mut Eval<'a>> {
-        let len = self.0.len();
-        if n >= len {
-            None
-        } else {
-            self.0.get_mut(len - n - 1)
-        }
-    }
-}
-
-// ========================================================================== //
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::expr;
     use crate::func;
 
     fn setup() -> Context {
@@ -197,16 +247,86 @@ mod tests {
     }
 
     #[test]
+    fn test_eval_new() {
+        let context = setup();
+
+        let expr = expr::a(":g", expr::a(":f", expr::a("i", ":y")));
+        let eval = Eval::new(context.clone(), expr);
+
+        assert_eq!(
+            eval.inventory,
+            Inventory {
+                callee: expr::s("g"),
+                arity: None,
+                args: Args(vec![Inventory {
+                    callee: expr::s("f"),
+                    arity: None,
+                    args: Args(vec![Inventory {
+                        callee: expr::v("i"),
+                        arity: Some(1),
+                        args: Args(vec![Inventory {
+                            callee: expr::s("y"),
+                            arity: None,
+                            args: Args::new(),
+                        },]),
+                    }]),
+                },]),
+            }
+        );
+    }
+
+    #[test]
+    fn test_inventory_next_path() {
+        let context = setup();
+
+        let expr = expr::s("TRUE");
+        let inventory = Inventory::new(&context, expr);
+        assert_eq!(inventory.next_path(), None);
+
+        let expr = expr::v("TRUE");
+        let inventory = Inventory::new(&context, expr);
+        assert_eq!(inventory.next_path(), None);
+
+        let expr = expr::a(":i", ":x");
+        let inventory = Inventory::new(&context, expr);
+        assert_eq!(inventory.next_path(), None);
+
+        let expr = expr::a("i", ":x");
+        let inventory = Inventory::new(&context, expr);
+        assert_eq!(inventory.next_path(), Some(vec![]));
+
+        let expr = expr::a(expr::a("i", ":x"), ":y");
+        let inventory = Inventory::new(&context, expr);
+        assert_eq!(inventory.next_path(), Some(vec![]));
+
+        let expr = expr::a(":f", expr::a("i", ":x"));
+        let inventory = Inventory::new(&context, expr);
+        assert_eq!(inventory.next_path(), Some(vec![0]));
+
+        let expr = expr::a(expr::a("i", ":x"), expr::a("i", ":y"));
+        let inventory = Inventory::new(&context, expr);
+        assert_eq!(inventory.next_path(), Some(vec![]));
+
+        let expr = expr::a(expr::a(":i", ":x"), expr::a("i", ":y"));
+        let inventory = Inventory::new(&context, expr);
+        assert_eq!(inventory.next_path(), Some(vec![1]));
+
+        let expr = expr::a(":g", expr::a(":f", expr::a("i", ":y")));
+        let inventory = Inventory::new(&context, expr);
+        assert_eq!(inventory.next_path(), Some(vec![0, 0]));
+    }
+
+    #[test]
     fn test_eval_steps_lambda_i() {
         let context = Context::new();
 
         let i = expr::l("x", "x");
         let expr = expr::a(i, ":a");
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
-        assert_eq!(steps.next().map(|step| step.expr), Some(expr::s("a")));
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), Some(expr::s("a")));
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -216,10 +336,10 @@ mod tests {
         let k = expr::l("x", expr::l("y", "x"));
         let expr = expr::a(k, ":a");
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
-        assert_eq!(steps.next().map(|step| step.expr), Some(expr::l("y", ":a")));
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), Some(expr::l("y", ":a")));
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -229,14 +349,14 @@ mod tests {
         let k = expr::l("x", expr::l("y", "x"));
         let expr = expr::a(expr::a(k, ":a"), ":b");
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
         assert_eq!(
-            steps.next().map(|step| step.expr),
+            eval.next().map(|step| step.expr),
             Some(expr::a(expr::l("y", ":a"), ":b"))
         );
-        assert_eq!(steps.next().map(|step| step.expr), Some(":a".into()));
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), Some(":a".into()));
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -245,9 +365,9 @@ mod tests {
 
         let expr = expr::v("TRUE");
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -256,9 +376,9 @@ mod tests {
 
         let expr = expr::a(":a", "TRUE");
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -267,15 +387,15 @@ mod tests {
 
         let expr = expr::a(expr::a("TRUE", ":a"), ":b");
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
         assert_eq!(
-            steps.next().map(|step| step.expr),
+            eval.next().map(|step| step.expr),
             Some(expr::a(expr::a(expr::a("k", "i"), ":a"), ":b"))
         );
-        assert_eq!(steps.next().map(|step| step.expr), Some(expr::a("i", ":b")));
-        assert_eq!(steps.next().map(|step| step.expr), Some(":b".into()));
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), Some(expr::a("i", ":b")));
+        assert_eq!(eval.next().map(|step| step.expr), Some(":b".into()));
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -284,10 +404,10 @@ mod tests {
 
         let expr = expr::a("i", ":a");
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
-        assert_eq!(steps.next().map(|step| step.expr), Some(":a".into()));
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), Some(":a".into()));
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -296,10 +416,10 @@ mod tests {
 
         let expr = expr::a("k", ":a");
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
         // k の arity が2なのに対して引数を1つしか与えていないので簡約されない
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -308,10 +428,10 @@ mod tests {
 
         let expr = expr::a(expr::a("k", ":a"), ":b");
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
-        assert_eq!(steps.next().map(|step| step.expr), Some(":a".into()));
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), Some(":a".into()));
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -320,10 +440,10 @@ mod tests {
 
         let expr = expr::a("s", ":a");
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
         // s の arity が3なのに対して引数を1つしか与えていないので簡約されない
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -332,10 +452,10 @@ mod tests {
 
         let expr = expr::a(expr::a("s", ":a"), ":b");
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
         // s の arity が3なのに対して引数を2つしか与えていないので簡約されない
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -344,13 +464,13 @@ mod tests {
 
         let expr = expr::a(expr::a(expr::a("s", ":a"), ":b"), ":c");
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
         assert_eq!(
-            steps.next().map(|step| step.expr),
+            eval.next().map(|step| step.expr),
             Some(expr::a(expr::a(":a", ":c"), expr::a(":b", ":c")))
         );
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -359,9 +479,9 @@ mod tests {
 
         let expr = expr::a(expr::a(expr::a("s", "k"), "k"), ":a");
 
-        let steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
-        assert_eq!(steps.last().map(|step| step.expr), Some(":a".into()));
+        assert_eq!(eval.last().map(|step| step.expr), Some(":a".into()));
     }
 
     #[test]
@@ -371,13 +491,10 @@ mod tests {
         // `:a``k:b:c
         let expr = expr::a(expr::s("a"), expr::a(expr::a("k", ":b"), ":c"));
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
-        assert_eq!(
-            steps.next().map(|step| step.expr),
-            Some(expr::a(":a", ":b"))
-        );
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), Some(expr::a(":a", ":b")));
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -387,17 +504,17 @@ mod tests {
         // ```:a`i:b`i:c
         let expr = expr::a(expr::a(":a", expr::a("i", ":b")), expr::a("i", ":c"));
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
         assert_eq!(
-            steps.next().map(|step| step.expr),
+            eval.next().map(|step| step.expr),
             Some(expr::a(expr::a(":a", ":b"), expr::a("i", ":c")))
         );
         assert_eq!(
-            steps.next().map(|step| step.expr),
+            eval.next().map(|step| step.expr),
             Some(expr::a(expr::a(":a", ":b"), ":c"))
         );
-        assert_eq!(steps.next().map(|step| step.expr), None);
+        assert_eq!(eval.next().map(|step| step.expr), None);
     }
 
     #[test]
@@ -413,10 +530,10 @@ mod tests {
             ":c",
         );
 
-        let mut steps = Eval::new(expr, &context);
+        let mut eval = Eval::new(context, expr);
 
         assert_eq!(
-            steps.next().map(|step| step.expr),
+            eval.next().map(|step| step.expr),
             // ``^x.`x:a:c`^x.`x:b:c
             Some(expr::a(
                 expr::a(expr::l("x", expr::a("x", ":a")), ":c"),
@@ -424,7 +541,7 @@ mod tests {
             ))
         );
         assert_eq!(
-            steps.next().map(|step| step.expr),
+            eval.next().map(|step| step.expr),
             // ``:c:a`^x.`x:b:c
             Some(expr::a(
                 expr::a(":c", ":a"),
@@ -432,107 +549,10 @@ mod tests {
             ))
         );
         assert_eq!(
-            steps.next().map(|step| step.expr),
+            eval.next().map(|step| step.expr),
             // ``:c:a`:c:b
             Some(expr::a(expr::a(":c", ":a"), expr::a(":c", ":b")))
         );
-        assert_eq!(steps.next(), None);
+        assert_eq!(eval.next(), None);
     }
-
-    #[test]
-    fn test_stack_pop() {
-        let context = Context::new();
-        let mut stack = Stack(vec![
-            Eval::new(expr::v("x"), &context),
-            Eval::new(expr::v("y"), &context),
-        ]);
-
-        assert_eq!(stack.len(), 2);
-
-        stack.push(Eval::new(expr::v("z"), &context));
-
-        assert_eq!(stack.len(), 3);
-
-        assert_eq!(
-            stack.pop(2),
-            Some(vec![
-                Eval::new(expr::v("z"), &context),
-                Eval::new(expr::v("y"), &context)
-            ])
-        );
-
-        assert_eq!(stack.len(), 1);
-
-        assert_eq!(stack.pop(1), Some(vec![Eval::new(expr::v("x"), &context)]));
-
-        assert_eq!(stack.len(), 0);
-
-        assert_eq!(stack.pop(1), None);
-    }
-
-    #[test]
-    fn test_stack_all() {
-        let context = Context::new();
-        let stack = Stack(vec![
-            Eval::new(expr::v("x"), &context),
-            Eval::new(expr::v("y"), &context),
-            Eval::new(expr::v("z"), &context),
-        ]);
-        assert_eq!(
-            stack.all(),
-            vec![
-                Eval::new(expr::v("z"), &context),
-                Eval::new(expr::v("y"), &context),
-                Eval::new(expr::v("x"), &context),
-            ]
-        );
-
-        let stack0 = Stack(vec![]);
-        assert_eq!(stack0.all(), vec![]);
-    }
-
-    #[test]
-    fn test_stack_nth() {
-        let context = Context::new();
-        let mut stack = Stack(vec![
-            Eval::new(expr::v("x"), &context),
-            Eval::new(expr::v("y"), &context),
-            Eval::new(expr::v("z"), &context),
-        ]);
-
-        assert_eq!(stack.nth(0), Some(&mut Eval::new(expr::v("z"), &context)));
-        assert_eq!(stack.nth(1), Some(&mut Eval::new(expr::v("y"), &context)));
-        assert_eq!(stack.nth(2), Some(&mut Eval::new(expr::v("x"), &context)));
-        assert_eq!(stack.nth(3), None);
-    }
-
-    // #[test]
-    // fn test_eval_last_1() {
-    //     let context = setup();
-
-    //     let expr = ":a".into();
-    //     let mut steps = Eval::new(expr, &context);
-
-    //     assert_eq!(steps.eval_last(42), (None, false));
-    // }
-
-    // #[test]
-    // fn test_eval_last_2() {
-    //     let context = setup();
-
-    //     let expr = expr::a("i", expr::a("i", expr::a("i", expr::a("i", ":a"))));
-    //     let mut steps = Eval::new(expr, &context);
-
-    //     assert_eq!(steps.eval_last(42), (Some(":a".into()), false));
-    // }
-
-    // #[test]
-    // fn test_eval_last_3() {
-    //     let context = setup();
-
-    //     let expr = expr::a("i", expr::a("i", expr::a("i", expr::a("i", ":a"))));
-    //     let mut steps = Eval::new(expr, &context);
-
-    //     assert_eq!(steps.eval_last(3), (Some(expr::a("i", ":a")), true));
-    // }
 }
