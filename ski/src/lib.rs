@@ -1,5 +1,8 @@
 #[macro_use]
 mod browser;
+// mod eval;
+// mod expr;
+mod js_value;
 mod repository;
 mod style;
 
@@ -10,6 +13,8 @@ use tuber::parse_command as parser_parse_command;
 use tuber::parse_expr as parser_parse_expr;
 use tuber::{DisplayStyle, Engine, EvalStep, Format, Output};
 use wasm_bindgen::prelude::*;
+
+pub use js_value::{JsContext, JsFunc};
 
 #[wasm_bindgen(getter_with_clone)]
 pub struct CalcResult {
@@ -42,19 +47,19 @@ pub fn execute(input: &str) -> JsValue {
     serde_wasm_bindgen::to_value(&JsOutput::from((&style, output))).unwrap()
 }
 
-#[wasm_bindgen]
-pub fn context() -> Box<[JsValue]> {
-    let style = get_display_style().expect("get display style error");
+// #[wasm_bindgen]
+// pub fn context() -> Box<[JsValue]> {
+//     let style = get_display_style().expect("get display style error");
 
-    let context = get_context().expect("get context error");
-    let vec: Vec<JsValue> = context
-        .to_vec()
-        .iter()
-        .map(|func| JsValue::from_str(func.format(&style).as_str()))
-        .collect();
+//     let context = get_context().expect("get context error");
+//     let vec: Vec<JsValue> = context
+//         .to_vec()
+//         .iter()
+//         .map(|func| JsValue::from_str(func.format(&style).as_str()))
+//         .collect();
 
-    vec.into_boxed_slice()
-}
+//     vec.into_boxed_slice()
+// }
 
 #[wasm_bindgen]
 pub fn parse_command(input: &str) {

@@ -4,6 +4,7 @@ use crate::context::Context;
 use crate::expr::{self, Expr};
 use std::{cmp, iter, slice};
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct Eval {
     context: Context,
     inventory: Inventory,
