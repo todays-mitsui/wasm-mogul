@@ -1,7 +1,9 @@
 export function implant(module) {
   const methodNames = [];
   for (const key of Object.keys(module)) {
-    const methodName = `mogul${snakeToCamel(key)}`;
+    const methodName = module[key].toString().match(/^class /)
+      ? `Mogul${snakeToCamel(key)}`
+      : `mogul${snakeToCamel(key)}`;
 
     if (
       !module.hasOwnProperty(key)

@@ -1,4 +1,5 @@
 use super::JsDisplayStyle;
+use serde::Serialize;
 use tuber::{parse_expr, Expr, Format};
 use wasm_bindgen::prelude::*;
 
@@ -22,6 +23,11 @@ impl JsExpr {
     pub fn format(&self, display_style: JsDisplayStyle) -> String {
         self.0.format(&display_style.into())
     }
+
+    #[wasm_bindgen(js_name = toJSON)]
+    pub fn to_json(&self) -> JsValue {
+        serde_wasm_bindgen::to_value(&ExprJson::from(self.0.clone())).unwrap()
+    }
 }
 
 impl From<Expr> for JsExpr {
@@ -33,5 +39,47 @@ impl From<Expr> for JsExpr {
 impl From<JsExpr> for Expr {
     fn from(js_expr: JsExpr) -> Expr {
         js_expr.0
+    }
+}
+
+// ========================================================================== //
+
+#[derive(Serialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum ExprJson {
+    Variable {
+        identifier: String,
+    },
+    Symbol {
+        identifier: String,
+    },
+    Apply {
+        lhs: Box<ExprJson>,
+        rhs: Box<ExprJson>,
+    },
+    Lambda {
+        param: String,
+        body: Box<ExprJson>,
+    },
+}
+
+impl From<Expr> for ExprJson {
+    fn from(expr: Expr) -> ExprJson {
+        match expr {
+            Expr::Variable(name) => ExprJson::Variable {
+                identifier: name.as_ref().to_string(),
+            },
+            Expr::Symbol(name) => ExprJson::Symbol {
+                identifier: name.as_ref().to_string(),
+            },
+            Expr::Apply { lhs, rhs } => ExprJson::Apply {
+                lhs: Box::new((*lhs).clone().into()),
+                rhs: Box::new((*rhs).clone().into()),
+            },
+            Expr::Lambda { param, body } => ExprJson::Lambda {
+                param: param.as_ref().to_string(),
+                body: Box::new((*body).clone().into()),
+            },
+        }
     }
 }
