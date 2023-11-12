@@ -1,4 +1,5 @@
-use tuber::Func;
+use super::JsDisplayStyle;
+use tuber::{Format, Func};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = Func)]
@@ -28,6 +29,11 @@ impl JsFunc {
     #[wasm_bindgen(js_name = toString)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
+    }
+
+    #[wasm_bindgen]
+    pub fn format(&self, display_style: JsDisplayStyle) -> String {
+        self.0.format(&display_style.into())
     }
 }
 

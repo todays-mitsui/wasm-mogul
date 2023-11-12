@@ -1,6 +1,6 @@
-use super::JsFunc;
+use super::{JsDisplayStyle, JsFunc};
 use crate::repository::{get_context, push_history_def, push_history_del};
-use tuber::{parse_update_or_delete, Command, Context};
+use tuber::{parse_update_or_delete, Command, Context, Format};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = Context)]
@@ -39,12 +39,12 @@ impl JsContext {
     }
 
     #[wasm_bindgen(js_name = getAll)]
-    pub fn get_all(&self) -> Box<[JsValue]> {
+    pub fn get_all(&self, display_style: JsDisplayStyle) -> Box<[JsValue]> {
         self.0
             .clone()
             .to_vec()
             .into_iter()
-            .map(|func| JsValue::from(func.to_string()))
+            .map(|func| JsValue::from(func.format(display_style.as_ref())))
             .collect::<Vec<JsValue>>()
             .into_boxed_slice()
     }

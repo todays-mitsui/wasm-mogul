@@ -1,5 +1,6 @@
 use super::{JsContext, JsExpr};
-use tuber::{Context, Eval, Expr};
+use serde::{Deserialize, Serialize};
+use tuber::{Context, Eval, EvalStep, Expr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = Eval)]
@@ -15,8 +16,19 @@ impl JsEval {
         Self(Eval::new(context, expr))
     }
 
-    pub fn next(&mut self) -> Option<String> {
-        self.0.next().map(|step| step.expr.to_string())
+    pub fn next(&mut self) -> JsValue {
+        match self.0.next() {
+            None => serde_wasm_bindgen::to_value(&JsNextResult {
+                value: None,
+                done: true,
+            })
+            .unwrap(),
+            Some(step) => serde_wasm_bindgen::to_value(&JsNextResult {
+                value: Some(JsEvalStep::from(step)),
+                done: !self.has_next(),
+            })
+            .unwrap(),
+        }
     }
 
     #[wasm_bindgen(js_name = hasNext)]
@@ -37,5 +49,40 @@ impl JsEval {
             i = i + 1;
         }
         results.into_boxed_slice()
+    }
+}
+
+impl From<Eval> for JsEval {
+    fn from(eval: Eval) -> JsEval {
+        JsEval(eval)
+    }
+}
+
+impl From<JsEval> for Eval {
+    fn from(js_eval: JsEval) -> Eval {
+        js_eval.0
+    }
+}
+
+// ========================================================================== //
+
+#[derive(Serialize, Deserialize)]
+pub struct JsNextResult {
+    pub value: Option<JsEvalStep>,
+    pub done: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct JsEvalStep {
+    pub step: usize,
+    pub expr: String,
+}
+
+impl From<EvalStep> for JsEvalStep {
+    fn from(step: EvalStep) -> JsEvalStep {
+        JsEvalStep {
+            step: step.step,
+            expr: step.expr.to_string(),
+        }
     }
 }

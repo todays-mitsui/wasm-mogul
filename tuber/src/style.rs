@@ -18,10 +18,10 @@ impl Factor for &Func {}
 pub struct LazyKStyle<'a, F: Factor>(pub &'a F);
 
 #[derive(PartialEq, Debug)]
-pub struct ECMAScriptStyle<'a, F: Factor>(pub &'a F);
+pub struct EcmaScriptStyle<'a, F: Factor>(pub &'a F);
 
 #[derive(Copy, Clone, Debug)]
 pub enum DisplayStyle {
-    ECMAScript,
+    EcmaScript,
     LazyK,
 }

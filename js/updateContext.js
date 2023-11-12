@@ -1,15 +1,19 @@
 const contextBox = document.querySelector('#context .inner ul');
 
 /**
- * @param {string[]} context
+ * @param {Context} Context
+ * @param {() => DisplayStyle} getDisplayStyle
  * @returns {void}
  */
-export function updateContext(context) {
+export function updateContext({ Context, getDisplayStyle }) {
   while (contextBox.firstChild) {
     contextBox.removeChild(contextBox.firstChild);
   }
 
-  for (const row of context) {
+  const displayStyle = getDisplayStyle();
+  const context = new Context();
+
+  for (const row of context.getAll(displayStyle)) {
     const code = document.createElement('code');
     code.textContent = row;
 

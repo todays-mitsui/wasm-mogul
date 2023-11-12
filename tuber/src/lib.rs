@@ -9,7 +9,7 @@ mod to_string;
 
 pub use calc::{Eval, EvalStep};
 pub use context::Context;
-pub use engine::{Command, Engine, Output};
+pub use engine::{Command, Engine, RunResult};
 pub use expr::{Expr, Identifier};
 pub use func::Func;
 pub use parser::{parse_command, parse_expr, parse_update_or_delete};

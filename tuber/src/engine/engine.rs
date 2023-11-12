@@ -1,10 +1,11 @@
 use super::Command;
-use super::Output;
 use crate::calc::{
     expand, unlambda_iota, unlambda_recursive, unlambda_recursive_, unlambda_shallow, Eval,
     RecursiveStrategy,
 };
 use crate::context::Context;
+use crate::expr::{Expr, Identifier};
+use crate::func::Func;
 
 pub struct Engine {
     context: Context,
@@ -15,35 +16,36 @@ impl Engine {
         Self { context }
     }
 
-    pub fn run(&mut self, command: Command) -> Output {
+    pub fn run(self, command: Command) -> RunResult {
         match command {
             Command::Del(id) => {
-                self.context.del(&id);
-                Output::Del {
+                let mut context = self.context;
+                context.del(&id);
+                RunResult::Del {
                     input: id,
-                    result: self.context.clone(),
+                    result: context,
                 }
             }
 
             Command::Update(func) => {
-                self.context.def(func.clone());
-                Output::Update {
+                let mut context = self.context;
+                context.def(func.clone());
+                RunResult::Update {
                     input: func,
-                    result: self.context.clone(),
+                    result: context,
                 }
             }
 
-            Command::Eval(e) => {
-                let eval = Eval::new(self.context.clone(), e.clone());
-                let steps = eval.take(1000).collect::<Vec<_>>();
+            Command::Eval(expr) => {
+                let eval = Eval::new(self.context, expr.clone());
 
-                Output::Eval { input: e, steps }
+                RunResult::Eval { input: expr, eval }
             }
 
             // Command::EvalLast(e) => {
             //     match &self.display_style {
             //         Style::LazyK => println!("{}", LazyKStyle(&e)),
-            //         Style::ECMAScript => println!("{}", ECMAScriptStyle(&e)),
+            //         Style::EcmaScript => println!("{}", EcmaScriptStyle(&e)),
             //         _ => unreachable!(),
             //     }
 
@@ -52,7 +54,7 @@ impl Engine {
             //         println!("→ ...");
             //         match &self.display_style {
             //             Style::LazyK => println!("→ {}", LazyKStyle(&e)),
-            //             Style::ECMAScript => println!("→ {}", ECMAScriptStyle(&e)),
+            //             Style::EcmaScript => println!("→ {}", EcmaScriptStyle(&e)),
             //             _ => unreachable!(),
             //         }
             //     } else {
@@ -60,22 +62,23 @@ impl Engine {
             //     }
             // }
             Command::Search(id) => self.context.get(&id).map_or(
-                Output::Search {
+                RunResult::Search {
                     input: id.clone(),
                     result: None,
                 },
-                |f| Output::Search {
+                |func| RunResult::Search {
                     input: id.clone(),
-                    result: Some(f.clone()),
+                    result: Some(func.clone()),
                 },
             ),
 
-            Command::Context => Output::Context {
-                result: self.context.clone(),
+            Command::Context => RunResult::Context {
+                result: self.context,
             },
 
-            Command::Unlambda(level, e) => Output::Unlambda {
+            Command::Unlambda(level, e) => RunResult::Unlambda {
                 input: e.clone(),
+                level,
                 result: match level {
                     1 => expand(&self.context, e),
                     2 => unlambda_recursive(&self.context, e),
@@ -88,4 +91,31 @@ impl Engine {
             _ => panic!("not implemented"),
         }
     }
+}
+
+pub enum RunResult {
+    Del {
+        input: Identifier,
+        result: Context,
+    },
+    Update {
+        input: Func,
+        result: Context,
+    },
+    Eval {
+        input: Expr,
+        eval: Eval,
+    },
+    Search {
+        input: Identifier,
+        result: Option<Func>,
+    },
+    Context {
+        result: Context,
+    },
+    Unlambda {
+        input: Expr,
+        level: u8,
+        result: Expr,
+    },
 }
