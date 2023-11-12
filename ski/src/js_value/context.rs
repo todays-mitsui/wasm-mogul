@@ -39,13 +39,13 @@ impl JsContext {
     }
 
     #[wasm_bindgen(js_name = getAll)]
-    pub fn get_all(&self, display_style: JsDisplayStyle) -> Box<[JsValue]> {
+    pub fn get_all(&self) -> Box<[JsFunc]> {
         self.0
             .clone()
             .to_vec()
             .into_iter()
-            .map(|func| JsValue::from(func.format(display_style.as_ref())))
-            .collect::<Vec<JsValue>>()
+            .map(|func| func.into())
+            .collect::<Vec<_>>()
             .into_boxed_slice()
     }
 }

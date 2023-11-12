@@ -72,7 +72,7 @@ async function onSubmit(module) {
     case 'del': {
       const id = run.input;
       const context = run.delResult;
-      console.info({ id, context: context.getAll(displayStyle) });
+      console.info({ id, context: context.getAll().map(func => func.format(displayStyle)) });
       displayDelete(id);
       updateContext(module);
     } break;
@@ -80,7 +80,7 @@ async function onSubmit(module) {
     case 'update': {
       const func = run.input;
       const context = run.updateResult;
-      console.info({ func, context: context.getAll(displayStyle) });
+      console.info({ func, context: context.getAll().map(func => func.format(displayStyle)) });
       displayUpdate(func);
       updateContext(module);
     } break;
@@ -120,8 +120,8 @@ async function onSubmit(module) {
 
     case 'context': {
       const context = run.contextResult;
-      console.info({ context: context.getAll(displayStyle) });
-      displayCodeList(context.getAll(displayStyle));
+      console.info({ context: context.getAll().map(func => func.format(displayStyle)) });
+      displayCodeList(context.getAll().map(func => func.format(displayStyle)));
     } break;
 
     case 'unlambda': {
