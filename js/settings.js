@@ -12,7 +12,7 @@ export function initSettings(module) {
 
     radio.addEventListener('change', function (event) {
       setDisplayStyle(radio.value);
-      updateContext(module.context());
+      updateContext(module);
     });
   }
 }

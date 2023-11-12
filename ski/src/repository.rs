@@ -12,8 +12,8 @@ pub fn get_display_style() -> Result<DisplayStyle> {
         .map_err(|err| anyhow!("Failed to get display style from localStorage: {:?}", err))?;
 
     match display_style.as_ref().map(|s| s.as_str()) {
-        None => Ok(DisplayStyle::ECMAScript),
-        Some("ECMAScript") => Ok(DisplayStyle::ECMAScript),
+        None => Ok(DisplayStyle::EcmaScript),
+        Some("ECMAScript") => Ok(DisplayStyle::EcmaScript),
         Some("Lazy_K") => Ok(DisplayStyle::LazyK),
         _ => Err(anyhow!("Invalid display style")),
     }

@@ -1,11 +1,13 @@
 import { initDetails } from './details.js';
-import { displayEval, displayUpdate, displayDelete, displayUnlambda, displayCodeList } from './display.js';
+import { displayEvalInit, displayEval, displayUpdate, displayDelete, displayUnlambda, displayCodeList, displayParseError } from './display.js';
 import { implant } from './implant.js';
 import { initInput } from './input.js';
 import { showLoader, hideLoader } from './loader.js';
 import { initRandomSpell } from './randomSpell.js';
 import { initSettings } from './settings.js';
 import { updateContext } from './updateContext.js';
+
+const STEP_LIMIT = 2000;
 
 async function main() {
   console.info('ski Mogul, version 0.2.0');
@@ -14,18 +16,15 @@ async function main() {
   initInput();
   initRandomSpell();
 
-  const outputBox = document.querySelector('#output');
-  const form = document.querySelector('#input form');
-  const input = document.querySelector('#input input');
-
   const module = await import('../ski/pkg/index.js');
 
-  updateContext(module.context());
+  updateContext(module);
   initSettings(module);
 
+  const form = document.querySelector('#input form');
   form.addEventListener('submit', function (event) {
     event.preventDefault();
-    onSubmit(module, input, outputBox);
+    onSubmit(module);
   });
 
   implant(module);
@@ -33,10 +32,13 @@ async function main() {
 
 /**
  * @param {{ execute: (src: string, style: 'ECMAScript' | 'Lazy_K') => { expr: string; steps: string[]; } }} module
- * @param {HTMLInputElement} input
- * @param {HTMLDivElement} outputBox
  */
-async function onSubmit(module, input, outputBox) {
+async function onSubmit(module) {
+  const { Command, Context, getDisplayStyle, execute } = module;
+
+  const input = document.querySelector('#input input');
+  const outputBox = document.querySelector('#output');
+
   const src = input.value;
   if (!src.trim()) { return; }  // 何も入力されていないなら何もしない
 
@@ -44,21 +46,94 @@ async function onSubmit(module, input, outputBox) {
 
   input.value = '';
 
-  const output = await new Promise((resolve, reject) => {
-    setTimeout(() => {
-      try {
-        const output = module.execute(src);
-        resolve(output);
+  const displayStyle = getDisplayStyle();
+  const context = new Context();
+
+  let command;
+  try {
+    command = Command.parse(src);
+  }
+  catch (err) {
+    console.info({ err });
+    displayParseError(src);
+    hideLoader();
+    input.focus();
+    input.dispatchEvent(new Event('input'));
+    return;
+  }
+
+
+  const commandStr = command.toString();
+  const run = execute(context, command, displayStyle);
+
+  console.log({ command: commandStr, type: run.commandType });
+
+  switch (run.commandType) {
+    case 'del': {
+      const id = run.input;
+      const context = run.delResult;
+      console.info({ id, context: context.getAll(displayStyle) });
+      displayDelete(id);
+      updateContext(module);
+    } break;
+
+    case 'update': {
+      const func = run.input;
+      const context = run.updateResult;
+      console.info({ func, context: context.getAll(displayStyle) });
+      displayUpdate(func);
+      updateContext(module);
+    } break;
+
+    case 'eval': {
+      const input = run.input;
+      const result = run.evalResult;
+      console.info({ input, iterator: result });
+      const box = displayEvalInit(input);
+      let done = false;
+      while (!done) {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        const next = result.next(displayStyle);
+        done = next.done;
+        if (next.value) {
+          const { expr, step } = next.value;
+          displayEval(box, expr);
+          if (step >= STEP_LIMIT) {
+            break;
+          }
+          if (step % 100 === 0) {
+            outputBox.scrollTo({
+              top: outputBox.scrollHeight,
+              behavior: 'smooth',
+            });
+          }
+        }
       }
-      catch (e) {
-        reject(e);
-      }
-    }, 0);
-  });
+    } break;
+
+    case 'search': {
+      const id = run.input;
+      const func = run.searchResult;
+      console.info({ id, func: func.format(displayStyle) });
+      displayUpdate(func == null ? `${id} = ${id}` : func.format(displayStyle));
+    } break;
+
+    case 'context': {
+      const context = run.contextResult;
+      console.info({ context: context.getAll(displayStyle) });
+      displayCodeList(context.getAll(displayStyle));
+    } break;
+
+    case 'unlambda': {
+      const input = run.input;
+      const result = run.unlambdaResult;
+      const level = run.unlambdaLevel;
+      console.info({ input, result, level });
+      displayUnlambda(input, result.format(displayStyle));
+    } break;
+  }
 
   hideLoader();
-
-  showOutput(output);
 
   outputBox.scrollTo({
     top: outputBox.scrollHeight,
@@ -69,43 +144,4 @@ async function onSubmit(module, input, outputBox) {
   input.dispatchEvent(new Event('input'));
 }
 
-function showOutput(output) {
-  console.log({ result: output });
-
-  switch (output.type) {
-    case 'Del': {
-      const { input: id, result: context } = output;
-      console.log({ id, context });
-      displayDelete(id);
-      updateContext(context);
-    } break;
-
-    case 'Update': {
-      const { input: func, result: context } = output;
-      displayUpdate(func);
-      updateContext(context);
-    } break;
-
-    case 'Eval': {
-      const { input: expr, steps } = output;
-      displayEval(expr, steps.map(({ expr }) => expr));
-    } break;
-
-    case 'Search': {
-      const { input: id, result: func } = output;
-      displayUpdate(func == null ? `${id} = ${id}` : func);
-    } break;
-
-    case 'Context': {
-      const { result: context } = output;
-      displayCodeList(context);
-    } break;
-
-    case 'Unlambda': {
-      const { input, result } = output;
-      displayUnlambda(input, result);
-    } break;
-  }
-}
-
-document.addEventListener('DOMContentLoaded', main);
+main();

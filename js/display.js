@@ -2,10 +2,9 @@ const outputBox = document.querySelector('#output');
 
 /**
  * @param {string} expr
- * @param {string[]} steps
- * @returns {void}
+ * @returns {HTMLOListElement}
  */
-export function displayEval(expr, steps) {
+export function displayEvalInit(expr) {
   const ol = document.createElement('ol');
   ol.classList.add('eval');
   outputBox.appendChild(ol);
@@ -18,10 +17,19 @@ export function displayEval(expr, steps) {
     ol.appendChild(li);
   }
 
-  for (const step of steps) {
+  return ol;
+}
+
+/**
+ * @param {HTMLOListElement} ol
+ * @param {string} expr
+ * @returns {void}
+ */
+export function displayEval(ol, expr) {
+  {
     const li = document.createElement('li');
     const code = document.createElement('code');
-    code.textContent = step;
+    code.textContent = expr;
     li.appendChild(code);
     ol.appendChild(li);
   }
@@ -122,6 +130,24 @@ export function displayCodeList(exprs) {
     const li = document.createElement('li');
     const code = document.createElement('code');
     code.textContent = expr;
+    li.appendChild(code);
+    ul.appendChild(li);
+  }
+}
+
+/**
+ * @param {string} input
+ * @returns {void}
+ */
+export function displayParseError(input) {
+  const ul = document.createElement('ul');
+  ul.classList.add('error');
+  outputBox.appendChild(ul);
+
+  {
+    const li = document.createElement('li');
+    const code = document.createElement('code');
+    code.textContent = `Parse Error: "${input}"`;
     li.appendChild(code);
     ul.appendChild(li);
   }

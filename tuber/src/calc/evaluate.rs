@@ -4,15 +4,21 @@ use crate::context::Context;
 use crate::expr::{self, Expr};
 use std::{cmp, iter, slice};
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct Eval {
     context: Context,
     inventory: Inventory,
+    step: usize,
 }
 
 impl Eval {
     pub fn new(context: Context, expr: Expr) -> Self {
         let inventory = Inventory::new(&context, expr);
-        Self { context, inventory }
+        Self {
+            context,
+            inventory,
+            step: 0,
+        }
     }
 }
 
@@ -25,7 +31,11 @@ impl Iterator for Eval {
         match inventory.eval(&self.context) {
             Some(()) => {
                 let expr = self.inventory.clone().into();
-                Some(EvalStep { expr })
+                self.step += 1;
+                Some(EvalStep {
+                    expr,
+                    step: self.step,
+                })
             }
             None => None,
         }
@@ -219,6 +229,7 @@ impl Iterator for ArgsIter {
 
 #[derive(Debug, PartialEq)]
 pub struct EvalStep {
+    pub step: usize,
     pub expr: Expr,
     // ここに「次のステップでの簡約位置」などのメタ情報を持たせる想定
 }

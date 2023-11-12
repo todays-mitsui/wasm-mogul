@@ -9,8 +9,8 @@ const spells = {
     'AND(TRUE, NOT(FALSE))',
     '? s',
     '? NOT',
-    '~ f => x => y => f(y, x)',
-    '~~ ADD(1, 2)',
+    '~ ADD(1, 2)',
+    '~~ f => x => y => f(y, x)',
     '~~~~ ADD(1, 2)',
   ],
   'Lazy_K': [
@@ -21,8 +21,8 @@ const spells = {
     '``AND TRUE `NOT FALSE',
     '? s',
     '? NOT',
-    '~ λf.λx.λy.``fyx',
-    '~~ ``ADD 1 2',
+    '~ ``ADD 1 2',
+    '~~ λf.λx.λy.``fyx',
     '~~~~ ``ADD 1 2',
   ],
 };

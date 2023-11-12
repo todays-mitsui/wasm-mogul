@@ -248,6 +248,14 @@ main > #output code {
   word-break: break-all;
 }
 
+main > #output .error li::before {
+  color: #c14c4c;
+  background-color: #f4b9b9;
+}
+main > #output .error code {
+  color: #c14c4c;
+}
+
 main > #output ol:not(:last-child),
 main > #output ul:not(:last-child) {
   border-bottom: 1px solid #ccc;
