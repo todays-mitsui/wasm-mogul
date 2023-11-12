@@ -1,5 +1,5 @@
 import { initDetails } from './details.js';
-import { displayEvalInit, displayEval, displayUpdate, displayDelete, displayUnlambda, displayCodeList } from './display.js';
+import { displayEvalInit, displayEval, displayUpdate, displayDelete, displayUnlambda, displayCodeList, displayParseError } from './display.js';
 import { implant } from './implant.js';
 import { initInput } from './input.js';
 import { showLoader, hideLoader } from './loader.js';
@@ -54,7 +54,18 @@ async function onSubmit(module) {
   const displayStyle = getDisplayStyle();
   const context = new Context();
 
-  let command = Command.parse(src);
+  let command;
+  try {
+    command = Command.parse(src);
+  }
+  catch (err) {
+    console.info({ err });
+    displayParseError(src);
+    hideLoader();
+    input.focus();
+    input.dispatchEvent(new Event('input'));
+    return;
+  }
 
   console.log({ command: command.toString() });
 

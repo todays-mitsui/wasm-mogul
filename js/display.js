@@ -134,3 +134,21 @@ export function displayCodeList(exprs) {
     ul.appendChild(li);
   }
 }
+
+/**
+ * @param {string} input
+ * @returns {void}
+ */
+export function displayParseError(input) {
+  const ul = document.createElement('ul');
+  ul.classList.add('error');
+  outputBox.appendChild(ul);
+
+  {
+    const li = document.createElement('li');
+    const code = document.createElement('code');
+    code.textContent = `Parse Error: "${input}"`;
+    li.appendChild(code);
+    ul.appendChild(li);
+  }
+}
