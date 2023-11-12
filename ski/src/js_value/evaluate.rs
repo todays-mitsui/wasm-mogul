@@ -1,6 +1,6 @@
-use super::{JsContext, JsExpr};
+use super::{JsContext, JsDisplayStyle, JsExpr};
 use serde::{Deserialize, Serialize};
-use tuber::{Context, Eval, EvalStep, Expr};
+use tuber::{Context, DisplayStyle, Eval, EvalStep, Expr, Format};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = Eval)]
@@ -16,7 +16,7 @@ impl JsEval {
         Self(Eval::new(context, expr))
     }
 
-    pub fn next(&mut self) -> JsValue {
+    pub fn next(&mut self, display_style: JsDisplayStyle) -> JsValue {
         match self.0.next() {
             None => serde_wasm_bindgen::to_value(&JsNextResult {
                 value: None,
@@ -24,7 +24,7 @@ impl JsEval {
             })
             .unwrap(),
             Some(step) => serde_wasm_bindgen::to_value(&JsNextResult {
-                value: Some(JsEvalStep::from(step)),
+                value: Some(JsEvalStep::from((step, display_style.into()))),
                 done: !self.has_next(),
             })
             .unwrap(),
@@ -83,6 +83,15 @@ impl From<EvalStep> for JsEvalStep {
         JsEvalStep {
             step: step.step,
             expr: step.expr.to_string(),
+        }
+    }
+}
+
+impl From<(EvalStep, DisplayStyle)> for JsEvalStep {
+    fn from((step, display_style): (EvalStep, DisplayStyle)) -> JsEvalStep {
+        JsEvalStep {
+            step: step.step,
+            expr: step.expr.format(&display_style),
         }
     }
 }

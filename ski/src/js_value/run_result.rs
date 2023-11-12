@@ -1,9 +1,9 @@
 use super::{JsContext, JsEval, JsExpr, JsFunc};
-use tuber::RunResult;
+use tuber::{DisplayStyle, Format, RunResult};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = RunResult)]
-pub struct JsRunResult(RunResult);
+pub struct JsRunResult(RunResult, DisplayStyle);
 
 #[wasm_bindgen(js_class = RunResult)]
 impl JsRunResult {
@@ -21,13 +21,14 @@ impl JsRunResult {
 
     #[wasm_bindgen(getter)]
     pub fn input(&self) -> String {
+        let display_style = self.1;
         match &self.0 {
             RunResult::Del { input, .. } => input.as_str().to_string(),
-            RunResult::Update { input, .. } => input.to_string(),
-            RunResult::Eval { input, .. } => input.to_string(),
+            RunResult::Update { input, .. } => input.format(&display_style),
+            RunResult::Eval { input, .. } => input.format(&display_style),
             RunResult::Search { input, .. } => input.as_str().to_string(),
             RunResult::Context { .. } => String::from(""),
-            RunResult::Unlambda { input, .. } => input.to_string(),
+            RunResult::Unlambda { input, .. } => input.format(&display_style),
         }
     }
 
@@ -97,12 +98,18 @@ impl JsRunResult {
 
 impl From<RunResult> for JsRunResult {
     fn from(run_result: RunResult) -> JsRunResult {
-        JsRunResult(run_result)
+        JsRunResult(run_result, DisplayStyle::LazyK)
     }
 }
 
 impl From<JsRunResult> for RunResult {
     fn from(js_run_result: JsRunResult) -> RunResult {
         js_run_result.0
+    }
+}
+
+impl From<(RunResult, DisplayStyle)> for JsRunResult {
+    fn from((run_result, display_style): (RunResult, DisplayStyle)) -> JsRunResult {
+        JsRunResult(run_result, display_style)
     }
 }

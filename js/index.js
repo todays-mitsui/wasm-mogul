@@ -64,7 +64,7 @@ async function onSubmit(module) {
 
 
   const commandStr = command.toString();
-  const run = execute(context, command);
+  const run = execute(context, command, displayStyle);
 
   console.log({ command: commandStr, type: run.commandType });
 
@@ -93,7 +93,7 @@ async function onSubmit(module) {
       let done = false;
       while (!done) {
         await new Promise(resolve => setTimeout(resolve, 0));
-        const next = result.next();
+        const next = result.next(displayStyle);
         done = next.done;
         if (next.value) {
           const { expr, step } = next.value;
