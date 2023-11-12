@@ -249,7 +249,7 @@ main > #output code {
 }
 
 main > #output .error li::before {
-  color: #e37070;
+  color: #c14c4c;
   background-color: #f4b9b9;
 }
 main > #output .error code {

@@ -7,7 +7,7 @@ pub struct JsRunResult(RunResult);
 
 #[wasm_bindgen(js_class = RunResult)]
 impl JsRunResult {
-    #[wasm_bindgen(getter, js_name = type)]
+    #[wasm_bindgen(getter, js_name = commandType)]
     pub fn command_type(&self) -> String {
         match self.0 {
             RunResult::Del { .. } => String::from("del"),

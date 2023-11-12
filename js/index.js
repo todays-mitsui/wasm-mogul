@@ -16,12 +16,7 @@ async function main() {
   initInput();
   initRandomSpell();
 
-  // const outputBox = document.querySelector('#output');
-  // const input = document.querySelector('#input input');
-
   const module = await import('../ski/pkg/index.js');
-
-  console.log(module);
 
   updateContext(module);
   initSettings(module);
@@ -67,13 +62,13 @@ async function onSubmit(module) {
     return;
   }
 
-  console.log({ command: command.toString() });
 
+  const commandStr = command.toString();
   const run = execute(context, command);
 
-  console.log({ 'runResult.type': run.type });
+  console.log({ command: commandStr, type: run.commandType });
 
-  switch (run.type) {
+  switch (run.commandType) {
     case 'del': {
       const id = run.input;
       const context = run.delResult;
@@ -93,7 +88,7 @@ async function onSubmit(module) {
     case 'eval': {
       const input = run.input;
       const result = run.evalResult;
-      console.info({ input, result });
+      console.info({ input, iterator: result });
       const box = displayEvalInit(input);
       let done = false;
       while (!done) {
@@ -106,11 +101,13 @@ async function onSubmit(module) {
           if (step >= STEP_LIMIT) {
             break;
           }
+          if (step % 100 === 0) {
+            outputBox.scrollTo({
+              top: outputBox.scrollHeight,
+              behavior: 'smooth',
+            });
+          }
         }
-        outputBox.scrollTo({
-          top: outputBox.scrollHeight,
-          behavior: 'smooth',
-        });
       }
     } break;
 
