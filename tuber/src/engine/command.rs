@@ -2,7 +2,7 @@ use crate::expr::{Expr, Identifier};
 use crate::func::Func;
 
 // TODO: Func や Expr を Box に入れたほうがいいかも
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Command {
     Del(Identifier), // 関数を削除
     // Add(Ident, Func),      // 関数定義 (定義済み関数の上書きを許さない)
