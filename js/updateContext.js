@@ -13,9 +13,9 @@ export function updateContext({ Context, getDisplayStyle }) {
   const displayStyle = getDisplayStyle();
   const context = new Context();
 
-  for (const row of context.getAll(displayStyle)) {
+  for (const func of context.getAll()) {
     const code = document.createElement('code');
-    code.textContent = row;
+    code.textContent = func.format(displayStyle);
 
     const li = document.createElement('li');
     li.appendChild(code);
