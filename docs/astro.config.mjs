@@ -3,8 +3,8 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
-	base: '/docs/',
-	outDir: '../static/docs',
+	base: '/doc/',
+	outDir: '../dist/doc',
 	integrations: [
 		starlight({
 			title: 'Tuber',
