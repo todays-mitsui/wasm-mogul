@@ -27,6 +27,9 @@ export default defineConfig({
 					autogenerate: { directory: 'reference' },
 				},
 			],
+			components: {
+				Hero: './src/components/MyHero.astro',
+			}
 		}),
 	],
 });
