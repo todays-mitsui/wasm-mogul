@@ -37,9 +37,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
-      - name: Install npm Dependencies
+      - name: Run astro check
         run: |
           cd ./docs
           npm ci
-      - name: astro check
-        run: npm run astro check
+          npm run astro check
