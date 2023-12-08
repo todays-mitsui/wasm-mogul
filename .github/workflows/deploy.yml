@@ -72,7 +72,7 @@ jobs:
         run: |
           npm ci
           npm run build
-      - name: Build docs
+      - name: Build doc
         # ./dist/doc にビルドされたファイル一式が配置される
         run: |
           cd ./docs
