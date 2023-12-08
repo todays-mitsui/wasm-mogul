@@ -3,12 +3,17 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
+	base: '/docs/',
+	outDir: '../static/docs',
 	integrations: [
 		starlight({
-			title: 'My Docs',
+			title: 'Tuber',
 			social: {
-				github: 'https://github.com/withastro/starlight',
+				github: 'https://github.com/todays-mitsui/wasm-mogul',
 			},
+			customCss: [
+				'./src/assets/custom.css',
+			],
 			sidebar: [
 				{
 					label: 'Guides',

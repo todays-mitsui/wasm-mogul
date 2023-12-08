@@ -1,0 +1,10 @@
+@media (min-width: 50rem) {
+  .hero:not(:root) {
+    grid-template-columns: 5fr 4fr;
+
+    > img {
+      width: 100%;
+      height: auto;
+    }
+  }
+}
