@@ -36,7 +36,7 @@ jobs:
       - name: Cargo Test
         run: cargo test --verbose --manifest-path ./ski/Cargo.toml
 
-  check_docs:
+  check_doc:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
           node-version: 20.x
       - name: Run astro check
         run: |
-          cd ./docs
+          cd ./doc
           npm ci
           npm run astro check
 
@@ -54,7 +54,7 @@ jobs:
     needs:
       - test_tuber
       - test_ski
-      - check_docs
+      - check_doc
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -62,11 +62,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
-      - name: Install npm Dependencies
-        run: |
-          npm ci
-          cd ./docs
-          npm ci
       - name: Build app
         # ./dist にビルドされたファイル一式が配置される
         run: |
@@ -75,7 +70,7 @@ jobs:
       - name: Build doc
         # ./dist/doc にビルドされたファイル一式が配置される
         run: |
-          cd ./docs
+          cd ./doc
           npm ci
           npm run astro build
       - name: Fix Permissions
