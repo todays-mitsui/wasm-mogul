@@ -29,3 +29,17 @@ jobs:
         run: cargo build --verbose --manifest-path ./ski/Cargo.toml
       - name: Cargo Test
         run: cargo test --verbose --manifest-path ./ski/Cargo.toml
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Install npm Dependencies
+        run: |
+          cd ./docs
+          npm ci
+      - name: astro check
+        run: npm run astro check
