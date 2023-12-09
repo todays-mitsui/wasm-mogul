@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import remarkBreaks from 'remark-breaks';
 
 // https://astro.build/config
 export default defineConfig({
@@ -32,4 +33,11 @@ export default defineConfig({
 			}
 		}),
 	],
+  markdown: {
+    remarkPlugins: [
+      // 改行を <br> に変換する
+      remarkBreaks,
+    ],
+    extendDefaultPlugins: true,
+  }
 });
