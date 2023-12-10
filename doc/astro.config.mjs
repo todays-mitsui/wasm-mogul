@@ -24,10 +24,10 @@ export default defineConfig({
             {
               label: '式: Expression',
               items: [
-                { label: '変数: Variable', link: '/syntax/expression/variable/' },
-                { label: 'シンボル: Symbol', link: '/syntax/expression/symbol/' },
-                { label: '関数適用: Application', link: '/syntax/expression/application/' },
-                { label: 'ラムダ抽象: Lambda', link: '/syntax/expression/lambda/' },
+                { label: '変数: Variable', link: '/syntax/expression/#変数-variable' },
+                { label: 'シンボル: Symbol', link: '/syntax/expression/#シンボル-symbol' },
+                { label: '関数適用: Application', link: '/syntax/expression/#関数適用-application' },
+                { label: 'ラムダ抽象: Lambda', link: '/syntax/expression/#ラムダ抽象-lambda' },
               ]
             },
             { label: '名前付き関数: Function', link: '/syntax/function/' },
@@ -36,7 +36,7 @@ export default defineConfig({
         {
           label: 'コマンド: Command',
           items: [
-            { label: 'ステップ簡約: Reduce', link: '/command/reduce/' },
+            { label: '簡約: Reduce', link: '/command/reduce/' },
             { label: '関数定義: Define', link: '/command/define/' },
             {
               label: 'コンテキスト: Context',
