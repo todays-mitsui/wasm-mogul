@@ -21,15 +21,11 @@ export default defineConfig({
           items: [
             { label: 'はじめに', link: '/syntax/about/' },
             { label: '識別子: Identifier', link: '/syntax/identifier/' },
-            {
-              label: '式: Expression',
-              items: [
-                { label: '変数: Variable', link: '/syntax/expression/#変数-variable' },
-                { label: 'シンボル: Symbol', link: '/syntax/expression/#シンボル-symbol' },
-                { label: '関数適用: Application', link: '/syntax/expression/#関数適用-application' },
-                { label: 'ラムダ抽象: Lambda', link: '/syntax/expression/#ラムダ抽象-lambda' },
-              ]
-            },
+            { label: '式: Expression', link: '/syntax/expression/' },
+            { label: '変数: Variable', link: '/syntax/expression/#変数-variable' },
+            { label: 'シンボル: Symbol', link: '/syntax/expression/#シンボル-symbol' },
+            { label: '関数適用: Application', link: '/syntax/expression/#関数適用-application' },
+            { label: 'ラムダ抽象: Lambda', link: '/syntax/expression/#ラムダ抽象-lambda' },
             { label: '名前付き関数: Function', link: '/syntax/function/' },
           ],
         },
