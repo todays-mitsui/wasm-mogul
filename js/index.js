@@ -13,7 +13,6 @@ async function main() {
   console.info('ski Mogul, version 0.2.0');
 
   initDetails();
-  initInput();
   initRandomSpell();
 
   const module = await import('../ski/pkg/index.js');
@@ -26,6 +25,8 @@ async function main() {
     event.preventDefault();
     onSubmit(module);
   });
+
+  initInput();
 
   implant(module);
 }

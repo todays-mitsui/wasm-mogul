@@ -4,6 +4,13 @@ export function initInput() {
 
   if (location.search) {
     const param = new URLSearchParams(location.search);
+    if (param.has('run')) {
+      for (let command of param.getAll('run')) {
+        console.info('run', command);
+        input.value = command;
+        submit.click();
+      }
+    }
     if (param.has('input')) {
       input.value = param.get('input');
     }
