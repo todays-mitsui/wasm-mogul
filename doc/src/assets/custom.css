@@ -1,0 +1,13 @@
+.ski-mogul-result.scroll {
+  height: 25rem;
+}
+
+.ski-mogul-result.scroll > .expressive-code,
+.ski-mogul-result.scroll > .expressive-code > .frame {
+  height: 100%;
+}
+
+.ski-mogul-result.scroll > .expressive-code > .frame > pre {
+  height: 100%;
+  overflow-y: scroll;
+}

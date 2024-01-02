@@ -1,38 +1,205 @@
 ---
 title: Tuber
 description: An interpreter that evaluates λ-calculations step by step.
-template: splash
+# template: splash
 hero:
   tagline: An interpreter that evaluates λ-calculations step by step.
   image:
     file: ../../assets/tuber.webp
     alt: imo
   actions:
-    - text: Play with a browser
+    - text: Play in Browser
       link: /
       icon: rocket
       variant: primary
-    - text: Repository
+    - text: Document
+      link: /doc/
+      icon: document
+    - text: GitHub
       link: https://github.com/todays-mitsui/wasm-mogul
       icon: github
-      variant: secondary
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+## これは何？
 
-## Next steps
+Tuber は型無しラムダ計算をステップごとに簡約するインタプリタです。
+Tuber は Rust で実装されたライブラリであり、Web ブラウザから実行可能なインターフェースとして [ski Mogul](https://mogul-lang.mudatobunka.org/) があります。
 
-<CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
-	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
-	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
-	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
-	</Card>
-</CardGrid>
+型無しラムダ計算はチューリング完全であることが知られています。
+例えば Tuber を使って `2 + 3 == 5 → true` を確かめると以下のようなステップが表示されます。
+
+<div class="ski-mogul-result scroll">
+```
+EQ(ADD(2, 3), 5)
+→ AND(GTE(ADD(2, 3), 5), LTE(ADD(2, 3), 5))
+→ GTE(ADD(2, 3), 5, LTE(ADD(2, 3), 5), FALSE)
+→ IS_ZERO(SUB(5, ADD(2, 3)), LTE(ADD(2, 3), 5), FALSE)
+→ SUB(5, ADD(2, 3), _ => FALSE, TRUE, LTE(ADD(2, 3), 5), FALSE)
+→ ADD(2, 3, PRED, 5, _ => FALSE, TRUE, LTE(ADD(2, 3), 5), FALSE)
+→ ((f, x) => 2(f, 3(f, x)))(PRED, 5, _ => FALSE, TRUE, LTE(ADD(2, 3), 5), FALSE)
+→ (x => 2(PRED, 3(PRED, x)))(5, _ => FALSE, TRUE, LTE(ADD(2, 3), 5), FALSE)
+→ 2(PRED, 3(PRED, 5), _ => FALSE, TRUE, LTE(ADD(2, 3), 5), FALSE)
+→ ((f, x) => f(f(x)))(PRED, 3(PRED, 5), _ => FALSE, TRUE, LTE(ADD(2, 3), 5), FALSE)
+→ (x => PRED(PRED(x)))(3(PRED, 5), _ => FALSE, TRUE, LTE(ADD(2, 3), 5), FALSE)
+→ PRED(PRED(3(PRED, 5)), _ => FALSE, TRUE, LTE(ADD(2, 3), 5), FALSE)
+→ ((f, x) => PRED(3(PRED, 5), (g, h) => h(g(f)), u => x, u => u))(_ => FALSE, TRUE, LTE(ADD(2, 3), 5), FALSE)
+→ (x => PRED(3(PRED, 5), (g, h) => h(g(_ => FALSE)), u => x, u => u))(TRUE, LTE(ADD(2, 3), 5), FALSE)
+→ PRED(3(PRED, 5), (g, h) => h(g(_ => FALSE)), u => TRUE, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((f, x) => 3(PRED, 5, (g, h) => h(g(f)), u => x, u => u))((g, h) => h(g(_ => FALSE)), u => TRUE, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (x => 3(PRED, 5, (g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => x, u => u))(u => TRUE, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ 3(PRED, 5, (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (u, u) => TRUE, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((f, x) => f(f(f(x))))(PRED, 5, (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (u, u) => TRUE, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (x => PRED(PRED(PRED(x))))(5, (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (u, u) => TRUE, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ PRED(PRED(PRED(5)), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (u, u) => TRUE, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((f, x) => PRED(PRED(5), (g, h) => h(g(f)), u => x, u => u))((g, h) => h(g((g, h) => h(g(_ => FALSE)))), (u, u) => TRUE, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (x => PRED(PRED(5), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => x, u => u))((u, u) => TRUE, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ PRED(PRED(5), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (u, u, u) => TRUE, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((f, x) => PRED(5, (g, h) => h(g(f)), u => x, u => u))((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (u, u, u) => TRUE, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (x => PRED(5, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), u => x, u => u))((u, u, u) => TRUE, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ PRED(5, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (u, u, u, u) => TRUE, u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((f, x) => 5((g, h) => h(g(f)), u => x, u => u))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (u, u, u, u) => TRUE, u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (x => 5((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), u => x, u => u))((u, u, u, u) => TRUE, u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ 5((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE, u => u, u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((f, x) => f(f(f(f(f(x))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE, u => u, u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (x => ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(x))))))((u, u, u, u, u) => TRUE, u => u, u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE)))), u => u, u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE))), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(u => u, u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (u => u)(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE))), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))))), u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE))), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE)), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE)), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))))), u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE)), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))(u => u, u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (u => u)(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE)), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))), u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE)), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))), u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))))))(u => u, u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (u => u)(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE))))), u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))))))((g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g(_ => FALSE)))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE))))), u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)))))(u => u, u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (u => u)(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE))), u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))))))((g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g((g, h) => h(g(_ => FALSE)))))(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE))))), (g, h) => h(g(_ => FALSE)), u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)))))((g, h) => h(g(_ => FALSE)), u => u, LTE(ADD(2, 3), 5), FALSE)
+→ ((g, h) => h(g(_ => FALSE)))(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE))), u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (h => h(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), _ => FALSE)))(u => u, LTE(ADD(2, 3), 5), FALSE)
+→ (u => u)(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), _ => FALSE), LTE(ADD(2, 3), 5), FALSE)
+→ ((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), _ => FALSE, LTE(ADD(2, 3), 5), FALSE)
+→ ((u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), _ => FALSE, LTE(ADD(2, 3), 5), FALSE)
+→ ((u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), _ => FALSE, LTE(ADD(2, 3), 5), FALSE)
+→ ((u, u) => TRUE)((g, h) => h(g(_ => FALSE)), _ => FALSE, LTE(ADD(2, 3), 5), FALSE)
+→ (u => TRUE)(_ => FALSE, LTE(ADD(2, 3), 5), FALSE)
+→ TRUE(LTE(ADD(2, 3), 5), FALSE)
+→ ((x, y) => x)(LTE(ADD(2, 3), 5), FALSE)
+→ (y => LTE(ADD(2, 3), 5))(FALSE)
+→ LTE(ADD(2, 3), 5)
+→ IS_ZERO(SUB(ADD(2, 3), 5))
+→ SUB(ADD(2, 3), 5, _ => FALSE, TRUE)
+→ 5(PRED, ADD(2, 3), _ => FALSE, TRUE)
+→ ((f, x) => f(f(f(f(f(x))))))(PRED, ADD(2, 3), _ => FALSE, TRUE)
+→ (x => PRED(PRED(PRED(PRED(PRED(x))))))(ADD(2, 3), _ => FALSE, TRUE)
+→ PRED(PRED(PRED(PRED(PRED(ADD(2, 3))))), _ => FALSE, TRUE)
+→ ((f, x) => PRED(PRED(PRED(PRED(ADD(2, 3)))), (g, h) => h(g(f)), u => x, u => u))(_ => FALSE, TRUE)
+→ (x => PRED(PRED(PRED(PRED(ADD(2, 3)))), (g, h) => h(g(_ => FALSE)), u => x, u => u))(TRUE)
+→ PRED(PRED(PRED(PRED(ADD(2, 3)))), (g, h) => h(g(_ => FALSE)), u => TRUE, u => u)
+→ ((f, x) => PRED(PRED(PRED(ADD(2, 3))), (g, h) => h(g(f)), u => x, u => u))((g, h) => h(g(_ => FALSE)), u => TRUE, u => u)
+→ (x => PRED(PRED(PRED(ADD(2, 3))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => x, u => u))(u => TRUE, u => u)
+→ PRED(PRED(PRED(ADD(2, 3))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (u, u) => TRUE, u => u, u => u)
+→ ((f, x) => PRED(PRED(ADD(2, 3)), (g, h) => h(g(f)), u => x, u => u))((g, h) => h(g((g, h) => h(g(_ => FALSE)))), (u, u) => TRUE, u => u, u => u)
+→ (x => PRED(PRED(ADD(2, 3)), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => x, u => u))((u, u) => TRUE, u => u, u => u)
+→ PRED(PRED(ADD(2, 3)), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (u, u, u) => TRUE, u => u, u => u, u => u)
+→ ((f, x) => PRED(ADD(2, 3), (g, h) => h(g(f)), u => x, u => u))((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (u, u, u) => TRUE, u => u, u => u, u => u)
+→ (x => PRED(ADD(2, 3), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), u => x, u => u))((u, u, u) => TRUE, u => u, u => u, u => u)
+→ PRED(ADD(2, 3), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (u, u, u, u) => TRUE, u => u, u => u, u => u, u => u)
+→ ((f, x) => ADD(2, 3, (g, h) => h(g(f)), u => x, u => u))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (u, u, u, u) => TRUE, u => u, u => u, u => u, u => u)
+→ (x => ADD(2, 3, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), u => x, u => u))((u, u, u, u) => TRUE, u => u, u => u, u => u, u => u)
+→ ADD(2, 3, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE, u => u, u => u, u => u, u => u, u => u)
+→ ((f, x) => 2(f, 3(f, x)))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE, u => u, u => u, u => u, u => u, u => u)
+→ (x => 2((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), 3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), x)))((u, u, u, u, u) => TRUE, u => u, u => u, u => u, u => u, u => u)
+→ 2((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), 3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE), u => u, u => u, u => u, u => u, u => u)
+→ ((f, x) => f(f(x)))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), 3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE), u => u, u => u, u => u, u => u, u => u)
+→ (x => ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(x)))(3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE), u => u, u => u, u => u, u => u, u => u)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE)), u => u, u => u, u => u, u => u, u => u)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(u => u, u => u, u => u, u => u, u => u)
+→ (u => u)(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))))), u => u, u => u, u => u, u => u)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), u => u, u => u, u => u, u => u)
+→ (h => h(3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), u => u, u => u, u => u, u => u)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))(3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))))), u => u, u => u, u => u, u => u)
+→ (h => h(3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))(u => u, u => u, u => u, u => u)
+→ (u => u)(3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))), u => u, u => u, u => u)
+→ 3((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => u, u => u, u => u)
+→ ((f, x) => f(f(f(x))))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))), (u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => u, u => u, u => u)
+→ (x => ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(x))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => u, u => u, u => u)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE)), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => u, u => u, u => u)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => u, u => u, u => u)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => u, u => u, u => u)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), u => u, u => u, u => u)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))), u => u, u => u, u => u)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))))))(u => u, u => u, u => u)
+→ (u => u)(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE))))), u => u, u => u)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE), (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => u, u => u)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => u, u => u)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => u, u => u)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => u, u => u)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => u, u => u)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))))))((g, h) => h(g((g, h) => h(g(_ => FALSE)))), u => u, u => u)
+→ ((g, h) => h(g((g, h) => h(g(_ => FALSE)))))(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE))))), u => u, u => u)
+→ (h => h(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)))))(u => u, u => u)
+→ (u => u)(((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE))), u => u)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((u, u, u, u, u) => TRUE, (g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), u => u)
+→ (h => h(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), u => u)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), u => u)
+→ (h => h(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))))((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), u => u)
+→ ((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE))))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), u => u)
+→ (h => h(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))))))((g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), u => u)
+→ ((g, h) => h(g((g, h) => h(g(_ => FALSE)))))(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE))))), (g, h) => h(g(_ => FALSE)), u => u)
+→ (h => h(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)))))((g, h) => h(g(_ => FALSE)), u => u)
+→ ((g, h) => h(g(_ => FALSE)))(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE))), u => u)
+→ (h => h(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), _ => FALSE)))(u => u)
+→ (u => u)(((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), _ => FALSE))
+→ ((u, u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))))), (g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), _ => FALSE)
+→ ((u, u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g((g, h) => h(g(_ => FALSE)))))), (g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), _ => FALSE)
+→ ((u, u, u) => TRUE)((g, h) => h(g((g, h) => h(g(_ => FALSE)))), (g, h) => h(g(_ => FALSE)), _ => FALSE)
+→ ((u, u) => TRUE)((g, h) => h(g(_ => FALSE)), _ => FALSE)
+→ (u => TRUE)(_ => FALSE)
+→ TRUE
+```
+</div>
+
+簡約の結果が `TRUE` になっていることがわかります。
+
+## Tuber でできること
+
+- ラムダ式を簡約する
+- ラムダ式に名前をつけて参照する (名前付き関数)
+- 名前付き関数を含む式をラムダ式に展開する
+- ラムダ式を ski コンビネータの組み合わせに変換する
+- ラムダ式を iota コンビネータの組み合わせに変換する
+
+## Tuber を構成する概念
+
+- 識別子: Identifier
+- 式: Expression
+  - 変数: Variable
+  - シンボル: Symbol
+  - 関数適用: Application
+  - ラムダ抽象: Lambda
+- 名前付き関数とコンテキスト: Function & Context
+- コマンド: Command
+  - 簡約: Reduce
+  - 関数定義: Define
+  - 展開: Expand
+  - コンテキストへの問い合わせ: Query
