@@ -26,9 +26,9 @@ export default defineConfig({
             { label: 'シンボル: Symbol', link: '/syntax/expression/#シンボル-symbol' },
             { label: '関数適用: Application', link: '/syntax/expression/#関数適用-application' },
             { label: 'ラムダ抽象: Lambda', link: '/syntax/expression/#ラムダ抽象-lambda' },
-            { label: '名前付き関数: Function', link: '/syntax/function/' },
           ],
         },
+        { label: '名前付き関数とコンテキスト', link: '/function_and_context/' },
         {
           label: 'コマンド: Command',
           items: [
@@ -37,8 +37,8 @@ export default defineConfig({
             {
               label: 'コンテキスト: Context',
               items: [
-                { label: '一覧: List', link: '/command/context/list/' },
-                { label: '問い合わせ: Query', link: '/command/context/query/' },
+                { label: '一覧: List', link: '/command/context_list/' },
+                { label: '問い合わせ: Query', link: '/command/context_query/' },
               ]
             },
             { label: '展開: Expand', link: '/command/expand/' },
@@ -48,8 +48,12 @@ export default defineConfig({
           label: '定義済み関数',
           items: [
             { label: '定義済み関数', link: '/functions/' },
+            { label: '基本的なコンビネータ', link: '/functions/basic_combinator/' },
+            { label: '真理値', link: '/functions/truth_value/' },
             { label: '自然数', link: '/functions/number/' },
             { label: '比較演算', link: '/functions/compare/' },
+            { label: 'タプルとリスト', link: '/functions/tuple_and_list/' },
+            { label: '不動点コンビネータ', link: '/functions/fixed_point_combinator/' },
           ],
         },
       ],
