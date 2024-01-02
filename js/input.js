@@ -30,6 +30,11 @@ export async function initInput(module) {
         console.info({ run: src });
         return run(module, src, outputBox);
       }));
+
+      outputBox.scrollTo({
+        top: outputBox.scrollHeight,
+        behavior: 'smooth',
+      });
     }
 
     if (param.has('input')) {
