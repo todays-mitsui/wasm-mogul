@@ -46,7 +46,11 @@ export default defineConfig({
         },
         {
           label: '定義済み関数',
-          autogenerate: { directory: 'functions' },
+          items: [
+            { label: '定義済み関数', link: '/functions/' },
+            { label: '自然数', link: '/functions/number/' },
+            { label: '比較演算', link: '/functions/compare/' },
+          ],
         },
       ],
       components: {
