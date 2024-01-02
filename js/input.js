@@ -1,3 +1,5 @@
+import { run } from './run.js';
+
 export function initInput() {
   const input = document.querySelector('#input input');
   const submit = document.querySelector('#input button[type=submit]');
