@@ -10,8 +10,8 @@ const STEP_LIMIT = 2000;
  * @param {HTMLElement} outputBox
  * @returns
  */
-export async function run(module, src, displayStyle, outputBox) {
-  const { Command, Context, execute } = module;
+export async function run(module, src, outputBox) {
+  const { Command, Context, execute, getDisplayStyle } = module;
 
   showLoader();
 
@@ -29,6 +29,7 @@ export async function run(module, src, displayStyle, outputBox) {
   const commandStr = command.toString();
 
   const context = new Context();
+  const displayStyle = getDisplayStyle();
   const exec = execute(context, command, displayStyle);
 
   console.log({

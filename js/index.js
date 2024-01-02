@@ -16,14 +16,13 @@ async function main() {
 
   updateContext(module);
   initSettings(module);
+  initInput(module);
 
   const form = document.querySelector('#input form');
   form.addEventListener('submit', function (event) {
     event.preventDefault();
     onSubmit(module);
   });
-
-  initInput();
 
   implant(module);
 }
@@ -32,8 +31,6 @@ async function main() {
  * @param {{ execute: (src: string, style: 'ECMAScript' | 'Lazy_K') => { expr: string; steps: string[]; } }} module
  */
 async function onSubmit(module) {
-  const { Command, Context, getDisplayStyle, execute } = module;
-
   const input = document.querySelector('#input input');
   const outputBox = document.querySelector('#output');
 
@@ -42,7 +39,7 @@ async function onSubmit(module) {
 
   input.value = '';
 
-  await run(module, src, getDisplayStyle(), outputBox);
+  await run(module, src, outputBox);
 
   outputBox.scrollTo({
     top: outputBox.scrollHeight,
