@@ -313,35 +313,44 @@ mod tests {
 
         let expr = expr::v("TRUE");
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), None);
+        assert_eq!(inventory.next_path().map(Vec::<usize>::from), None);
 
         let expr = expr::a(":i", ":x");
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), None);
+        assert_eq!(inventory.next_path().map(Vec::<usize>::from), None);
 
         let expr = expr::a("i", ":x");
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), Some(Path::new(vec![], 1)));
+        assert_eq!(inventory.next_path().map(Vec::<usize>::from), Some(vec![1]));
 
         let expr = expr::a(expr::a("i", ":x"), ":y");
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), Some(Path::new(vec![], 1)));
+        assert_eq!(inventory.next_path().map(Vec::<usize>::from), Some(vec![1]));
 
         let expr = expr::a(":f", expr::a("i", ":x"));
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), Some(Path::new(vec![0], 1)));
+        assert_eq!(
+            inventory.next_path().map(Vec::<usize>::from),
+            Some(vec![0, 1])
+        );
 
         let expr = expr::a(expr::a("i", ":x"), expr::a("i", ":y"));
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), Some(Path::new(vec![], 1)));
+        assert_eq!(inventory.next_path().map(Vec::<usize>::from), Some(vec![1]));
 
         let expr = expr::a(expr::a(":i", ":x"), expr::a("i", ":y"));
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), Some(Path::new(vec![1], 1)));
+        assert_eq!(
+            inventory.next_path().map(Vec::<usize>::from),
+            Some(vec![1, 1])
+        );
 
         let expr = expr::a(":g", expr::a(":f", expr::a("i", ":y")));
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), Some(Path::new(vec![0, 0], 1)));
+        assert_eq!(
+            inventory.next_path().map(Vec::<usize>::from),
+            Some(vec![0, 0, 1])
+        );
     }
 
     #[test]
@@ -590,13 +599,19 @@ mod tests {
         let expr = expr::a(expr::a(expr::a("s", "k"), "k"), ":a");
 
         let mut eval = Eval::new(context, expr);
-        assert_eq!(eval.next_path, Some(Path::new(vec![], 3)));
+        assert_eq!(
+            eval.next_path.as_ref().map(Vec::<usize>::from),
+            Some(vec![3])
+        );
 
         let step = eval.next().unwrap();
-        assert_eq!(step.next_path, Some(Path::new(vec![], 2)));
+        assert_eq!(
+            step.next_path.as_ref().map(Vec::<usize>::from),
+            Some(vec![2])
+        );
 
         let step = eval.next().unwrap();
-        assert_eq!(step.next_path, None);
+        assert_eq!(step.next_path.as_ref().map(Vec::<usize>::from), None);
     }
 
     #[test]
@@ -605,16 +620,25 @@ mod tests {
         let expr = expr::a(expr::a(expr::a("s", "i"), expr::a("k", ":b")), ":a");
 
         let mut eval = Eval::new(context, expr);
-        assert_eq!(eval.next_path, Some(Path::new(vec![], 3)));
+        assert_eq!(
+            eval.next_path.as_ref().map(Vec::<usize>::from),
+            Some(vec![3])
+        );
 
         let step = eval.next().unwrap();
-        assert_eq!(step.next_path, Some(Path::new(vec![], 1)));
+        assert_eq!(
+            step.next_path.as_ref().map(Vec::<usize>::from),
+            Some(vec![1])
+        );
 
         let step = eval.next().unwrap();
-        assert_eq!(step.next_path, Some(Path::new(vec![0], 2)));
+        assert_eq!(
+            step.next_path.as_ref().map(Vec::<usize>::from),
+            Some(vec![0, 2])
+        );
 
         let step = eval.next().unwrap();
-        assert_eq!(step.next_path, None);
+        assert_eq!(step.next_path.as_ref().map(Vec::<usize>::from), None);
     }
 
     #[test]
@@ -625,10 +649,10 @@ mod tests {
         let mut eval = Eval::new(context, expr);
 
         let step = eval.next().unwrap();
-        assert_eq!(step.callee_path, Path::new(vec![], 2));
+        assert_eq!(Vec::<usize>::from(&step.callee_path), vec![2]);
 
         let step = eval.next().unwrap();
-        assert_eq!(step.callee_path, Path::new(vec![], 0));
+        assert_eq!(Vec::<usize>::from(&step.callee_path), vec![0]);
     }
 
     #[test]
@@ -639,12 +663,12 @@ mod tests {
         let mut eval = Eval::new(context, expr);
 
         let step = eval.next().unwrap();
-        assert_eq!(step.callee_path, Path::new(vec![], 2));
+        assert_eq!(Vec::<usize>::from(&step.callee_path), vec![2]);
 
         let step = eval.next().unwrap();
-        assert_eq!(step.callee_path, Path::new(vec![], 0));
+        assert_eq!(Vec::<usize>::from(&step.callee_path), vec![0]);
 
         let step = eval.next().unwrap();
-        assert_eq!(step.callee_path, Path::new(vec![0], 0));
+        assert_eq!(Vec::<usize>::from(&step.callee_path), vec![0, 0]);
     }
 }

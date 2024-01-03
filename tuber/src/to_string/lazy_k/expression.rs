@@ -1,5 +1,7 @@
 use crate::expr::Expr;
+use crate::expr::Path;
 use regex::Regex;
+use serde::de;
 use std::fmt::Display;
 
 pub fn to_string(expr: &Expr) -> String {
@@ -81,6 +83,156 @@ fn tokens_to_string(tokens: &mut Vec<Token>) -> String {
 fn is_upper_ident(s: &str) -> bool {
     let regex_upper_ident: Regex = Regex::new(r"\A[A-Z0-9_]+\z").unwrap();
     regex_upper_ident.is_match(s)
+}
+
+// ========================================================================== //
+
+fn range(expr: &Expr, path: &Path) -> Range {
+    let mut callee: &Expr = expr;
+    let mut args: Vec<&Expr> = Vec::new();
+    while let Expr::Apply { lhs, rhs } = callee {
+        callee = lhs;
+        args.push(rhs);
+    }
+
+    match path {
+        Path::Arg(index, next) => {
+            let num_callee_tokens = num_tokens(callee);
+
+            let (_, arg, before) = rev_partition(&args, *index);
+
+            let num_before_tokens = before.iter().map(|e| num_tokens(*e)).sum::<usize>();
+            let range = range(arg, next);
+
+            return Range {
+                start: args.len() + num_callee_tokens + num_before_tokens + range.start,
+                end: args.len() + num_callee_tokens + num_before_tokens + range.end,
+            };
+        }
+
+        Path::Callee(arity) => {
+            let num_callee_tokens = num_tokens(callee);
+            let num_args_tokens = args
+                .iter()
+                .rev()
+                .take(*arity)
+                .map(|e| num_tokens(*e))
+                .sum::<usize>();
+
+            let start = args.len() - arity;
+            let end = args.len() + num_callee_tokens + num_args_tokens;
+            return Range { start, end };
+        }
+    }
+}
+
+fn num_tokens(expr: &Expr) -> usize {
+    match expr {
+        Expr::Variable(_) => 1,
+        Expr::Symbol(_) => 1,
+        Expr::Apply { lhs, rhs } => num_tokens(lhs) + num_tokens(rhs) + 1,
+        Expr::Lambda { param, body } => num_tokens(body) + 2,
+    }
+}
+
+fn rev_partition<T: Clone + Copy>(args: &Vec<T>, index: usize) -> (Vec<T>, T, Vec<T>) {
+    let len = args.len();
+    (
+        args[0..len - index - 1].to_vec(),
+        args[len - index - 1],
+        args[len - index..].to_vec(),
+    )
+}
+
+#[test]
+fn test_rev_partition() {
+    let args = vec![5, 4, 3, 2, 1];
+
+    assert_eq!(rev_partition(&args, 0), (vec![5, 4, 3, 2], 1, vec![]));
+    assert_eq!(rev_partition(&args, 1), (vec![5, 4, 3], 2, vec![1]));
+    assert_eq!(rev_partition(&args, 2), (vec![5, 4], 3, vec![2, 1]));
+    assert_eq!(rev_partition(&args, 3), (vec![5], 4, vec![3, 2, 1]));
+    assert_eq!(rev_partition(&args, 4), (vec![], 5, vec![4, 3, 2, 1]));
+}
+
+#[test]
+fn test_range() {
+    use crate::expr;
+
+    // expr = ````abc``def`gh
+    let expr = expr::a(
+        expr::a(
+            expr::a(expr::a(expr::v("a"), expr::v("b")), expr::v("c")),
+            expr::a(expr::a(expr::v("d"), expr::v("e")), expr::s("f")),
+        ),
+        expr::a(expr::s("g"), expr::s("h")),
+    );
+
+    // expr = ````abc``def`gh
+    //            ^
+    let path = Path::Callee(0);
+    assert_eq!(range(&expr, &path), Range { start: 4, end: 5 });
+
+    // expr = ````abc``def`gh
+    //           ^^^
+    let path = Path::Callee(1);
+    assert_eq!(range(&expr, &path), Range { start: 3, end: 6 });
+
+    // expr = ````abc``def`gh
+    //          ^^^^^
+    let path = Path::Callee(2);
+    assert_eq!(range(&expr, &path), Range { start: 2, end: 7 });
+
+    // expr = ````abc``def`gh
+    //         ^^^^^^^^^^^
+    let path = Path::Callee(3);
+    assert_eq!(range(&expr, &path), Range { start: 1, end: 12 });
+
+    // expr = ````abc``def`gh
+    //        ^^^^^^^^^^^^^^^
+    let path = Path::Callee(4);
+    assert_eq!(range(&expr, &path), Range { start: 0, end: 15 });
+
+    // expr = ````abc``def`gh
+    //             ^
+    let path = Path::Arg(0, Box::new(Path::Callee(0)));
+    assert_eq!(range(&expr, &path), Range { start: 5, end: 6 });
+
+    // expr = ````abc``def`gh
+    //              ^
+    let path = Path::Arg(1, Box::new(Path::Callee(0)));
+    assert_eq!(range(&expr, &path), Range { start: 6, end: 7 });
+
+    // expr = ````abc``def`gh
+    //                 ^
+    let path = Path::Arg(2, Box::new(Path::Callee(0)));
+    assert_eq!(range(&expr, &path), Range { start: 9, end: 10 });
+
+    // expr = ````abc``def`gh
+    //                ^^^
+    let path = Path::Arg(2, Box::new(Path::Callee(1)));
+    assert_eq!(range(&expr, &path), Range { start: 8, end: 11 });
+
+    // expr = ````abc``def`gh
+    //               ^^^^^
+    let path = Path::Arg(2, Box::new(Path::Callee(2)));
+    assert_eq!(range(&expr, &path), Range { start: 7, end: 12 });
+
+    // expr = ````abc``def`gh
+    //                     ^
+    let path = Path::Arg(3, Box::new(Path::Callee(0)));
+    assert_eq!(range(&expr, &path), Range { start: 13, end: 14 });
+
+    // expr = ````abc``def`gh
+    //                    ^^^
+    let path = Path::Arg(3, Box::new(Path::Callee(1)));
+    assert_eq!(range(&expr, &path), Range { start: 12, end: 15 });
+}
+
+#[derive(Debug, PartialEq)]
+struct Range {
+    start: usize,
+    end: usize,
 }
 
 // ========================================================================== //
