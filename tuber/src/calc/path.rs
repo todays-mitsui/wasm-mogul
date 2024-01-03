@@ -8,6 +8,10 @@ impl Path {
     pub fn new(routes: Vec<Index>, arity: Arity) -> Self {
         Self(routes, arity)
     }
+
+    pub fn set_arity(&mut self, arity: Arity) {
+        self.1 = arity;
+    }
 }
 
 pub struct PathBuilder {

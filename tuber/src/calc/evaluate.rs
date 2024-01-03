@@ -29,17 +29,20 @@ impl Iterator for Eval {
     type Item = EvalStep;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let mut callee_path = self.inventory.next_path();
         let inventory = self.inventory.get_next()?;
 
         match inventory.eval(&self.context) {
-            Some(()) => {
+            Some(num_args) => {
                 let inventory = self.inventory.clone();
+                callee_path.as_mut().map(|path| path.set_arity(num_args));
                 let next_path = inventory.next_path();
                 let expr = inventory.into();
                 self.step += 1;
                 Some(EvalStep {
                     expr,
                     step: self.step,
+                    callee_path,
                     next_path,
                 })
             }
@@ -126,13 +129,16 @@ impl Inventory {
         }
     }
 
-    fn eval(&mut self, context: &Context) -> Option<()> {
+    fn eval(&mut self, context: &Context) -> Option<usize> {
         let args = self.args.drain(self.arity?)?;
         let mut callee = &mut self.callee;
 
         apply(context, callee, args).ok()?;
 
+        let mut num_args = 0;
+
         while let Expr::Apply { lhs, rhs } = callee {
+            num_args += 1;
             callee = lhs;
             self.args.unshift(context, *rhs.to_owned());
         }
@@ -141,7 +147,7 @@ impl Inventory {
         self.arity =
             arity(context, &self.callee).filter(|arity| self.args.len() >= cmp::max(1, *arity));
 
-        Some(())
+        Some(num_args)
     }
 }
 
@@ -239,6 +245,7 @@ impl Iterator for ArgsIter {
 pub struct EvalStep {
     pub step: usize,
     pub expr: Expr,
+    pub callee_path: Option<Path>,
     pub next_path: Option<Path>,
     // ここに「次のステップでの簡約位置」などのメタ情報を持たせる想定
 }
@@ -499,7 +506,7 @@ mod tests {
 
         let expr = expr::a(expr::a(expr::a("s", "k"), "k"), ":a");
 
-        let mut eval = Eval::new(context, expr);
+        let eval = Eval::new(context, expr);
 
         assert_eq!(eval.last().map(|step| step.expr), Some(":a".into()));
     }
@@ -607,5 +614,36 @@ mod tests {
 
         let step = eval.next().unwrap();
         assert_eq!(step.next_path, None);
+    }
+
+    #[test]
+    fn test_eval_callee_path() {
+        let context = setup();
+        let expr = expr::a(expr::a(expr::a("s", "k"), "k"), ":a");
+
+        let mut eval = Eval::new(context, expr);
+
+        let step = eval.next().unwrap();
+        assert_eq!(step.callee_path, Some(Path::new(vec![], 2)));
+
+        let step = eval.next().unwrap();
+        assert_eq!(step.callee_path, Some(Path::new(vec![], 0)));
+    }
+
+    #[test]
+    fn test_eval_callee_path_2() {
+        let context = setup();
+        let expr = expr::a(expr::a(expr::a("s", "i"), expr::a("k", ":b")), ":a");
+
+        let mut eval = Eval::new(context, expr);
+
+        let step = eval.next().unwrap();
+        assert_eq!(step.callee_path, Some(Path::new(vec![], 2)));
+
+        let step = eval.next().unwrap();
+        assert_eq!(step.callee_path, Some(Path::new(vec![], 0)));
+
+        let step = eval.next().unwrap();
+        assert_eq!(step.callee_path, Some(Path::new(vec![0], 0)));
     }
 }
