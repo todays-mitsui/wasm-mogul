@@ -1,5 +1,6 @@
 use super::apply::apply;
 use super::arity::arity;
+use super::path::{Path, PathBuilder};
 use crate::context::Context;
 use crate::expr::{self, Expr};
 use std::{cmp, iter, slice};
@@ -7,7 +8,7 @@ use std::{cmp, iter, slice};
 #[derive(Clone, Debug, PartialEq)]
 pub struct Eval {
     context: Context,
-    next_path: Option<Vec<usize>>,
+    next_path: Option<Path>,
     inventory: Inventory,
     step: usize,
 }
@@ -81,11 +82,13 @@ impl Inventory {
         reducible_callee() || reducible_args()
     }
 
-    fn next_path(&self) -> Option<Vec<usize>> {
-        let mut path = Vec::new();
+    fn next_path(&self) -> Option<Path> {
+        let mut builder = PathBuilder::new();
         let mut inventory = self;
         loop {
-            if let Some(_) = inventory.arity {
+            if let Some(arity) = inventory.arity {
+                builder.set_arity(arity);
+                let path = builder.build();
                 return Some(path);
             } else {
                 match inventory
@@ -94,7 +97,7 @@ impl Inventory {
                     .find(|(_index, arg)| arg.reducible())
                 {
                     Some((index, arg)) => {
-                        path.push(index);
+                        builder.add_route(index);
                         inventory = arg;
                     }
                     None => return None,
@@ -236,7 +239,7 @@ impl Iterator for ArgsIter {
 pub struct EvalStep {
     pub step: usize,
     pub expr: Expr,
-    pub next_path: Option<Vec<usize>>,
+    pub next_path: Option<Path>,
     // ここに「次のステップでの簡約位置」などのメタ情報を持たせる想定
 }
 
@@ -310,27 +313,27 @@ mod tests {
 
         let expr = expr::a("i", ":x");
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), Some(vec![]));
+        assert_eq!(inventory.next_path(), Some(Path::new(vec![], 1)));
 
         let expr = expr::a(expr::a("i", ":x"), ":y");
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), Some(vec![]));
+        assert_eq!(inventory.next_path(), Some(Path::new(vec![], 1)));
 
         let expr = expr::a(":f", expr::a("i", ":x"));
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), Some(vec![0]));
+        assert_eq!(inventory.next_path(), Some(Path::new(vec![0], 1)));
 
         let expr = expr::a(expr::a("i", ":x"), expr::a("i", ":y"));
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), Some(vec![]));
+        assert_eq!(inventory.next_path(), Some(Path::new(vec![], 1)));
 
         let expr = expr::a(expr::a(":i", ":x"), expr::a("i", ":y"));
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), Some(vec![1]));
+        assert_eq!(inventory.next_path(), Some(Path::new(vec![1], 1)));
 
         let expr = expr::a(":g", expr::a(":f", expr::a("i", ":y")));
         let inventory = Inventory::new(&context, expr);
-        assert_eq!(inventory.next_path(), Some(vec![0, 0]));
+        assert_eq!(inventory.next_path(), Some(Path::new(vec![0, 0], 1)));
     }
 
     #[test]
@@ -579,10 +582,10 @@ mod tests {
         let expr = expr::a(expr::a(expr::a("s", "k"), "k"), ":a");
 
         let mut eval = Eval::new(context, expr);
-        assert_eq!(eval.next_path, Some(vec![]));
+        assert_eq!(eval.next_path, Some(Path::new(vec![], 3)));
 
         let step = eval.next().unwrap();
-        assert_eq!(step.next_path, Some(vec![]));
+        assert_eq!(step.next_path, Some(Path::new(vec![], 2)));
 
         let step = eval.next().unwrap();
         assert_eq!(step.next_path, None);
@@ -594,13 +597,13 @@ mod tests {
         let expr = expr::a(expr::a(expr::a("s", "i"), expr::a("k", ":b")), ":a");
 
         let mut eval = Eval::new(context, expr);
-        assert_eq!(eval.next_path, Some(vec![]));
+        assert_eq!(eval.next_path, Some(Path::new(vec![], 3)));
 
         let step = eval.next().unwrap();
-        assert_eq!(step.next_path, Some(vec![]));
+        assert_eq!(step.next_path, Some(Path::new(vec![], 1)));
 
         let step = eval.next().unwrap();
-        assert_eq!(step.next_path, Some(vec![0]));
+        assert_eq!(step.next_path, Some(Path::new(vec![0], 2)));
 
         let step = eval.next().unwrap();
         assert_eq!(step.next_path, None);

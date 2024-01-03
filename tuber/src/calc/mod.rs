@@ -2,6 +2,7 @@ mod apply;
 mod arity;
 mod evaluate;
 mod expand;
+mod path;
 mod unlambda;
 
 pub use evaluate::{Eval, EvalStep};
