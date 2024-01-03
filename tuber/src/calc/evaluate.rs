@@ -7,6 +7,7 @@ use std::{cmp, iter, slice};
 #[derive(Clone, Debug, PartialEq)]
 pub struct Eval {
     context: Context,
+    next_path: Option<Vec<usize>>,
     inventory: Inventory,
     step: usize,
 }
@@ -16,6 +17,7 @@ impl Eval {
         let inventory = Inventory::new(&context, expr);
         Self {
             context,
+            next_path: inventory.next_path(),
             inventory,
             step: 0,
         }
@@ -30,11 +32,14 @@ impl Iterator for Eval {
 
         match inventory.eval(&self.context) {
             Some(()) => {
-                let expr = self.inventory.clone().into();
+                let inventory = self.inventory.clone();
+                let next_path = inventory.next_path();
+                let expr = inventory.into();
                 self.step += 1;
                 Some(EvalStep {
                     expr,
                     step: self.step,
+                    next_path,
                 })
             }
             None => None,
@@ -231,6 +236,7 @@ impl Iterator for ArgsIter {
 pub struct EvalStep {
     pub step: usize,
     pub expr: Expr,
+    pub next_path: Option<Vec<usize>>,
     // ここに「次のステップでの簡約位置」などのメタ情報を持たせる想定
 }
 
@@ -565,5 +571,38 @@ mod tests {
             Some(expr::a(expr::a(":c", ":a"), expr::a(":c", ":b")))
         );
         assert_eq!(eval.next(), None);
+    }
+
+    #[test]
+    fn test_eval_next_path() {
+        let context = setup();
+        let expr = expr::a(expr::a(expr::a("s", "k"), "k"), ":a");
+
+        let mut eval = Eval::new(context, expr);
+        assert_eq!(eval.next_path, Some(vec![]));
+
+        let step = eval.next().unwrap();
+        assert_eq!(step.next_path, Some(vec![]));
+
+        let step = eval.next().unwrap();
+        assert_eq!(step.next_path, None);
+    }
+
+    #[test]
+    fn test_eval_next_path_2() {
+        let context = setup();
+        let expr = expr::a(expr::a(expr::a("s", "i"), expr::a("k", ":b")), ":a");
+
+        let mut eval = Eval::new(context, expr);
+        assert_eq!(eval.next_path, Some(vec![]));
+
+        let step = eval.next().unwrap();
+        assert_eq!(step.next_path, Some(vec![]));
+
+        let step = eval.next().unwrap();
+        assert_eq!(step.next_path, Some(vec![0]));
+
+        let step = eval.next().unwrap();
+        assert_eq!(step.next_path, None);
     }
 }
