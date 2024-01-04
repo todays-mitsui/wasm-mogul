@@ -88,6 +88,14 @@ fn tokens(expr: &Expr) -> Vec<Token<'_>> {
             }
         }
 
+        Expr::Apply { lhs, rhs } => {
+            let mut lhs = tokens(lhs);
+            let mut rhs = tokens(rhs);
+            rhs.append(&mut lhs);
+            rhs.push(Token::Apply);
+            rhs
+        }
+
         Expr::Lambda { param, body } => {
             let mut body = tokens(body);
             body.push(Token::Dot);
@@ -100,8 +108,6 @@ fn tokens(expr: &Expr) -> Vec<Token<'_>> {
             body.push(Token::Lambda);
             body
         }
-
-        Expr::Apply { .. } => unreachable!("Apply should be handled in tokens_with_range"),
     }
 }
 
