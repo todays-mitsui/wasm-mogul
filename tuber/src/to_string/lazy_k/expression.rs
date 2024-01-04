@@ -1,7 +1,6 @@
 use crate::expr::Expr;
 use crate::expr::Path;
 use regex::Regex;
-use serde::de;
 use std::fmt::Display;
 
 pub fn to_string(expr: &Expr) -> String {
@@ -9,6 +8,65 @@ pub fn to_string(expr: &Expr) -> String {
 }
 
 // ========================================================================== //
+
+fn tokens_with_range<'a>(expr: &'a Expr, path: &Path) -> (Vec<Token<'a>>, Range) {
+    let mut callee: &Expr = expr;
+    let mut args: Vec<&Expr> = Vec::new();
+    while let Expr::Apply { lhs, rhs } = callee {
+        callee = lhs;
+        args.push(rhs);
+    }
+
+    let mut callee_tokens = tokens(callee);
+
+    let (mut after_tokens, mut arg_tokens, mut before_tokens, range) = match path {
+        Path::Arg(index, next) => {
+            let (after, arg, before) = rev_partition(&args, *index);
+
+            let after_tokens = after.iter().flat_map(|e| tokens(*e)).collect::<Vec<_>>();
+            let (arg_tokens, range) = tokens_with_range(arg, next);
+            let before_tokens = before.iter().flat_map(|e| tokens(*e)).collect::<Vec<_>>();
+
+            let offset = args.len() // バッククォートの数
+                + callee_tokens.len()
+                + before_tokens.len(); // index よりも左の引数
+
+            let range = Range {
+                start: offset + range.start,
+                end: offset + range.end,
+            };
+
+            (after_tokens, arg_tokens, before_tokens, range)
+        }
+
+        Path::Callee(arity) => {
+            let (after, arg, before) = rev_partition(&args, *arity);
+
+            let after_tokens = after.iter().flat_map(|e| tokens(*e)).collect::<Vec<_>>();
+            let arg_tokens = tokens(arg);
+            let before_tokens = before.iter().flat_map(|e| tokens(*e)).collect::<Vec<_>>();
+
+            let num_back_quotes = args.len(); // バッククォートの数
+            let range = Range {
+                start: num_back_quotes - arity, // 全てのバッククォートから着目している関数適用に属する分を差し引く
+                end: num_back_quotes + callee_tokens.len() + before_tokens.len() + arg_tokens.len(),
+            };
+
+            (after_tokens, arg_tokens, before_tokens, range)
+        }
+    };
+
+    let mut tokens = Vec::new();
+    tokens.append(&mut after_tokens);
+    tokens.append(&mut arg_tokens);
+    tokens.append(&mut before_tokens);
+    tokens.append(&mut callee_tokens);
+    for _ in 0..args.len() {
+        tokens.push(Token::Apply);
+    }
+
+    return (tokens, range);
+}
 
 fn tokens(expr: &Expr) -> Vec<Token<'_>> {
     match expr {
@@ -30,14 +88,6 @@ fn tokens(expr: &Expr) -> Vec<Token<'_>> {
             }
         }
 
-        Expr::Apply { lhs, rhs } => {
-            let mut lhs = tokens(lhs);
-            let mut rhs = tokens(rhs);
-            rhs.append(&mut lhs);
-            rhs.push(Token::Apply);
-            rhs
-        }
-
         Expr::Lambda { param, body } => {
             let mut body = tokens(body);
             body.push(Token::Dot);
@@ -50,6 +100,8 @@ fn tokens(expr: &Expr) -> Vec<Token<'_>> {
             body.push(Token::Lambda);
             body
         }
+
+        Expr::Apply { .. } => unreachable!("Apply should be handled in tokens_with_range"),
     }
 }
 
@@ -97,11 +149,11 @@ fn range(expr: &Expr, path: &Path) -> Range {
 
     match path {
         Path::Arg(index, next) => {
-            let num_callee_tokens = num_tokens(callee);
+            let num_callee_tokens = tokens(callee).len();
 
             let (_, arg, before) = rev_partition(&args, *index);
 
-            let num_before_tokens = before.iter().map(|e| num_tokens(*e)).sum::<usize>();
+            let num_before_tokens = before.iter().map(|e| tokens(*e).len()).sum::<usize>();
             let range = range(arg, next);
 
             return Range {
@@ -111,27 +163,18 @@ fn range(expr: &Expr, path: &Path) -> Range {
         }
 
         Path::Callee(arity) => {
-            let num_callee_tokens = num_tokens(callee);
+            let num_callee_tokens = tokens(callee).len();
             let num_args_tokens = args
                 .iter()
                 .rev()
                 .take(*arity)
-                .map(|e| num_tokens(*e))
+                .map(|e| tokens(*e).len())
                 .sum::<usize>();
 
             let start = args.len() - arity;
             let end = args.len() + num_callee_tokens + num_args_tokens;
             return Range { start, end };
         }
-    }
-}
-
-fn num_tokens(expr: &Expr) -> usize {
-    match expr {
-        Expr::Variable(_) => 1,
-        Expr::Symbol(_) => 1,
-        Expr::Apply { lhs, rhs } => num_tokens(lhs) + num_tokens(rhs) + 1,
-        Expr::Lambda { param, body } => num_tokens(body) + 2,
     }
 }
 
