@@ -4,6 +4,7 @@ mod free_vars;
 mod identifier;
 mod path;
 mod substitute;
+mod unapply;
 
 pub use expression::{a, l, s, v, Expr};
 pub use free_vars::FreeVars;
