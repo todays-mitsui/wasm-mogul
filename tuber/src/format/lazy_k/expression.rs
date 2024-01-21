@@ -1,4 +1,4 @@
-use super::tag::Tag;
+use super::super::tag::Tag;
 use crate::expr::Expr;
 
 pub fn format(expr: &Expr) -> Formed {
