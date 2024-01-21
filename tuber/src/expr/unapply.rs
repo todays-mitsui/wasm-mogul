@@ -1,7 +1,7 @@
 use super::Expr;
 
 impl Expr {
-    pub fn unapply(&self) -> (&Expr, ArgsIter) {
+    pub fn unapply(&self) -> (&Expr, Vec<&Expr>) {
         let mut callee: &Expr = self;
         let mut args: Vec<&Expr> = Vec::new();
 
@@ -10,23 +10,23 @@ impl Expr {
             callee = lhs;
         }
 
-        (callee, ArgsIter { args })
+        (callee, args.into_iter().rev().collect())
     }
 }
 
-// ========================================================================== //
+// // ========================================================================== //
 
-pub struct ArgsIter<'a> {
-    args: Vec<&'a Expr>,
-}
+// pub struct ArgsIter<'a> {
+//     args: Vec<&'a Expr>,
+// }
 
-impl<'a> Iterator for ArgsIter<'a> {
-    type Item = &'a Expr;
+// impl<'a> Iterator for ArgsIter<'a> {
+//     type Item = &'a Expr;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        self.args.pop()
-    }
-}
+//     fn next(&mut self) -> Option<Self::Item> {
+//         self.args.pop()
+//     }
+// }
 
 // ========================================================================== //
 
@@ -41,8 +41,6 @@ mod tests {
         let (callee, mut args) = expr.unapply();
 
         assert_eq!(callee, &expr::v("w"));
-        assert_eq!(args.next(), Some(&expr::v("x")));
-        assert_eq!(args.next(), Some(&expr::a("y", "z")));
-        assert_eq!(args.next(), None);
+        assert_eq!(args, vec![&expr::v("x"), &expr::a("y", "z")]);
     }
 }

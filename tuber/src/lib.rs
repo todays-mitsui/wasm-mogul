@@ -2,6 +2,7 @@ mod calc;
 mod context;
 mod engine;
 mod expr;
+mod format;
 mod func;
 mod parser;
 mod style;
