@@ -1,13 +1,13 @@
 use super::tag::Tag;
 use crate::expr::Expr;
 
+pub fn format(expr: &Expr) -> Formed {
+    tokenize(expr, &Tag::new()).into()
+}
+
 pub struct Formed {
     pub expr: String,
     pub mapping: Vec<Tag>,
-}
-
-pub fn format(expr: &Expr) -> Formed {
-    tokenize(expr, &Tag::new()).into()
 }
 
 impl From<(Vec<Token<'_>>, Vec<Tag>)> for Formed {
@@ -22,7 +22,7 @@ impl From<(Vec<Token<'_>>, Vec<Tag>)> for Formed {
             let tag = &tags[index];
 
             let token_str = token.to_string();
-            let mut token_tags = vec![tag.to_owned(); token_str.len()];
+            let mut token_tags = vec![tag.to_owned(); token_str.chars().count()];
 
             string.push_str(&token_str);
             mapping.append(&mut token_tags);
@@ -32,6 +32,8 @@ impl From<(Vec<Token<'_>>, Vec<Tag>)> for Formed {
                 mapping.push(Tag::new());
             }
         }
+
+        assert!(string.chars().count() == mapping.len());
 
         Formed {
             expr: string,
@@ -50,6 +52,17 @@ fn needs_space(token: &Token, next_token: Option<&Token>) -> bool {
     false
 }
 
+impl std::fmt::Debug for Formed {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut lines: Vec<String> = Vec::new();
+        for (index, char) in self.expr.chars().enumerate() {
+            let tag = &self.mapping[index];
+            lines.push(format!("{} : {:?}", char, tag));
+        }
+        write!(f, "{}", lines.join("\n"))
+    }
+}
+
 // ========================================================================== //
 
 fn tokenize<'a>(expr: &'a Expr, tag: &Tag) -> (Vec<Token<'a>>, Vec<Tag>) {
@@ -63,7 +76,7 @@ fn tokenize<'a>(expr: &'a Expr, tag: &Tag) -> (Vec<Token<'a>>, Vec<Tag>) {
 
             // ============================================================== //
 
-            for index in (0..args.len() - 1).rev() {
+            for index in (0..args.len()).rev() {
                 let mark_tag = tag.push(index + 1);
                 tokens.push(Token::Apply);
                 tags.push(mark_tag);
@@ -180,5 +193,138 @@ impl std::fmt::Display for Ident<'_> {
             Ident::Variable(label) => write!(f, "{}", label),
             Ident::Symbol(label) => write!(f, ":{}", label),
         }
+    }
+}
+
+// ========================================================================== //
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::expr;
+
+    #[test]
+    fn test_format_1() {
+        let expr = expr::a(expr::a("w", "x"), expr::a("y", "z"));
+        let formed = super::format(&expr);
+        println!("{:?}", formed);
+        assert_eq!(formed.expr, "``wx`yz");
+        assert_eq!(
+            formed.mapping,
+            vec![
+                /* ` */ Tag::from(vec![2]),
+                /* ` */ Tag::from(vec![1]),
+                /* w */ Tag::from(vec![0]),
+                /* x */ Tag::from(vec![1, 0]),
+                /* ` */ Tag::from(vec![2, 1]),
+                /* y */ Tag::from(vec![2, 0]),
+                /* z */ Tag::from(vec![2, 1, 0]),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_format_2() {
+        let expr = expr::a(expr::a("W", "X"), expr::a("Y", "Z"));
+        let formed = super::format(&expr);
+        println!("{:?}", formed);
+        assert_eq!(formed.expr, "``W X`Y Z");
+        assert_eq!(
+            formed.mapping,
+            vec![
+                /* ` */ Tag::from(vec![2]),
+                /* ` */ Tag::from(vec![1]),
+                /* W */ Tag::from(vec![0]),
+                /*   */ Tag::from(vec![]),
+                /* X */ Tag::from(vec![1, 0]),
+                /* ` */ Tag::from(vec![2, 1]),
+                /* Y */ Tag::from(vec![2, 0]),
+                /*   */ Tag::from(vec![]),
+                /* Z */ Tag::from(vec![2, 1, 0]),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_format_3() {
+        let expr = expr::a(expr::a("FOO", "BAR"), expr::a("HOGE", "FUGA"));
+        let formed = super::format(&expr);
+        println!("{:?}", formed);
+        assert_eq!(formed.expr, "``FOO BAR`HOGE FUGA");
+        assert_eq!(
+            formed.mapping,
+            vec![
+                /* ` */ Tag::from(vec![2]),
+                /* ` */ Tag::from(vec![1]),
+                /* F */ Tag::from(vec![0]),
+                /* O */ Tag::from(vec![0]),
+                /* O */ Tag::from(vec![0]),
+                /*   */ Tag::from(vec![]),
+                /* B */ Tag::from(vec![1, 0]),
+                /* A */ Tag::from(vec![1, 0]),
+                /* R */ Tag::from(vec![1, 0]),
+                /* ` */ Tag::from(vec![2, 1]),
+                /* H */ Tag::from(vec![2, 0]),
+                /* O */ Tag::from(vec![2, 0]),
+                /* G */ Tag::from(vec![2, 0]),
+                /* E */ Tag::from(vec![2, 0]),
+                /*   */ Tag::from(vec![]),
+                /* F */ Tag::from(vec![2, 1, 0]),
+                /* U */ Tag::from(vec![2, 1, 0]),
+                /* G */ Tag::from(vec![2, 1, 0]),
+                /* A */ Tag::from(vec![2, 1, 0]),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_format_4() {
+        let expr = expr::a(expr::a("W", "x"), expr::a("y", "Z"));
+        let formed = super::format(&expr);
+        println!("{:?}", formed);
+        assert_eq!(formed.expr, "``Wx`yZ");
+        assert_eq!(
+            formed.mapping,
+            vec![
+                Tag::from(vec![2]),
+                Tag::from(vec![1]),
+                Tag::from(vec![0]),
+                Tag::from(vec![1, 0]),
+                Tag::from(vec![2, 1]),
+                Tag::from(vec![2, 0]),
+                Tag::from(vec![2, 1, 0]),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_format_5() {
+        let expr = expr::a(
+            expr::a("w", expr::l("x", expr::a("x", "x"))),
+            expr::a("y", "z"),
+        );
+        let formed = super::format(&expr);
+        println!("{}", formed.expr);
+        println!("");
+        println!("{:?}", formed);
+        println!("");
+        assert_eq!(formed.expr, "``wλx.`xx`yz");
+        assert_eq!(
+            formed.mapping,
+            vec![
+                Tag::from(vec![2]),
+                Tag::from(vec![1]),
+                Tag::from(vec![0]),
+                Tag::from(vec![1, 0]),
+                Tag::from(vec![1, 0]),
+                Tag::from(vec![1, 0]),
+                Tag::from(vec![1, 0]),
+                Tag::from(vec![1, 0]),
+                Tag::from(vec![1, 0]),
+                Tag::from(vec![2, 1]),
+                Tag::from(vec![2, 0]),
+                Tag::from(vec![2, 1, 0]),
+            ]
+        );
     }
 }
