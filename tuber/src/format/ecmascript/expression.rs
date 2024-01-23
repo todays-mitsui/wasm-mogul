@@ -6,9 +6,100 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::hash::Hash;
 
-// pub fn format(expr: &Expr, splits: HashSet<Path>) -> Formed {
-//     tokenize(expr, &Tag::new()).into()
-// }
+pub fn format(expr: &Expr, splits: &[Path]) -> Formed {
+    reform(expr_to_compact(expr, &Tag::new()), splits).into()
+}
+
+impl From<Compact<'_>> for Formed {
+    fn from(compact: Compact<'_>) -> Self {
+        match compact {
+            Compact::Variable { label, tag } => {
+                let mut expr = String::new();
+                let mut mapping: Vec<Tag> = Vec::new();
+
+                let str = label;
+                let mut tags = vec![tag; str.chars().count()];
+
+                expr.push_str(str);
+                mapping.append(&mut tags);
+
+                Formed { expr, mapping }
+            }
+
+            Compact::Symbol { label, tag } => {
+                let mut expr = String::new();
+                let mut mapping: Vec<Tag> = Vec::new();
+
+                let str = label;
+                let mut tags = vec![tag; 1 + label.chars().count()];
+
+                expr.push_str(":");
+                expr.push_str(str);
+                mapping.append(&mut tags);
+
+                Formed { expr, mapping }
+            }
+
+            Compact::Lambda { params, body, tag } => {
+                let mut expr = String::new();
+                let mut mapping: Vec<Tag> = Vec::new();
+
+                if params.len() == 1 {
+                    expr = expr + &params[0];
+                } else {
+                    expr = expr + "(" + &params.join(", ") + ")"
+                };
+                expr = expr + " => ";
+                let body_str = Formed::from(*body).expr;
+                expr = expr + &body_str;
+
+                mapping.append(&mut vec![tag.push(0); expr.chars().count()]);
+
+                Formed { expr, mapping }
+            }
+
+            Compact::Apply { callee, args, tag } => {
+                let mut expr = String::new();
+                let mut mapping: Vec<Tag> = Vec::new();
+
+                match *callee {
+                    Compact::Lambda { .. } => {
+                        let mut formed = Formed::from(*callee);
+                        expr = expr + "(" + &formed.expr + ")";
+                        mapping.push(tag.clone());
+                        mapping.append(&mut formed.mapping);
+                        mapping.push(tag.clone());
+                    }
+                    _ => {
+                        let mut formed = Formed::from(*callee);
+                        expr = expr + &formed.expr;
+                        mapping.append(&mut formed.mapping);
+                    }
+                }
+
+                expr = expr + "(";
+                mapping.push(tag.clone());
+
+                let len = args.len();
+                for (index, arg) in args.into_iter().enumerate() {
+                    let mut formed = Formed::from(arg);
+                    expr = expr + &formed.expr;
+                    mapping.append(&mut formed.mapping);
+
+                    if index < len - 1 {
+                        expr = expr + ", ";
+                        mapping.append(&mut vec![tag.clone(); 2]);
+                    }
+                }
+
+                expr = expr + ")";
+                mapping.push(tag.clone());
+
+                Formed { expr, mapping }
+            }
+        }
+    }
+}
 
 #[derive(Debug, PartialEq)]
 enum Compact<'a> {
@@ -215,6 +306,64 @@ fn split<T: std::fmt::Debug>(mut list: Vec<T>, indices: &[usize]) -> Vec<Vec<T>>
 mod tests {
     use super::*;
     use crate::expr;
+
+    #[test]
+    fn test_format_1() {
+        let expr = expr::a(expr::a(expr::a(expr::a("f", "w"), "x"), "y"), "z");
+
+        let formed = format(&expr, &vec![]);
+
+        println!("{:#?}", formed);
+
+        assert_eq!(formed.expr, "f(w, x, y, z)");
+        assert_eq!(
+            formed.mapping,
+            vec![
+                Tag::from(vec![0]),
+                Tag::from(vec![1]),
+                Tag::from(vec![1, 0]),
+                Tag::from(vec![1]),
+                Tag::from(vec![3]),
+                Tag::from(vec![2, 0]),
+                Tag::from(vec![3]),
+                Tag::from(vec![3]),
+                Tag::from(vec![3, 0]),
+                Tag::from(vec![3]),
+                Tag::from(vec![4]),
+                Tag::from(vec![4, 0]),
+                Tag::from(vec![4]),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_format_2() {
+        let expr = expr::a(expr::a(expr::a(expr::a("f", "w"), "x"), "y"), "z");
+
+        let formed = format(&expr, &vec![Path::Callee(1), Path::Callee(3)]);
+
+        println!("{:#?}", formed);
+
+        assert_eq!(formed.expr, "f(w)(x, y)(z)");
+        assert_eq!(
+            formed.mapping,
+            vec![
+                Tag::from(vec![0]),
+                Tag::from(vec![1]),
+                Tag::from(vec![1, 0]),
+                Tag::from(vec![1]),
+                Tag::from(vec![3]),
+                Tag::from(vec![2, 0]),
+                Tag::from(vec![3]),
+                Tag::from(vec![3]),
+                Tag::from(vec![3, 0]),
+                Tag::from(vec![3]),
+                Tag::from(vec![4]),
+                Tag::from(vec![4, 0]),
+                Tag::from(vec![4]),
+            ]
+        );
+    }
 
     #[test]
     fn test_reform() {
