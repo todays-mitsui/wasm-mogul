@@ -158,14 +158,15 @@ fn split_args<'a>(compact: Compact<'a>, arities: Vec<usize>) -> Compact<'a> {
     } = compact
     {
         let arities = prepare(arities);
-
         let splited_args = split(args, &arities);
 
+        let mut arity = 0;
         for args in splited_args {
+            arity += args.len();
             callee = Box::new(Compact::Apply {
                 callee,
                 args,
-                tag: tag.clone(),
+                tag: tag.push(arity),
             });
         }
 
@@ -238,7 +239,7 @@ mod tests {
                             label: "w",
                             tag: Tag::from(vec![1, 0])
                         },],
-                        tag: Tag::new()
+                        tag: Tag::from(vec![1]),
                     }),
                     args: vec![
                         Compact::Variable {
@@ -250,13 +251,13 @@ mod tests {
                             tag: Tag::from(vec![3, 0])
                         },
                     ],
-                    tag: Tag::new()
+                    tag: Tag::from(vec![3]),
                 }),
                 args: vec![Compact::Variable {
                     label: "z",
                     tag: Tag::from(vec![4, 0])
                 },],
-                tag: Tag::new()
+                tag: Tag::from(vec![4]),
             }
         );
     }
@@ -284,7 +285,7 @@ mod tests {
                             label: "w",
                             tag: Tag::from(vec![1, 0])
                         },],
-                        tag: Tag::new()
+                        tag: Tag::from(vec![1]),
                     }),
                     args: vec![
                         Compact::Variable {
@@ -296,13 +297,13 @@ mod tests {
                             tag: Tag::from(vec![3, 0])
                         },
                     ],
-                    tag: Tag::new()
+                    tag: Tag::from(vec![3]),
                 }),
                 args: vec![Compact::Variable {
                     label: "z",
                     tag: Tag::from(vec![4, 0])
                 },],
-                tag: Tag::new()
+                tag: Tag::from(vec![4]),
             }
         );
     }
