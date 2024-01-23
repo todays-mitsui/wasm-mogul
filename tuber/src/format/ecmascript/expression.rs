@@ -84,49 +84,71 @@ fn expr_to_compact<'a>(expr: &'a Expr, tag: &Tag) -> Compact<'a> {
     }
 }
 
-// fn reform<'a, 'b>(compact: Compact<'a, 'b>, split: &[Path]) -> Compact<'a, 'b> {
-//     match compact {
-//         Compact::Variable { .. } | Compact::Symbol { .. } | Compact::Lambda { .. } => compact,
-//         Compact::Apply { callee, args, tag } => {
-//             let next_paths: HashMap<usize, Vec<Path>> = group(
-//                 &split
-//                     .iter()
-//                     .filter_map(|path| match path {
-//                         Path::Arg(index, next) => Some((*index, (**next).clone())),
-//                         Path::Callee(_) => None,
-//                     })
-//                     .collect::<Vec<(usize, Path)>>(),
-//             );
+fn reform<'a>(compact: Compact<'a>, split: &[Path]) -> Compact<'a> {
+    match compact {
+        Compact::Apply { callee, args, tag } => {
+            let next_paths: HashMap<usize, Vec<Path>> = group(
+                split
+                    .iter()
+                    .filter_map(|path| match path {
+                        Path::Arg(index, next) => Some((*index, (**next).clone())),
+                        Path::Callee(_) => None,
+                    })
+                    .collect::<Vec<(usize, Path)>>(),
+            );
 
-//             let new_args = args
-//                 .into_iter()
-//                 .enumerate()
-//                 .map(|(index, arg)| {
-//                     let paths = next_paths.get(&index).unwrap_or(&Vec::new());
-//                     reform(arg, paths)
-//                 })
-//                 .collect();
+            let new_args = args
+                .into_iter()
+                .enumerate()
+                .map(|(index, arg)| {
+                    let paths = next_paths.get(&index);
+                    if let Some(paths) = paths {
+                        reform(arg, paths)
+                    } else {
+                        arg
+                    }
+                })
+                .collect();
 
-//             let mut arities = split
-//                 .iter()
-//                 .filter_map(|path| match path {
-//                     Path::Arg(_, next) => None,
-//                     Path::Callee(arity) => Some(*arity),
-//                 })
-//                 .collect::<HashSet<_>>()
-//                 .into_iter()
-//                 .collect::<Vec<_>>();
+            let arities = split
+                .iter()
+                .filter_map(|path| match path {
+                    Path::Arg(_, _) => None,
+                    Path::Callee(arity) => Some(*arity),
+                })
+                .collect::<Vec<_>>();
 
-//             arities.sort_by(|a, b| b.cmp(a));
+            if arities.is_empty() {
+                Compact::Apply {
+                    callee,
+                    args: new_args,
+                    tag,
+                }
+            } else {
+                split_args(
+                    Compact::Apply {
+                        callee,
+                        args: new_args,
+                        tag,
+                    },
+                    arities,
+                )
+            }
+        }
+        _ => compact,
+    }
+}
 
-//             Compact::Apply {
-//                 callee: Box::new(reform(*callee, split)),
-//                 args: new_args,
-//                 tag,
-//             }
-//         }
-//     }
-// }
+fn group<K, V>(pairs: Vec<(K, V)>) -> HashMap<K, Vec<V>>
+where
+    K: Copy + Eq + Hash,
+{
+    let mut map = HashMap::new();
+    for (key, value) in pairs {
+        map.entry(key).or_insert_with(Vec::new).push(value);
+    }
+    map
+}
 
 fn split_args<'a>(compact: Compact<'a>, arities: Vec<usize>) -> Compact<'a> {
     if let Compact::Apply {
@@ -166,17 +188,6 @@ fn prepare(indices: Vec<usize>) -> Vec<usize> {
     indices
 }
 
-// fn group<K, V>(pairs: &[(K, V)]) -> HashMap<K, Vec<V>>
-// where
-//     K: Copy + Eq + Hash,
-// {
-//     let mut map = HashMap::new();
-//     for (key, value) in pairs {
-//         map.entry(*key).or_insert_with(Vec::new).push(*value);
-//     }
-//     map
-// }
-
 fn split<T: std::fmt::Debug>(mut list: Vec<T>, indices: &[usize]) -> Vec<Vec<T>> {
     let mut result = Vec::new();
     let mut last_index = 0;
@@ -203,6 +214,52 @@ fn split<T: std::fmt::Debug>(mut list: Vec<T>, indices: &[usize]) -> Vec<Vec<T>>
 mod tests {
     use super::*;
     use crate::expr;
+
+    #[test]
+    fn test_reform() {
+        let expr = expr::a(expr::a(expr::a(expr::a("f", "w"), "x"), "y"), "z");
+        let empty_tag = Tag::new();
+        let compact = expr_to_compact(&expr, &empty_tag);
+
+        let new_compact = reform(compact, &vec![Path::Callee(1), Path::Callee(3)]);
+
+        println!("{:#?}", new_compact);
+
+        assert_eq!(
+            new_compact,
+            Compact::Apply {
+                callee: Box::new(Compact::Apply {
+                    callee: Box::new(Compact::Apply {
+                        callee: Box::new(Compact::Variable {
+                            label: "f",
+                            tag: Tag::from(vec![0])
+                        }),
+                        args: vec![Compact::Variable {
+                            label: "w",
+                            tag: Tag::from(vec![1, 0])
+                        },],
+                        tag: Tag::new()
+                    }),
+                    args: vec![
+                        Compact::Variable {
+                            label: "x",
+                            tag: Tag::from(vec![2, 0])
+                        },
+                        Compact::Variable {
+                            label: "y",
+                            tag: Tag::from(vec![3, 0])
+                        },
+                    ],
+                    tag: Tag::new()
+                }),
+                args: vec![Compact::Variable {
+                    label: "z",
+                    tag: Tag::from(vec![4, 0])
+                },],
+                tag: Tag::new()
+            }
+        );
+    }
 
     #[test]
     fn test_split_args() {
