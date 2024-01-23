@@ -188,7 +188,7 @@ fn reform<'a>(compact: Compact<'a>, split: &[Path]) -> Compact<'a> {
                     .collect::<Vec<(usize, Path)>>(),
             );
 
-            let new_args = args
+            let new_args: Vec<_> = args
                 .into_iter()
                 .enumerate()
                 .map(|(index, arg)| {
@@ -212,8 +212,8 @@ fn reform<'a>(compact: Compact<'a>, split: &[Path]) -> Compact<'a> {
             if arities.is_empty() {
                 Compact::Apply {
                     callee,
+                    tag: tag.push(new_args.len()),
                     args: new_args,
-                    tag,
                 }
             } else {
                 split_args(
@@ -320,15 +320,15 @@ mod tests {
             formed.mapping,
             vec![
                 Tag::from(vec![0]),
-                Tag::from(vec![1]),
+                Tag::from(vec![4]),
                 Tag::from(vec![1, 0]),
-                Tag::from(vec![1]),
-                Tag::from(vec![3]),
+                Tag::from(vec![4]),
+                Tag::from(vec![4]),
                 Tag::from(vec![2, 0]),
-                Tag::from(vec![3]),
-                Tag::from(vec![3]),
+                Tag::from(vec![4]),
+                Tag::from(vec![4]),
                 Tag::from(vec![3, 0]),
-                Tag::from(vec![3]),
+                Tag::from(vec![4]),
                 Tag::from(vec![4]),
                 Tag::from(vec![4, 0]),
                 Tag::from(vec![4]),
@@ -342,6 +342,7 @@ mod tests {
 
         let formed = format(&expr, &vec![Path::Callee(1), Path::Callee(3)]);
 
+        println!("{:?}", formed.expr);
         println!("{:#?}", formed);
 
         assert_eq!(formed.expr, "f(w)(x, y)(z)");
@@ -363,10 +364,52 @@ mod tests {
                 Tag::from(vec![4]),
             ]
         );
+
+        assert!(false);
     }
 
     #[test]
-    fn test_reform() {
+    fn test_reform_1() {
+        let expr = expr::a(expr::a(expr::a(expr::a("f", "w"), "x"), "y"), "z");
+        let empty_tag = Tag::new();
+        let compact = expr_to_compact(&expr, &empty_tag);
+
+        let new_compact = reform(compact, &vec![]);
+
+        println!("{:#?}", new_compact);
+
+        assert_eq!(
+            new_compact,
+            Compact::Apply {
+                callee: Box::new(Compact::Variable {
+                    label: "f",
+                    tag: Tag::from(vec![0])
+                }),
+                args: vec![
+                    Compact::Variable {
+                        label: "w",
+                        tag: Tag::from(vec![1, 0])
+                    },
+                    Compact::Variable {
+                        label: "x",
+                        tag: Tag::from(vec![2, 0])
+                    },
+                    Compact::Variable {
+                        label: "y",
+                        tag: Tag::from(vec![3, 0])
+                    },
+                    Compact::Variable {
+                        label: "z",
+                        tag: Tag::from(vec![4, 0])
+                    },
+                ],
+                tag: Tag::from(vec![4]),
+            }
+        );
+    }
+
+    #[test]
+    fn test_reform_2() {
         let expr = expr::a(expr::a(expr::a(expr::a("f", "w"), "x"), "y"), "z");
         let empty_tag = Tag::new();
         let compact = expr_to_compact(&expr, &empty_tag);
