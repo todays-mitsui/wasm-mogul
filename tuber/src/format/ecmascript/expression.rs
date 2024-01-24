@@ -130,12 +130,12 @@ fn expr_to_compact<'a>(expr: &'a Expr, tag: &Tag) -> Compact<'a> {
 
             Compact::Apply {
                 callee: Box::new(expr_to_compact(callee, tag)),
+                tag: tag.push(args.len()),
                 args: args
                     .into_iter()
                     .enumerate()
                     .map(|(index, expr)| expr_to_compact(expr, &tag.push(index + 1)))
                     .collect(),
-                tag: tag.to_owned(),
             }
         }
 
@@ -349,23 +349,66 @@ mod tests {
         assert_eq!(
             formed.mapping,
             vec![
-                Tag::from(vec![0]),
-                Tag::from(vec![1]),
-                Tag::from(vec![1, 0]),
-                Tag::from(vec![1]),
-                Tag::from(vec![3]),
-                Tag::from(vec![2, 0]),
-                Tag::from(vec![3]),
-                Tag::from(vec![3]),
-                Tag::from(vec![3, 0]),
-                Tag::from(vec![3]),
-                Tag::from(vec![4]),
-                Tag::from(vec![4, 0]),
-                Tag::from(vec![4]),
+                /* f */ Tag::from(vec![0]),
+                /* ( */ Tag::from(vec![1]),
+                /* w */ Tag::from(vec![1, 0]),
+                /* ) */ Tag::from(vec![1]),
+                /* ( */ Tag::from(vec![3]),
+                /* x */ Tag::from(vec![2, 0]),
+                /* , */ Tag::from(vec![3]),
+                /*   */ Tag::from(vec![3]),
+                /* y */ Tag::from(vec![3, 0]),
+                /* ) */ Tag::from(vec![3]),
+                /* ( */ Tag::from(vec![4]),
+                /* z */ Tag::from(vec![4, 0]),
+                /* ) */ Tag::from(vec![4]),
             ]
         );
+    }
 
-        assert!(false);
+    #[test]
+    fn test_format_3() {
+        let expr = expr::a(
+            expr::a(
+                expr::a(expr::a("a", "b"), "c"),
+                expr::a(expr::a("d", "e"), "f"),
+            ),
+            expr::a("g", "h"),
+        );
+
+        let formed = format(&expr, &vec![]);
+
+        println!("{:?}", formed.expr);
+        println!("{:#?}", formed);
+
+        assert_eq!(formed.expr, "a(b, c, d(e, f), g(h))");
+        assert_eq!(
+            formed.mapping,
+            vec![
+                /* a */ Tag::from(vec![0]),
+                /* ( */ Tag::from(vec![4]),
+                /* b */ Tag::from(vec![1, 0]),
+                /* , */ Tag::from(vec![4]),
+                /*   */ Tag::from(vec![4]),
+                /* c */ Tag::from(vec![2, 0]),
+                /* , */ Tag::from(vec![4]),
+                /*   */ Tag::from(vec![4]),
+                /* d */ Tag::from(vec![3, 0]),
+                /* ( */ Tag::from(vec![3, 2]),
+                /* e */ Tag::from(vec![3, 1, 0]),
+                /* , */ Tag::from(vec![3, 2]),
+                /*   */ Tag::from(vec![3, 2]),
+                /* f */ Tag::from(vec![3, 2, 0]),
+                /* ) */ Tag::from(vec![3, 2]),
+                /* , */ Tag::from(vec![4]),
+                /*   */ Tag::from(vec![4]),
+                /* g */ Tag::from(vec![4, 0]),
+                /* ( */ Tag::from(vec![4, 1]),
+                /* h */ Tag::from(vec![4, 1, 0]),
+                /* ) */ Tag::from(vec![4, 1]),
+                /* ) */ Tag::from(vec![4]),
+            ]
+        );
     }
 
     #[test]
@@ -449,6 +492,72 @@ mod tests {
                     label: "z",
                     tag: Tag::from(vec![4, 0])
                 },],
+                tag: Tag::from(vec![4]),
+            }
+        );
+    }
+
+    #[test]
+    fn test_reform_3() {
+        let expr = expr::a(
+            expr::a(
+                expr::a(expr::a("a", "b"), "c"),
+                expr::a(expr::a("d", "e"), "f"),
+            ),
+            expr::a("g", "h"),
+        );
+        let empty_tag = Tag::new();
+        let compact = expr_to_compact(&expr, &empty_tag);
+
+        let new_compact = reform(compact, &vec![]);
+
+        println!("{:#?}", new_compact);
+
+        assert_eq!(
+            new_compact,
+            Compact::Apply {
+                callee: Box::new(Compact::Variable {
+                    label: "a",
+                    tag: Tag::from(vec![0])
+                }),
+                args: vec![
+                    Compact::Variable {
+                        label: "b",
+                        tag: Tag::from(vec![1, 0])
+                    },
+                    Compact::Variable {
+                        label: "c",
+                        tag: Tag::from(vec![2, 0])
+                    },
+                    Compact::Apply {
+                        callee: Box::new(Compact::Variable {
+                            label: "d",
+                            tag: Tag::from(vec![3, 0])
+                        }),
+                        args: vec![
+                            Compact::Variable {
+                                label: "e",
+                                tag: Tag::from(vec![3, 1, 0])
+                            },
+                            Compact::Variable {
+                                label: "f",
+                                tag: Tag::from(vec![3, 2, 0])
+                            },
+                        ],
+                        tag: Tag::from(vec![3, 2]),
+                    },
+                    Compact::Apply {
+                        callee: Box::new(Compact::Variable {
+                            label: "g",
+                            tag: Tag::from(vec![4, 0])
+                        }),
+                        args: vec![Compact::Variable {
+                            label: "h",
+                            tag: Tag::from(vec![4, 1, 0])
+                        },],
+                        tag: Tag::from(vec![4, 1]),
+                    }
+                ],
                 tag: Tag::from(vec![4]),
             }
         );
