@@ -108,8 +108,6 @@ impl<'a> Compact<'a> {
                 .map(|(index, arg)| {
                     let paths = next.get(&index);
                     if let Some(paths) = paths {
-                        println!("{}: {:?}", index, paths);
-                        println!("{:?}", arg);
                         arg.reform(paths)
                     } else {
                         arg

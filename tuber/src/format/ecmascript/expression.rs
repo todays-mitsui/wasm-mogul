@@ -209,4 +209,49 @@ mod tests {
             ]
         );
     }
+
+    #[test]
+    fn test_format_4() {
+        let expr = expr::a(
+            expr::a(
+                expr::a(expr::a("a", "b"), "c"),
+                expr::a(expr::a("d", "e"), "f"),
+            ),
+            expr::a("g", "h"),
+        );
+
+        let formed = format(&expr, &vec![Path::Arg(2, Box::new(Path::Callee(1)))]);
+
+        println!("{:?}", formed.expr);
+        println!("{:#?}", formed);
+
+        assert_eq!(formed.expr, "a(b, c, d(e)(f), g(h))");
+        assert_eq!(
+            formed.mapping,
+            vec![
+                /* a */ Tag::from(vec![0]),
+                /* ( */ Tag::from(vec![4]),
+                /* b */ Tag::from(vec![1, 0]),
+                /* , */ Tag::from(vec![4]),
+                /*   */ Tag::from(vec![4]),
+                /* c */ Tag::from(vec![2, 0]),
+                /* , */ Tag::from(vec![4]),
+                /*   */ Tag::from(vec![4]),
+                /* d */ Tag::from(vec![3, 0]),
+                /* ( */ Tag::from(vec![3, 1]),
+                /* e */ Tag::from(vec![3, 1, 0]),
+                /* ) */ Tag::from(vec![3, 1]),
+                /* ( */ Tag::from(vec![3, 2]),
+                /* f */ Tag::from(vec![3, 2, 0]),
+                /* ) */ Tag::from(vec![3, 2]),
+                /* , */ Tag::from(vec![4]),
+                /*   */ Tag::from(vec![4]),
+                /* g */ Tag::from(vec![4, 0]),
+                /* ( */ Tag::from(vec![4, 1]),
+                /* h */ Tag::from(vec![4, 1, 0]),
+                /* ) */ Tag::from(vec![4, 1]),
+                /* ) */ Tag::from(vec![4]),
+            ]
+        );
+    }
 }
