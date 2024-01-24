@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use std::hash::Hash;
 
 #[derive(Clone, Debug, PartialEq)]
-enum Compact<'a> {
+pub enum Compact<'a> {
     Variable {
         label: &'a str,
         tag: Tag,
