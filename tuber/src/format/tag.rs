@@ -11,6 +11,13 @@ impl Tag {
         indices.push(index);
         Self(indices)
     }
+
+    pub fn replace_last(&self, index: usize) -> Self {
+        let mut indices = self.0.clone();
+        let last = self.0.len() - 1;
+        indices[last] = index;
+        Self(indices)
+    }
 }
 
 impl std::fmt::Debug for Tag {

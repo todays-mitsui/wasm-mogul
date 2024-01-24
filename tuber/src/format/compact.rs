@@ -1,8 +1,11 @@
 use super::tag::Tag;
 use crate::expr::Expr;
+use crate::expr::Path;
+use std::collections::HashMap;
 use std::collections::HashSet;
+use std::hash::Hash;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 enum Compact<'a> {
     Variable {
         label: &'a str,
@@ -87,7 +90,61 @@ fn from_expr<'a>(expr: &'a Expr, tag: &Tag) -> Compact<'a> {
 // ========================================================================== //
 
 impl<'a> Compact<'a> {
-    pub fn partition(self, indices: Vec<usize>) -> Compact<'a> {
+    pub fn reform(self, split: &[Path]) -> Compact<'a> {
+        if let Compact::Apply { callee, args, tag } = self {
+            let next: HashMap<usize, Vec<Path>> = group(
+                split
+                    .iter()
+                    .filter_map(|path| match path {
+                        Path::Arg(index, next) => Some((*index, (**next).clone())),
+                        Path::Callee(_) => None,
+                    })
+                    .collect::<Vec<(usize, Path)>>(),
+            );
+
+            let reformed_args: Vec<_> = args
+                .into_iter()
+                .enumerate()
+                .map(|(index, arg)| {
+                    let paths = next.get(&index);
+                    if let Some(paths) = paths {
+                        println!("{}: {:?}", index, paths);
+                        println!("{:?}", arg);
+                        arg.reform(paths)
+                    } else {
+                        arg
+                    }
+                })
+                .collect();
+
+            let arities: Vec<_> = split
+                .iter()
+                .filter_map(|path| match path {
+                    Path::Arg(_, _) => None,
+                    Path::Callee(arity) => Some(*arity),
+                })
+                .collect();
+
+            if arities.is_empty() {
+                Compact::Apply {
+                    callee,
+                    args: reformed_args,
+                    tag: tag,
+                }
+            } else {
+                Compact::Apply {
+                    callee,
+                    args: reformed_args,
+                    tag,
+                }
+                .partition(arities)
+            }
+        } else {
+            self
+        }
+    }
+
+    fn partition(self, indices: Vec<usize>) -> Compact<'a> {
         if let Compact::Apply {
             mut callee,
             args,
@@ -103,7 +160,7 @@ impl<'a> Compact<'a> {
                 callee = Box::new(Compact::Apply {
                     callee,
                     args,
-                    tag: tag.push(arity),
+                    tag: tag.replace_last(arity),
                 });
             }
 
@@ -112,6 +169,17 @@ impl<'a> Compact<'a> {
             self
         }
     }
+}
+
+fn group<K, V>(pairs: Vec<(K, V)>) -> HashMap<K, Vec<V>>
+where
+    K: Copy + Eq + Hash,
+{
+    let mut map = HashMap::new();
+    for (key, value) in pairs {
+        map.entry(key).or_insert_with(Vec::new).push(value);
+    }
+    map
 }
 
 fn prepare(indices: Vec<usize>) -> Vec<usize> {
@@ -211,6 +279,174 @@ mod tests {
                         tag: Tag::from(vec![4, 1]),
                     }
                 ],
+                tag: Tag::from(vec![4]),
+            }
+        );
+    }
+
+    #[test]
+    fn test_reform_1() {
+        let expr = expr::a(expr::a(expr::a(expr::a("f", "w"), "x"), "y"), "z");
+        let compact = Compact::from(&expr);
+
+        let new_compact = compact.clone().reform(&vec![]);
+
+        println!("{:#?}", new_compact);
+
+        assert_eq!(new_compact, compact);
+    }
+
+    #[test]
+    fn test_reform_2() {
+        let expr = expr::a(expr::a(expr::a(expr::a("f", "w"), "x"), "y"), "z");
+        let compact = Compact::from(&expr);
+
+        let new_compact = compact.reform(&vec![Path::Callee(1), Path::Callee(3)]);
+
+        println!("{:#?}", new_compact);
+
+        assert_eq!(
+            new_compact,
+            Compact::Apply {
+                callee: Box::new(Compact::Apply {
+                    callee: Box::new(Compact::Apply {
+                        callee: Box::new(Compact::Variable {
+                            label: "f",
+                            tag: Tag::from(vec![0])
+                        }),
+                        args: vec![Compact::Variable {
+                            label: "w",
+                            tag: Tag::from(vec![1, 0])
+                        },],
+                        tag: Tag::from(vec![1]),
+                    }),
+                    args: vec![
+                        Compact::Variable {
+                            label: "x",
+                            tag: Tag::from(vec![2, 0])
+                        },
+                        Compact::Variable {
+                            label: "y",
+                            tag: Tag::from(vec![3, 0])
+                        },
+                    ],
+                    tag: Tag::from(vec![3]),
+                }),
+                args: vec![Compact::Variable {
+                    label: "z",
+                    tag: Tag::from(vec![4, 0])
+                },],
+                tag: Tag::from(vec![4]),
+            }
+        );
+    }
+
+    #[test]
+    fn test_reform_3() {
+        let expr = expr::a(
+            expr::a(
+                expr::a(expr::a("a", "b"), "c"),
+                expr::a(expr::a("d", "e"), "f"),
+            ),
+            expr::a("g", "h"),
+        );
+        let compact = Compact::from(&expr);
+
+        let new_compact = compact.reform(&vec![Path::Arg(2, Box::new(Path::Callee(1)))]);
+
+        println!("{:#?}", new_compact);
+
+        assert_eq!(
+            new_compact,
+            Compact::Apply {
+                callee: Box::new(Compact::Variable {
+                    label: "a",
+                    tag: Tag::from(vec![0])
+                }),
+                args: vec![
+                    Compact::Variable {
+                        label: "b",
+                        tag: Tag::from(vec![1, 0])
+                    },
+                    Compact::Variable {
+                        label: "c",
+                        tag: Tag::from(vec![2, 0])
+                    },
+                    Compact::Apply {
+                        callee: Box::new(Compact::Apply {
+                            callee: Box::new(Compact::Variable {
+                                label: "d",
+                                tag: Tag::from(vec![3, 0])
+                            }),
+                            args: vec![Compact::Variable {
+                                label: "e",
+                                tag: Tag::from(vec![3, 1, 0])
+                            }],
+                            tag: Tag::from(vec![3, 1]),
+                        }),
+                        args: vec![Compact::Variable {
+                            label: "f",
+                            tag: Tag::from(vec![3, 2, 0])
+                        }],
+                        tag: Tag::from(vec![3, 2]),
+                    },
+                    Compact::Apply {
+                        callee: Box::new(Compact::Variable {
+                            label: "g",
+                            tag: Tag::from(vec![4, 0])
+                        }),
+                        args: vec![Compact::Variable {
+                            label: "h",
+                            tag: Tag::from(vec![4, 1, 0])
+                        },],
+                        tag: Tag::from(vec![4, 1]),
+                    }
+                ],
+                tag: Tag::from(vec![4]),
+            }
+        );
+    }
+
+    #[test]
+    fn test_partition_1() {
+        let expr = expr::a(expr::a(expr::a(expr::a("f", "w"), "x"), "y"), "z");
+        let compact = Compact::from(&expr);
+
+        let new_compact = compact.partition(vec![1, 3]);
+
+        println!("{:#?}", new_compact);
+
+        assert_eq!(
+            new_compact,
+            Compact::Apply {
+                callee: Box::new(Compact::Apply {
+                    callee: Box::new(Compact::Apply {
+                        callee: Box::new(Compact::Variable {
+                            label: "f",
+                            tag: Tag::from(vec![0])
+                        }),
+                        args: vec![Compact::Variable {
+                            label: "w",
+                            tag: Tag::from(vec![1, 0])
+                        },],
+                        tag: Tag::from(vec![1]),
+                    }),
+                    args: vec![
+                        Compact::Variable {
+                            label: "x",
+                            tag: Tag::from(vec![2, 0])
+                        },
+                        Compact::Variable {
+                            label: "y",
+                            tag: Tag::from(vec![3, 0])
+                        },
+                    ],
+                    tag: Tag::from(vec![3]),
+                }),
+                args: vec![Compact::Variable {
+                    label: "z",
+                    tag: Tag::from(vec![4, 0])
+                },],
                 tag: Tag::from(vec![4]),
             }
         );
