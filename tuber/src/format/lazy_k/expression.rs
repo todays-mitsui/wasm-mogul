@@ -1,13 +1,9 @@
+use super::super::formed::Formed;
 use super::super::tag::Tag;
 use crate::expr::Expr;
 
 pub fn format(expr: &Expr) -> Formed {
     tokenize(expr, &Tag::new()).into()
-}
-
-pub struct Formed {
-    pub expr: String,
-    pub mapping: Vec<Tag>,
 }
 
 impl From<(Vec<Token<'_>>, Vec<Tag>)> for Formed {
@@ -50,17 +46,6 @@ fn needs_space(token: &Token, next_token: Option<&Token>) -> bool {
     }
 
     false
-}
-
-impl std::fmt::Debug for Formed {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut lines: Vec<String> = Vec::new();
-        for (index, char) in self.expr.chars().enumerate() {
-            let tag = &self.mapping[index];
-            lines.push(format!("{} : {:?}", char, tag));
-        }
-        write!(f, "{}", lines.join("\n"))
-    }
 }
 
 // ========================================================================== //

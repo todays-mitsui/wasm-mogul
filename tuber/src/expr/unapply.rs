@@ -38,7 +38,7 @@ mod tests {
     fn test_unapply() {
         let expr = expr::a(expr::a("w", "x"), expr::a("y", "z"));
 
-        let (callee, mut args) = expr.unapply();
+        let (callee, args) = expr.unapply();
 
         assert_eq!(callee, &expr::v("w"));
         assert_eq!(args, vec![&expr::v("x"), &expr::a("y", "z")]);
