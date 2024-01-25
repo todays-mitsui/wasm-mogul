@@ -65,14 +65,13 @@ impl Path {
         let mut tags_iter = tags.iter();
 
         let start = tags_iter.position(predicate)?;
-        let end = tags_iter
-            .position(|tag| !predicate(tag))
-            .unwrap_or(tags.len() - 1);
+        let end = start
+            + 1
+            + tags_iter
+                .position(|tag| !predicate(tag))
+                .unwrap_or(tags.len() - 1);
 
-        Some(Range {
-            start,
-            end: start + 1 + end,
-        })
+        Some(start..end)
     }
 
     fn prefix_and_arity(&self) -> (Vec<usize>, usize) {
@@ -99,7 +98,6 @@ impl Path {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::expr;
 
     #[test]
     fn test_range() {
