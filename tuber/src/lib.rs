@@ -12,6 +12,7 @@ pub use calc::{Eval, EvalStep};
 pub use context::Context;
 pub use engine::{Command, Engine, RunResult};
 pub use expr::{Expr, Identifier};
+pub use format::{ecmascript_format, lazy_k_format, Formed, Tag};
 pub use func::Func;
 pub use parser::{parse_command, parse_expr, parse_update_or_delete};
 pub use to_string::{DisplayStyle, Format};
