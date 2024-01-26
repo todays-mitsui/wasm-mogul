@@ -220,7 +220,7 @@ mod tests {
             expr::a("g", "h"),
         );
 
-        let formed = format(&expr, &vec![Path::Arg(2, Box::new(Path::Callee(1)))]);
+        let formed = format(&expr, &vec![Path::Arg(3, Box::new(Path::Callee(1)))]);
 
         println!("{:?}", formed.expr);
         println!("{:#?}", formed);
