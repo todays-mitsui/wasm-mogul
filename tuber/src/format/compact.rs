@@ -106,6 +106,7 @@ impl<'a> Compact<'a> {
                 .into_iter()
                 .enumerate()
                 .map(|(index, arg)| {
+                    let index = index + 1;
                     let paths = next.get(&index);
                     if let Some(paths) = paths {
                         arg.reform(paths)
@@ -350,7 +351,7 @@ mod tests {
         );
         let compact = Compact::from(&expr);
 
-        let new_compact = compact.reform(&vec![Path::Arg(2, Box::new(Path::Callee(1)))]);
+        let new_compact = compact.reform(&vec![Path::Arg(3, Box::new(Path::Callee(1)))]);
 
         println!("{:#?}", new_compact);
 
