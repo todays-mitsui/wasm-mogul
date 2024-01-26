@@ -43,7 +43,7 @@ impl From<Compact<'_>> for Formed {
                 let mut mapping: Vec<Tag> = Vec::new();
 
                 if params.len() == 1 {
-                    expr = expr + params[0];
+                    expr += params[0];
                 } else {
                     expr = expr + "(" + &params.join(", ") + ")"
                 };
