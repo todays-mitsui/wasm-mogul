@@ -23,10 +23,16 @@ impl Tag {
     }
 }
 
+impl Default for Tag {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl std::fmt::Debug for Tag {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.0.is_empty() {
-            return write!(f, "-");
+            write!(f, "-")
         } else {
             write!(
                 f,

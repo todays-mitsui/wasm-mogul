@@ -123,7 +123,7 @@ where
             optional(many(attempt(token(expr()).skip(char(','))))).and(token(expr())),
         ))
         .map(|(es, e)| {
-            let mut es = es.unwrap_or_else(Vec::new);
+            let mut es: Vec<Expr> = es.unwrap_or_default();
             es.push(e);
             es
         })
@@ -167,7 +167,7 @@ where
 {
     parens(optional(many(attempt(token(identifier()).skip(char(','))))).and(token(identifier())))
         .map(|(is, i)| {
-            let mut is = is.unwrap_or_else(Vec::new);
+            let mut is: Vec<Identifier> = is.unwrap_or_default();
             is.push(i);
             is
         })

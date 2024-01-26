@@ -31,7 +31,7 @@ impl From<Compact<'_>> for Formed {
                 let str = label;
                 let mut tags = vec![tag; 1 + label.chars().count()];
 
-                expr.push_str(":");
+                expr.push(':');
                 expr.push_str(str);
                 mapping.append(&mut tags);
 
@@ -43,11 +43,11 @@ impl From<Compact<'_>> for Formed {
                 let mut mapping: Vec<Tag> = Vec::new();
 
                 if params.len() == 1 {
-                    expr = expr + &params[0];
+                    expr = expr + params[0];
                 } else {
                     expr = expr + "(" + &params.join(", ") + ")"
                 };
-                expr = expr + " => ";
+                expr += " => ";
                 let body_str = Formed::from(*body).expr;
                 expr = expr + &body_str;
 
@@ -75,7 +75,7 @@ impl From<Compact<'_>> for Formed {
                     }
                 }
 
-                expr = expr + "(";
+                expr += "(";
                 mapping.push(tag.clone());
 
                 let len = args.len();
@@ -85,12 +85,12 @@ impl From<Compact<'_>> for Formed {
                     mapping.append(&mut formed.mapping);
 
                     if index < len - 1 {
-                        expr = expr + ", ";
+                        expr += ", ";
                         mapping.append(&mut vec![tag.clone(); 2]);
                     }
                 }
 
-                expr = expr + ")";
+                expr += ")";
                 mapping.push(tag.clone());
 
                 Formed { expr, mapping }
