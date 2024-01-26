@@ -101,7 +101,7 @@ impl Inventory {
                     .find(|(_index, arg)| arg.reducible())
                 {
                     Some((index, arg)) => {
-                        builder.add_route(index);
+                        builder.add_route(index + 1);
                         inventory = arg;
                     }
                     None => return None,
@@ -330,7 +330,7 @@ mod tests {
         let inventory = Inventory::new(&context, expr);
         assert_eq!(
             inventory.next_path().map(Vec::<usize>::from),
-            Some(vec![0, 1])
+            Some(vec![1, 1])
         );
 
         let expr = expr::a(expr::a("i", ":x"), expr::a("i", ":y"));
@@ -341,14 +341,14 @@ mod tests {
         let inventory = Inventory::new(&context, expr);
         assert_eq!(
             inventory.next_path().map(Vec::<usize>::from),
-            Some(vec![1, 1])
+            Some(vec![2, 1])
         );
 
         let expr = expr::a(":g", expr::a(":f", expr::a("i", ":y")));
         let inventory = Inventory::new(&context, expr);
         assert_eq!(
             inventory.next_path().map(Vec::<usize>::from),
-            Some(vec![0, 0, 1])
+            Some(vec![1, 1, 1])
         );
     }
 
@@ -633,7 +633,7 @@ mod tests {
         let step = eval.next().unwrap();
         assert_eq!(
             step.next_path.as_ref().map(Vec::<usize>::from),
-            Some(vec![0, 2])
+            Some(vec![1, 2])
         );
 
         let step = eval.next().unwrap();
@@ -668,6 +668,6 @@ mod tests {
         assert_eq!(Vec::<usize>::from(&step.callee_path), vec![0]);
 
         let step = eval.next().unwrap();
-        assert_eq!(Vec::<usize>::from(&step.callee_path), vec![0, 0]);
+        assert_eq!(Vec::<usize>::from(&step.callee_path), vec![1, 0]);
     }
 }
