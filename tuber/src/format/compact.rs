@@ -63,7 +63,7 @@ fn from_expr<'a>(expr: &'a Expr, tag: &Tag) -> Compact<'a> {
 
         Expr::Lambda { param, body } => {
             let param = param.as_str();
-            let body = from_expr(&**body, &Tag::new());
+            let body = from_expr(body, &Tag::new());
             match body {
                 Compact::Lambda {
                     mut params,
@@ -127,7 +127,7 @@ impl<'a> Compact<'a> {
                 Compact::Apply {
                     callee,
                     args: reformed_args,
-                    tag: tag,
+                    tag,
                 }
             } else {
                 Compact::Apply {

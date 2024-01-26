@@ -70,7 +70,7 @@ parser! {
     {
         identifier()
             .and(spaces().with(optional(params())))
-            .map(|(i, is)| (i, is.unwrap_or_else(Vec::new)))
+            .map(|(i, is)| (i, is.unwrap_or_default()))
     }
 }
 
@@ -88,7 +88,7 @@ where
             )))
             .and(spaces().with(identifier()))
             .map(|(is, i)| {
-                let mut is = is.unwrap_or_else(Vec::new);
+                let mut is: Vec<Identifier> = is.unwrap_or_default();
                 is.push(i);
                 is
             }),

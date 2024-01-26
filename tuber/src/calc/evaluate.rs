@@ -97,7 +97,7 @@ impl Inventory {
             } else {
                 match inventory
                     .args
-                    .enumerate::<(usize, &Inventory)>()
+                    .enumerate()
                     .find(|(_index, arg)| arg.reducible())
                 {
                     Some((index, arg)) => {
@@ -113,12 +113,12 @@ impl Inventory {
     fn get_next(&mut self) -> Option<&mut Inventory> {
         let mut inventory = self;
         loop {
-            if let Some(_) = inventory.arity {
+            if inventory.arity.is_some() {
                 return Some(inventory);
             } else {
                 match inventory
                     .args
-                    .enumerate_mut::<(usize, &mut Inventory)>()
+                    .enumerate_mut()
                     .find(|(_index, arg)| arg.reducible())
                 {
                     Some((_index, arg)) => {
@@ -205,11 +205,11 @@ impl Args {
         ArgsIter::new(self.to_owned())
     }
 
-    fn enumerate<Iter>(&self) -> iter::Enumerate<iter::Rev<slice::Iter<'_, Inventory>>> {
+    fn enumerate(&self) -> iter::Enumerate<iter::Rev<slice::Iter<'_, Inventory>>> {
         self.0.iter().rev().enumerate()
     }
 
-    fn enumerate_mut<Iter>(&mut self) -> iter::Enumerate<iter::Rev<slice::IterMut<'_, Inventory>>> {
+    fn enumerate_mut(&mut self) -> iter::Enumerate<iter::Rev<slice::IterMut<'_, Inventory>>> {
         self.0.iter_mut().rev().enumerate()
     }
 }
