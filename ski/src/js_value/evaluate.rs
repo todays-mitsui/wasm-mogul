@@ -78,7 +78,7 @@ pub struct JsNextResult {
 pub struct JsEvalStep {
     pub step: usize,
     pub expr: String,
-    pub callee: Option<String>,
+    pub reduced: Option<String>,
     pub next: Option<String>,
 }
 
@@ -99,7 +99,7 @@ impl From<EvalStep> for JsEvalStep {
         JsEvalStep {
             step: step.step,
             expr: step.expr.to_string(),
-            callee: reduced_range,
+            reduced: reduced_range,
             next: next_range,
         }
     }
@@ -125,7 +125,7 @@ impl From<(EvalStep, DisplayStyle)> for JsEvalStep {
         JsEvalStep {
             step: step.step,
             expr: formed.expr,
-            callee: reduced_range,
+            reduced: reduced_range,
             next: next_range,
         }
     }
@@ -133,7 +133,7 @@ impl From<(EvalStep, DisplayStyle)> for JsEvalStep {
 
 fn reduced_path_to_range(mapping: &[Tag], path: &Path) -> Option<String> {
     path.range(mapping)
-        .map(|std::ops::Range { start, end }| format!("{}..{}", start, end))
+        .map(|std::ops::Range { start, end }| format!("{},{}", start, end))
 }
 
 fn next_path_to_range(mapping: &[Tag], path: &Path) -> Option<String> {
@@ -142,21 +142,25 @@ fn next_path_to_range(mapping: &[Tag], path: &Path) -> Option<String> {
     let mut callee_path = path.clone();
     callee_path.set_arity(0);
 
-    let mut args_path = (0..arity).map(|index| {
+    let args_path = (0..arity).map(|index| {
         let mut path = path.clone();
         path.set_arity(index + 1);
         path.last_arg();
         path
     });
 
-    let mut range_strs = vec![callee_path
-        .range(mapping)
-        .map(|std::ops::Range { start, end }| format!("{}..{}", start, end))?];
+    let mut range_strs = vec![
+        path.range(mapping)
+            .map(|std::ops::Range { start, end }| format!("{},{}", start, end))?,
+        callee_path
+            .range(mapping)
+            .map(|std::ops::Range { start, end }| format!("{},{}", start, end))?,
+    ];
 
     for arg_path in args_path {
         let arg_range_str = arg_path
             .range(mapping)
-            .map(|std::ops::Range { start, end }| format!("{}..{}", start, end));
+            .map(|std::ops::Range { start, end }| format!("{},{}", start, end));
         if let Some(arg_range_str) = arg_range_str {
             range_strs.push(arg_range_str);
         }

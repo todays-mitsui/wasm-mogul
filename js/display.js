@@ -25,20 +25,16 @@ export function displayEvalInit(expr) {
  * @param {string} expr
  * @returns {void}
  */
-export function displayEval(ol, expr, callee, next) {
+export function displayEval(ol, expr, reduced, next) {
   {
     const li = document.createElement('li');
 
-    if (callee) {
-      const [start, end] = callee;
-      li.setAttribute('callee-start', start);
-      li.setAttribute('callee-end', end);
+    if (reduced) {
+      li.setAttribute('data-reduced', reduced);
     }
 
     if (next) {
-      const [start, end] = next;
-      li.setAttribute('next-start', start);
-      li.setAttribute('next-end', end);
+      li.setAttribute('data-next', next);
     }
 
     const code = document.createElement('code');

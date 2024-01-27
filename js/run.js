@@ -65,9 +65,8 @@ export async function run(module, src, outputBox) {
         const next = result.next(displayStyle);
         done = next.done;
         if (next.value) {
-          console.info(next.value);
-          const { expr, step, callee: callee_range, next: next_range } = next.value;
-          displayEval(box, expr, callee_range, next_range);
+          const { expr, step, reduced: reduced_range, next: next_range } = next.value;
+          displayEval(box, expr, reduced_range, next_range);
           if (step >= STEP_LIMIT) {
             break;
           }
