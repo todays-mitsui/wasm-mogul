@@ -29,21 +29,21 @@ impl Iterator for Eval {
     type Item = EvalStep;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let callee_path = self.inventory.next_path();
+        let reduced_path = self.inventory.next_path();
         let inventory = self.inventory.get_next()?;
 
         match inventory.eval(&self.context) {
             Some(num_args) => {
                 let inventory = self.inventory.clone();
-                let mut callee_path = callee_path.unwrap();
-                callee_path.set_arity(num_args);
+                let mut reduced_path = reduced_path.unwrap();
+                reduced_path.set_arity(num_args);
                 let next_path = inventory.next_path();
                 let expr = inventory.into();
                 self.step += 1;
                 Some(EvalStep {
                     expr,
                     step: self.step,
-                    callee_path,
+                    reduced_path,
                     next_path,
                 })
             }
@@ -246,7 +246,7 @@ impl Iterator for ArgsIter {
 pub struct EvalStep {
     pub step: usize,
     pub expr: Expr,
-    pub callee_path: Path,
+    pub reduced_path: Path,
     pub next_path: Option<Path>,
 }
 
@@ -641,33 +641,33 @@ mod tests {
     }
 
     #[test]
-    fn test_eval_callee_path() {
+    fn test_eval_reduced_path() {
         let context = setup();
         let expr = expr::a(expr::a(expr::a("s", "k"), "k"), ":a");
 
         let mut eval = Eval::new(context, expr);
 
         let step = eval.next().unwrap();
-        assert_eq!(Vec::<usize>::from(&step.callee_path), vec![2]);
+        assert_eq!(Vec::<usize>::from(&step.reduced_path), vec![2]);
 
         let step = eval.next().unwrap();
-        assert_eq!(Vec::<usize>::from(&step.callee_path), vec![0]);
+        assert_eq!(Vec::<usize>::from(&step.reduced_path), vec![0]);
     }
 
     #[test]
-    fn test_eval_callee_path_2() {
+    fn test_eval_reduced_path_2() {
         let context = setup();
         let expr = expr::a(expr::a(expr::a("s", "i"), expr::a("k", ":b")), ":a");
 
         let mut eval = Eval::new(context, expr);
 
         let step = eval.next().unwrap();
-        assert_eq!(Vec::<usize>::from(&step.callee_path), vec![2]);
+        assert_eq!(Vec::<usize>::from(&step.reduced_path), vec![2]);
 
         let step = eval.next().unwrap();
-        assert_eq!(Vec::<usize>::from(&step.callee_path), vec![0]);
+        assert_eq!(Vec::<usize>::from(&step.reduced_path), vec![0]);
 
         let step = eval.next().unwrap();
-        assert_eq!(Vec::<usize>::from(&step.callee_path), vec![1, 0]);
+        assert_eq!(Vec::<usize>::from(&step.reduced_path), vec![1, 0]);
     }
 }
