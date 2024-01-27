@@ -70,7 +70,7 @@ fn from_expr<'a>(expr: &'a Expr, tag: &Tag) -> Compact<'a> {
                     body,
                     tag,
                 } => {
-                    params.push(param);
+                    params.insert(0, param);
                     Compact::Lambda {
                         params,
                         body,
