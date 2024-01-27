@@ -5,10 +5,24 @@ pub enum Path {
 }
 
 impl Path {
+    pub fn get_arity(&self) -> Arity {
+        match self {
+            Path::Arg(_, next) => next.get_arity(),
+            Path::Callee(arity) => *arity,
+        }
+    }
+
     pub fn set_arity(&mut self, arity: Arity) {
         match self {
             Path::Arg(_, next) => next.set_arity(arity),
             Path::Callee(old_arity) => *old_arity = arity,
+        }
+    }
+
+    pub fn last_arg(&mut self) {
+        match self {
+            Path::Arg(_, next) => next.last_arg(),
+            Path::Callee(arity) => *self = Path::Arg(*arity, Box::new(Path::Callee(usize::MAX))),
         }
     }
 }
@@ -87,5 +101,36 @@ impl PathBuilder {
             path = Path::Arg(index, Box::new(path));
         }
         path
+    }
+}
+
+// ========================================================================== //
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_last_arg_1() {
+        let mut path = Path::Callee(1);
+
+        path.last_arg();
+
+        assert_eq!(path, Path::Arg(1, Box::new(Path::Callee(usize::MAX))));
+    }
+
+    #[test]
+    fn test_last_arg_2() {
+        let mut path = Path::Arg(1, Box::new(Path::Callee(2)));
+
+        path.last_arg();
+
+        assert_eq!(
+            path,
+            Path::Arg(
+                1,
+                Box::new(Path::Arg(2, Box::new(Path::Callee(usize::MAX))))
+            )
+        );
     }
 }

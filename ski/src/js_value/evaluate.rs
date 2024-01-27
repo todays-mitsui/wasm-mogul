@@ -1,7 +1,7 @@
 use super::{JsContext, JsDisplayStyle, JsExpr};
 use serde::{Deserialize, Serialize};
 use tuber::{
-    ecmascript_format, lazy_k_format, Context, DisplayStyle, Eval, EvalStep, Expr, Format,
+    ecmascript_format, lazy_k_format, Context, DisplayStyle, Eval, EvalStep, Expr, Path, Tag,
 };
 use wasm_bindgen::prelude::*;
 
@@ -78,36 +78,36 @@ pub struct JsNextResult {
 pub struct JsEvalStep {
     pub step: usize,
     pub expr: String,
-    pub callee: Option<(usize, usize)>,
-    pub next: Option<(usize, usize)>,
+    pub callee: Option<String>,
+    pub next: Option<String>,
 }
 
 impl From<EvalStep> for JsEvalStep {
     fn from(step: EvalStep) -> JsEvalStep {
-        let mut paths = vec![step.callee_path.clone()];
+        let mut paths = vec![step.reduced_path.clone()];
         if let Some(next_path) = step.next_path.clone() {
             paths.push(next_path);
         }
 
         let formed = lazy_k_format(&step.expr);
 
-        let mapping = formed.mapping;
-
-        let callee_range = step.callee_path.range(&mapping);
-        let next_range = step.next_path.and_then(|path| path.range(&mapping));
+        let reduced_range = reduced_path_to_range(&formed.mapping, &step.reduced_path);
+        let next_range = step
+            .next_path
+            .and_then(|next_path| next_path_to_range(&formed.mapping, &next_path));
 
         JsEvalStep {
             step: step.step,
             expr: step.expr.to_string(),
-            callee: callee_range.map(|range| (range.start, range.end)),
-            next: next_range.map(|range| (range.start, range.end)),
+            callee: reduced_range,
+            next: next_range,
         }
     }
 }
 
 impl From<(EvalStep, DisplayStyle)> for JsEvalStep {
     fn from((step, display_style): (EvalStep, DisplayStyle)) -> JsEvalStep {
-        let mut paths = vec![step.callee_path.clone()];
+        let mut paths = vec![step.reduced_path.clone()];
         if let Some(next_path) = step.next_path.clone() {
             paths.push(next_path);
         }
@@ -117,16 +117,50 @@ impl From<(EvalStep, DisplayStyle)> for JsEvalStep {
             DisplayStyle::LazyK => lazy_k_format(&step.expr),
         };
 
-        let mapping = formed.mapping;
-
-        let callee_range = step.callee_path.range(&mapping);
-        let next_range = step.next_path.and_then(|path| path.range(&mapping));
+        let reduced_range = reduced_path_to_range(&formed.mapping, &step.reduced_path);
+        let next_range = step
+            .next_path
+            .and_then(|next_path| next_path_to_range(&formed.mapping, &next_path));
 
         JsEvalStep {
             step: step.step,
             expr: formed.expr,
-            callee: callee_range.map(|range| (range.start, range.end)),
-            next: next_range.map(|range| (range.start, range.end)),
+            callee: reduced_range,
+            next: next_range,
         }
     }
+}
+
+fn reduced_path_to_range(mapping: &[Tag], path: &Path) -> Option<String> {
+    path.range(mapping)
+        .map(|std::ops::Range { start, end }| format!("{}..{}", start, end))
+}
+
+fn next_path_to_range(mapping: &[Tag], path: &Path) -> Option<String> {
+    let arity: usize = path.get_arity();
+
+    let mut callee_path = path.clone();
+    callee_path.set_arity(0);
+
+    let mut args_path = (0..arity).map(|index| {
+        let mut path = path.clone();
+        path.set_arity(index + 1);
+        path.last_arg();
+        path
+    });
+
+    let mut range_strs = vec![callee_path
+        .range(mapping)
+        .map(|std::ops::Range { start, end }| format!("{}..{}", start, end))?];
+
+    for arg_path in args_path {
+        let arg_range_str = arg_path
+            .range(mapping)
+            .map(|std::ops::Range { start, end }| format!("{}..{}", start, end));
+        if let Some(arg_range_str) = arg_range_str {
+            range_strs.push(arg_range_str);
+        }
+    }
+
+    Some(range_strs.join(";"))
 }
