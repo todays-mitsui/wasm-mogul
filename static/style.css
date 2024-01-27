@@ -324,3 +324,7 @@ main > #input::before {
   line-height: 1;
   pointer-events: none;
 }
+
+span.reduced {
+  background-color: yellow;
+}
