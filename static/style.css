@@ -325,6 +325,16 @@ main > #input::before {
   pointer-events: none;
 }
 
+span.next {
+  outline: 1px solid lightgray;
+  outline-offset: 1px;
+}
+span.callee {
+  background-color: rgb(255, 221, 221);
+}
+span.argument {
+  background-color: lavender;
+}
 span.reduced {
-  background-color: yellow;
+  background-color: lightgoldenrodyellow;
 }

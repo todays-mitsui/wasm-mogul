@@ -5,7 +5,7 @@ import { initRandomSpell } from './randomSpell.js';
 import { run } from './run.js';
 import { initSettings } from './settings.js';
 import { updateContext } from './updateContext.js';
-import { highlightReduced } from './highlight.js';
+import { onMouseOver } from './highlight.js';
 
 async function main() {
   console.info('ski Mogul, version 0.2.0');
@@ -27,24 +27,7 @@ async function main() {
 
   implant(module);
 
-  document.body.addEventListener('mouseover', event => {
-    const elem = event.target;
-
-    if (
-      !(elem instanceof HTMLLIElement)
-      || !(elem.parentElement instanceof HTMLOListElement)
-      || !elem.parentElement.classList.contains('eval')
-    ) { return; }
-
-    const unhighlight = highlightReduced(elem);
-    if (!unhighlight) { return; }
-
-    const onMouseLeave = () => {
-      unhighlight();
-      elem.removeEventListener('mouseleave', onMouseLeave);
-    };
-    elem.addEventListener('mouseleave', onMouseLeave);
-  });
+  document.body.addEventListener('mouseover', onMouseOver);
 }
 
 /**
