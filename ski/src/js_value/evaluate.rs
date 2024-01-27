@@ -1,6 +1,8 @@
 use super::{JsContext, JsDisplayStyle, JsExpr};
 use serde::{Deserialize, Serialize};
-use tuber::{Context, DisplayStyle, Eval, EvalStep, Expr, Format};
+use tuber::{
+    ecmascript_format, lazy_k_format, Context, DisplayStyle, Eval, EvalStep, Expr, Format,
+};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = Eval)]
@@ -76,22 +78,55 @@ pub struct JsNextResult {
 pub struct JsEvalStep {
     pub step: usize,
     pub expr: String,
+    pub callee: Option<(usize, usize)>,
+    pub next: Option<(usize, usize)>,
 }
 
 impl From<EvalStep> for JsEvalStep {
     fn from(step: EvalStep) -> JsEvalStep {
+        let mut paths = vec![step.callee_path.clone()];
+        if let Some(next_path) = step.next_path.clone() {
+            paths.push(next_path);
+        }
+
+        let formed = lazy_k_format(&step.expr);
+
+        let mapping = formed.mapping;
+
+        let callee_range = step.callee_path.range(&mapping);
+        let next_range = step.next_path.and_then(|path| path.range(&mapping));
+
         JsEvalStep {
             step: step.step,
             expr: step.expr.to_string(),
+            callee: callee_range.map(|range| (range.start, range.end)),
+            next: next_range.map(|range| (range.start, range.end)),
         }
     }
 }
 
 impl From<(EvalStep, DisplayStyle)> for JsEvalStep {
     fn from((step, display_style): (EvalStep, DisplayStyle)) -> JsEvalStep {
+        let mut paths = vec![step.callee_path.clone()];
+        if let Some(next_path) = step.next_path.clone() {
+            paths.push(next_path);
+        }
+
+        let formed = match display_style {
+            DisplayStyle::EcmaScript => ecmascript_format(&step.expr, &paths),
+            DisplayStyle::LazyK => lazy_k_format(&step.expr),
+        };
+
+        let mapping = formed.mapping;
+
+        let callee_range = step.callee_path.range(&mapping);
+        let next_range = step.next_path.and_then(|path| path.range(&mapping));
+
         JsEvalStep {
             step: step.step,
-            expr: step.expr.format(&display_style),
+            expr: formed.expr,
+            callee: callee_range.map(|range| (range.start, range.end)),
+            next: next_range.map(|range| (range.start, range.end)),
         }
     }
 }
