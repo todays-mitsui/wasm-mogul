@@ -5,6 +5,7 @@ import { initRandomSpell } from './randomSpell.js';
 import { run } from './run.js';
 import { initSettings } from './settings.js';
 import { updateContext } from './updateContext.js';
+import { onMouseOver } from './highlight.js';
 
 async function main() {
   console.info('ski Mogul, version 0.2.0');
@@ -25,6 +26,8 @@ async function main() {
   });
 
   implant(module);
+
+  document.body.addEventListener('mouseover', onMouseOver);
 }
 
 /**

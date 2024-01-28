@@ -264,6 +264,32 @@ main > #output li:not(:last-child) {
   border-bottom: 1px solid #ececf1;
 }
 
+span.next {
+  outline: 1px solid lightgray;
+  outline-offset: 1px;
+}
+span.callee {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: red;
+  text-decoration-skip-ink: none;
+}
+span.argument {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-skip-ink: none;
+}
+span.argument:nth-child(odd) {
+  text-decoration-color: green;
+}
+span.argument:nth-child(even) {
+  text-decoration-color: blue;
+}
+
+span.reduced {
+  outline: 1px solid lightgray;
+}
+
 /* ========================================================================== */
 
 main > #input {
