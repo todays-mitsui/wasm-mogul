@@ -71,8 +71,6 @@ function highlightNext(elem) {
   fragment.appendChild(span);
   fragment.appendChild(document.createTextNode(after))
 
-  console.log({ before, next: span.innerHTML, after });
-
   code.innerHTML = '';
   code.appendChild(fragment);
 

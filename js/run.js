@@ -56,9 +56,10 @@ export async function run(module, src, outputBox) {
 
     case 'eval': {
       const input = exec.input;
+      const inputNext = exec.evalInputNext;
       const result = exec.evalResult;
       console.info({ input, iterator: result });
-      const box = displayEvalInit(input);
+      const box = displayEvalInit(input, inputNext);
       let done = false;
       while (!done) {
         await new Promise(resolve => setTimeout(resolve, 0));

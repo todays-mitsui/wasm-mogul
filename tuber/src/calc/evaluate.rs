@@ -23,6 +23,10 @@ impl Eval {
             step: 0,
         }
     }
+
+    pub fn next_path(&self) -> Option<Path> {
+        self.next_path.clone()
+    }
 }
 
 impl Iterator for Eval {

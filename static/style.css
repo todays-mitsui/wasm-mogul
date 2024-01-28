@@ -272,10 +272,12 @@ span.callee {
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-decoration-color: red;
+  text-decoration-skip-ink: none;
 }
 span.argument {
   text-decoration: underline;
   text-decoration-thickness: 2px;
+  text-decoration-skip-ink: none;
 }
 span.argument:nth-child(odd) {
   text-decoration-color: green;

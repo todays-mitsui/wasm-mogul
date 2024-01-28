@@ -1,5 +1,5 @@
 use super::{JsContext, JsEval, JsExpr, JsFunc};
-use tuber::{DisplayStyle, Format, RunResult};
+use tuber::{ecmascript_format, lazy_k_format, DisplayStyle, Format, RunResult};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = RunResult)]
@@ -45,6 +45,59 @@ impl JsRunResult {
     pub fn update_result(&self) -> Option<JsContext> {
         if let RunResult::Update { result, .. } = &self.0 {
             Some(result.clone().into())
+        } else {
+            None
+        }
+    }
+
+    #[wasm_bindgen(getter, js_name = evalInputNext)]
+    pub fn eval_input_next(&self) -> Option<String> {
+        if let RunResult::Eval {
+            input: expr, eval, ..
+        } = &self.0
+        {
+            let next_path = eval.next_path();
+            if let Some(path) = next_path {
+                let display_style = self.1;
+                let paths = vec![path.clone()];
+                let formed = match display_style {
+                    DisplayStyle::EcmaScript => ecmascript_format(&expr, &paths),
+                    DisplayStyle::LazyK => lazy_k_format(&expr),
+                };
+
+                let arity: usize = path.get_arity();
+
+                let mut callee_path = path.clone();
+                callee_path.set_arity(0);
+
+                let args_path = (0..arity).map(|index| {
+                    let mut path = path.clone();
+                    path.set_arity(index + 1);
+                    path.last_arg();
+                    path
+                });
+
+                let mut range_strs = vec![
+                    path.range(&formed.mapping)
+                        .map(|std::ops::Range { start, end }| format!("{},{}", start, end))?,
+                    callee_path
+                        .range(&formed.mapping)
+                        .map(|std::ops::Range { start, end }| format!("{},{}", start, end))?,
+                ];
+
+                for arg_path in args_path {
+                    let arg_range_str = arg_path
+                        .range(&formed.mapping)
+                        .map(|std::ops::Range { start, end }| format!("{},{}", start, end));
+                    if let Some(arg_range_str) = arg_range_str {
+                        range_strs.push(arg_range_str);
+                    }
+                }
+
+                Some(range_strs.join(";"))
+            } else {
+                None
+            }
         } else {
             None
         }

@@ -4,15 +4,21 @@ const outputBox = document.querySelector('#output');
  * @param {string} expr
  * @returns {HTMLOListElement}
  */
-export function displayEvalInit(expr) {
+export function displayEvalInit(expr, next) {
   const ol = document.createElement('ol');
   ol.classList.add('eval');
   outputBox.appendChild(ol);
 
   {
     const li = document.createElement('li');
+
+    if (next) {
+      li.setAttribute('data-next', next);
+    }
+
     const code = document.createElement('code');
     code.textContent = expr;
+
     li.appendChild(code);
     ol.appendChild(li);
   }
@@ -39,6 +45,7 @@ export function displayEval(ol, expr, reduced, next) {
 
     const code = document.createElement('code');
     code.textContent = expr;
+
     li.appendChild(code);
     ol.appendChild(li);
   }
