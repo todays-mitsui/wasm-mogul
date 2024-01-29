@@ -53,7 +53,7 @@ enum CommandJson {
     EvaluateLast { expr: ExprJson },
     EvaluateHead { count: usize, expr: ExprJson },
     EvaluateTail { count: usize, expr: ExprJson },
-    Search { identifier: String },
+    Query { identifier: String },
     Context,
     Unlambda { level: u8, expr: ExprJson },
 }
