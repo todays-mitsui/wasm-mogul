@@ -10,7 +10,7 @@ pub fn to_string(command: &Command) -> String {
         Command::EvalLast(e) => format!("! {}", expression::to_string(e)),
         Command::EvalHead(len, e) => format!("!{} {}", len, expression::to_string(e)),
         Command::EvalTail(len, e) => format!("!-{} {}", len, expression::to_string(e)),
-        Command::Search(i) => format!("? {}", i),
+        Command::Query(i) => format!("? {}", i),
         Command::Context => "?".to_string(),
         Command::Unlambda(level, e) => {
             format!(
@@ -114,8 +114,8 @@ mod tests {
     }
 
     #[test]
-    fn test_search() {
-        let command = command::search("i");
+    fn test_query() {
+        let command = command::query("i");
         assert_eq!(to_string(&command), "? i");
     }
 

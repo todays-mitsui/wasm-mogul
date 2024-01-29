@@ -61,12 +61,12 @@ impl Engine {
             //         // TODO
             //     }
             // }
-            Command::Search(id) => self.context.get(&id).map_or(
-                RunResult::Search {
+            Command::Query(id) => self.context.get(&id).map_or(
+                RunResult::Query {
                     input: id.clone(),
                     result: None,
                 },
-                |func| RunResult::Search {
+                |func| RunResult::Query {
                     input: id.clone(),
                     result: Some(func.clone()),
                 },
@@ -106,7 +106,7 @@ pub enum RunResult {
         input: Expr,
         eval: Eval,
     },
-    Search {
+    Query {
         input: Identifier,
         result: Option<Func>,
     },

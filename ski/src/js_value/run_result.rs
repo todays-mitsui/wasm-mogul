@@ -13,7 +13,7 @@ impl JsRunResult {
             RunResult::Del { .. } => String::from("del"),
             RunResult::Update { .. } => String::from("update"),
             RunResult::Eval { .. } => String::from("eval"),
-            RunResult::Search { .. } => String::from("search"),
+            RunResult::Query { .. } => String::from("query"),
             RunResult::Context { .. } => String::from("context"),
             RunResult::Unlambda { .. } => String::from("unlambda"),
         }
@@ -26,7 +26,7 @@ impl JsRunResult {
             RunResult::Del { input, .. } => input.as_str().to_string(),
             RunResult::Update { input, .. } => input.format(&display_style),
             RunResult::Eval { input, .. } => input.format(&display_style),
-            RunResult::Search { input, .. } => input.as_str().to_string(),
+            RunResult::Query { input, .. } => input.as_str().to_string(),
             RunResult::Context { .. } => String::from(""),
             RunResult::Unlambda { input, .. } => input.format(&display_style),
         }
@@ -112,9 +112,9 @@ impl JsRunResult {
         }
     }
 
-    #[wasm_bindgen(getter, js_name = searchResult)]
-    pub fn search_result(&self) -> Option<JsFunc> {
-        if let RunResult::Search { result, .. } = &self.0 {
+    #[wasm_bindgen(getter, js_name = queryResult)]
+    pub fn query_result(&self) -> Option<JsFunc> {
+        if let RunResult::Query { result, .. } = &self.0 {
             result.clone().map(|func| func.into())
         } else {
             None

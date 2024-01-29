@@ -81,9 +81,9 @@ export async function run(module, src, outputBox) {
       }
     } break;
 
-    case 'search': {
+    case 'query': {
       const id = exec.input;
-      const func = exec.searchResult;
+      const func = exec.queryResult;
       console.info({ id, func: func.format(displayStyle) });
       displayUpdate(func == null ? `${id} = ${id}` : func.format(displayStyle));
     } break;

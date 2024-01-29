@@ -24,7 +24,7 @@ where
         attempt(eval_tail()),
         eval_last(),
         attempt(unlambda()),
-        attempt(search()),
+        attempt(query()),
         global(),
     ))
     .skip(spaces())
@@ -150,7 +150,7 @@ where
 
 // ========================================================================== //
 
-fn search<Input>() -> impl Parser<Input, Output = Command>
+fn query<Input>() -> impl Parser<Input, Output = Command>
 where
     Input: Stream<Token = char>,
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
@@ -158,7 +158,7 @@ where
     spaces()
         .skip(char('?'))
         .with(identifier())
-        .map(Command::Search)
+        .map(Command::Query)
 }
 
 fn global<Input>() -> impl Parser<Input, Output = Command>
@@ -226,7 +226,7 @@ mod tests {
 
         assert_eq!(
             command().easy_parse("? a"),
-            Ok((Command::Search("a".into()), ""))
+            Ok((Command::Query("a".into()), ""))
         );
 
         assert_eq!(command().easy_parse("?"), Ok((Command::Context, "")));
@@ -280,7 +280,7 @@ mod tests {
 
         assert_eq!(
             command().easy_parse("? a"),
-            Ok((Command::Search("a".into()), ""))
+            Ok((Command::Query("a".into()), ""))
         );
 
         assert_eq!(command().easy_parse("?"), Ok((Command::Context, "")));
@@ -361,14 +361,14 @@ mod tests {
     }
 
     #[test]
-    fn test_search() {
+    fn test_query() {
         assert_eq!(
-            search().easy_parse("?a"),
-            Ok((Command::Search("a".into()), ""))
+            query().easy_parse("?a"),
+            Ok((Command::Query("a".into()), ""))
         );
         assert_eq!(
-            search().easy_parse("? a"),
-            Ok((Command::Search("a".into()), ""))
+            query().easy_parse("? a"),
+            Ok((Command::Query("a".into()), ""))
         );
     }
 

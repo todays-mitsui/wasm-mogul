@@ -81,7 +81,7 @@ impl From<Command> for CommandJson {
                 count,
                 expr: ExprJson::from(expr),
             },
-            Command::Search(id) => CommandJson::Search {
+            Command::Query(id) => CommandJson::Query {
                 identifier: id.as_ref().to_string(),
             },
             Command::Context => CommandJson::Context,
