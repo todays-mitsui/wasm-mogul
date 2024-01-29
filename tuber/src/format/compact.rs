@@ -39,6 +39,7 @@ fn from_expr<'a>(expr: &'a Expr, tag: &Tag) -> Compact<'a> {
     match expr {
         Expr::Apply { .. } => {
             let (callee, args) = expr.unapply();
+            assert!(args.len() > 0);
 
             Compact::Apply {
                 callee: Box::new(from_expr(callee, tag)),
@@ -61,27 +62,16 @@ fn from_expr<'a>(expr: &'a Expr, tag: &Tag) -> Compact<'a> {
             tag: tag.push(0),
         },
 
-        Expr::Lambda { param, body } => {
-            let param = param.as_str();
-            let body = from_expr(body, &Tag::new());
-            match body {
-                Compact::Lambda {
-                    mut params,
-                    body,
-                    tag,
-                } => {
-                    params.insert(0, param);
-                    Compact::Lambda {
-                        params,
-                        body,
-                        tag: tag.push(0),
-                    }
-                }
-                _ => Compact::Lambda {
-                    params: vec![param],
-                    body: Box::new(body),
-                    tag: tag.push(0),
-                },
+        Expr::Lambda { .. } => {
+            let (params, body) = expr.unlambda();
+            assert!(params.len() > 0);
+
+            let tag = tag.push(0);
+
+            Compact::Lambda {
+                params: params.into_iter().map(|param| param.as_str()).collect(),
+                body: Box::new(from_expr(body, &tag)),
+                tag,
             }
         }
     }
@@ -222,7 +212,7 @@ mod tests {
     use crate::expr;
 
     #[test]
-    fn test_from() {
+    fn test_from_1() {
         let expr = expr::a(
             expr::a(
                 expr::a(expr::a("a", "b"), "c"),
@@ -279,6 +269,51 @@ mod tests {
                     }
                 ],
                 tag: Tag::from(vec![4]),
+            }
+        );
+    }
+
+    #[test]
+    fn test_from_2() {
+        let expr = expr::a(
+            "s",
+            expr::a(expr::l("f", expr::l("y", expr::a("f", "y"))), "x"),
+        );
+
+        let compact = Compact::from(&expr);
+
+        println!("{:#?}", compact);
+
+        assert_eq!(
+            compact,
+            Compact::Apply {
+                callee: Box::new(Compact::Variable {
+                    label: "s",
+                    tag: Tag::from(vec![0])
+                }),
+                args: vec![Compact::Apply {
+                    callee: Box::new(Compact::Lambda {
+                        params: vec!["f", "y"],
+                        body: Box::new(Compact::Apply {
+                            callee: Box::new(Compact::Variable {
+                                label: "f",
+                                tag: Tag::from(vec![1, 0, 0])
+                            }),
+                            args: vec![Compact::Variable {
+                                label: "y",
+                                tag: Tag::from(vec![1, 0, 1, 0])
+                            }],
+                            tag: Tag::from(vec![1, 0, 1])
+                        }),
+                        tag: Tag::from(vec![1, 0])
+                    }),
+                    args: vec![Compact::Variable {
+                        label: "x",
+                        tag: Tag::from(vec![1, 1, 0])
+                    }],
+                    tag: Tag::from(vec![1, 1]),
+                }],
+                tag: Tag::from(vec![1]),
             }
         );
     }

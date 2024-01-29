@@ -1,4 +1,4 @@
-use super::Expr;
+use super::{Expr, Identifier};
 
 impl Expr {
     pub fn unapply(&self) -> (&Expr, Vec<&Expr>) {
@@ -12,21 +12,19 @@ impl Expr {
 
         (callee, args.into_iter().rev().collect())
     }
+
+    pub fn unlambda(&self) -> (Vec<&Identifier>, &Expr) {
+        let mut params: Vec<&Identifier> = Vec::new();
+        let mut body: &Expr = self;
+
+        while let Expr::Lambda { param, body: next } = body {
+            params.push(param);
+            body = next;
+        }
+
+        (params, body)
+    }
 }
-
-// // ========================================================================== //
-
-// pub struct ArgsIter<'a> {
-//     args: Vec<&'a Expr>,
-// }
-
-// impl<'a> Iterator for ArgsIter<'a> {
-//     type Item = &'a Expr;
-
-//     fn next(&mut self) -> Option<Self::Item> {
-//         self.args.pop()
-//     }
-// }
 
 // ========================================================================== //
 

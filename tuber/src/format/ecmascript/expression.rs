@@ -51,7 +51,7 @@ impl From<Compact<'_>> for Formed {
                 let body_str = Formed::from(*body).expr;
                 expr = expr + &body_str;
 
-                mapping.append(&mut vec![tag.push(0); expr.chars().count()]);
+                mapping.append(&mut vec![tag; expr.chars().count()]);
 
                 Formed { expr, mapping }
             }
@@ -251,6 +251,48 @@ mod tests {
                 /* h */ Tag::from(vec![4, 1, 0]),
                 /* ) */ Tag::from(vec![4, 1]),
                 /* ) */ Tag::from(vec![4]),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_format_5() {
+        let expr = expr::a(
+            "s",
+            expr::a(expr::l("f", expr::l("y", expr::a("f", "y"))), "x"),
+        );
+
+        let formed = format(&expr, &vec![]);
+
+        println!("{:?}", formed.expr);
+        println!("{:#?}", formed);
+
+        assert_eq!(formed.expr, "s(((f, y) => f(y))(x))");
+        assert_eq!(
+            formed.mapping,
+            vec![
+                /* s */ Tag::from(vec![0]),
+                /* ( */ Tag::from(vec![1]),
+                /* ( */ Tag::from(vec![1, 1]),
+                /* ( */ Tag::from(vec![1, 0]),
+                /* f */ Tag::from(vec![1, 0]),
+                /* , */ Tag::from(vec![1, 0]),
+                /*   */ Tag::from(vec![1, 0]),
+                /* y */ Tag::from(vec![1, 0]),
+                /* ) */ Tag::from(vec![1, 0]),
+                /*   */ Tag::from(vec![1, 0]),
+                /* = */ Tag::from(vec![1, 0]),
+                /* > */ Tag::from(vec![1, 0]),
+                /*   */ Tag::from(vec![1, 0]),
+                /* f */ Tag::from(vec![1, 0]),
+                /* ( */ Tag::from(vec![1, 0]),
+                /* y */ Tag::from(vec![1, 0]),
+                /* ) */ Tag::from(vec![1, 0]),
+                /* ) */ Tag::from(vec![1, 1]),
+                /* ( */ Tag::from(vec![1, 1]),
+                /* x */ Tag::from(vec![1, 1, 0]),
+                /* ) */ Tag::from(vec![1, 1]),
+                /* ) */ Tag::from(vec![1]),
             ]
         );
     }
