@@ -264,6 +264,24 @@ main > #output li:not(:last-child) {
   border-bottom: 1px solid #ececf1;
 }
 
+/* ========================================================================== */
+
+main > #output li code > .code-next,
+main > #output li code > .code-reduced {
+  display: none;
+}
+
+main > #output li:hover code > .code-raw,
+main > #output li:hover + li code > .code-raw {
+  display: none;
+}
+main > #output li:hover code > .code-next {
+  display: inline;
+}
+main > #output li:hover + li code > .code-reduced {
+  display: inline;
+}
+
 span.next {
   outline: 1px solid lightgray;
   outline-offset: 1px;
