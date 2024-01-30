@@ -1,7 +1,10 @@
+import { highlightNext, highlightReduced } from './highlight.js';
+
 const outputBox = document.querySelector('#output');
 
 /**
  * @param {string} expr
+ * @param {string} next
  * @returns {HTMLOListElement}
  */
 export function displayEvalInit(expr, next) {
@@ -11,13 +14,21 @@ export function displayEvalInit(expr, next) {
 
   {
     const li = document.createElement('li');
+    const code = document.createElement('code');
+
+    const spanRaw = document.createElement('span');
+    spanRaw.classList.add('code-raw');
+    spanRaw.textContent = expr;
+    code.appendChild(spanRaw);
 
     if (next) {
       li.setAttribute('data-next', next);
-    }
 
-    const code = document.createElement('code');
-    code.textContent = expr;
+      const spanNext = document.createElement('span');
+      spanNext.classList.add('code-next');
+      spanNext.appendChild(highlightNext(expr, next));
+      code.appendChild(spanNext);
+    }
 
     li.appendChild(code);
     ol.appendChild(li);
@@ -34,17 +45,30 @@ export function displayEvalInit(expr, next) {
 export function displayEval(ol, expr, reduced, next) {
   {
     const li = document.createElement('li');
+    const code = document.createElement('code');
+
+    const spanRaw = document.createElement('span');
+    spanRaw.classList.add('code-raw');
+    spanRaw.textContent = expr;
+    code.appendChild(spanRaw);
 
     if (reduced) {
       li.setAttribute('data-reduced', reduced);
+
+      const spanReduced = document.createElement('span');
+      spanReduced.classList.add('code-reduced');
+      spanReduced.appendChild(highlightReduced(expr, reduced));
+      code.appendChild(spanReduced);
     }
 
     if (next) {
       li.setAttribute('data-next', next);
-    }
 
-    const code = document.createElement('code');
-    code.textContent = expr;
+      const spanNext = document.createElement('span');
+      spanNext.classList.add('code-next');
+      spanNext.appendChild(highlightNext(expr, next));
+      code.appendChild(spanNext);
+    }
 
     li.appendChild(code);
     ol.appendChild(li);

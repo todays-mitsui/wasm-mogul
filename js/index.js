@@ -26,8 +26,6 @@ async function main() {
   });
 
   implant(module);
-
-  document.body.addEventListener('mouseover', onMouseOver);
 }
 
 /**
