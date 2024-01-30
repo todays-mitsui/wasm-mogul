@@ -28,11 +28,6 @@ export function displayEvalInit(expr, next) {
       spanNext.classList.add('code-next');
       spanNext.appendChild(highlightNext(expr, next));
       code.appendChild(spanNext);
-    } else {
-      const spanNext = document.createElement('span');
-      spanNext.classList.add('code-next');
-      spanNext.textContent = expr;
-      code.appendChild(spanNext);
     }
 
     li.appendChild(code);
@@ -72,11 +67,6 @@ export function displayEval(ol, expr, reduced, next) {
       const spanNext = document.createElement('span');
       spanNext.classList.add('code-next');
       spanNext.appendChild(highlightNext(expr, next));
-      code.appendChild(spanNext);
-    } else {
-      const spanNext = document.createElement('span');
-      spanNext.classList.add('code-next');
-      spanNext.textContent = expr;
       code.appendChild(spanNext);
     }
 

@@ -271,7 +271,9 @@ main > #output li code > .code-reduced {
   display: none;
 }
 
-main > #output li:hover code > .code-raw,
+main > #output li:has(.code-next):hover code > .code-raw {
+  display: none;
+}
 main > #output li:hover + li code > .code-raw {
   display: none;
 }
