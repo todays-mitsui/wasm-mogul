@@ -1,57 +1,11 @@
 /**
- * @param {Event} event
- * @returns {void}
+ * @param {string} rawCode
+ * @param {string} rangesStr
+ * @returns {DocumentFragment}
  */
-export function onMouseOver(event) {
-  const hovered = event.target;
-
-  if (
-    !(hovered instanceof HTMLLIElement)
-    || !(hovered.parentElement instanceof HTMLOListElement)
-    || !hovered.parentElement.classList.contains('eval')
-  ) { return; }
-
-  const sibling = hovered.nextElementSibling;
-  if (!(sibling instanceof HTMLLIElement)) { return; }
-
-  highlight(hovered, sibling);
-}
-
-/**
- * @param {HTMLLIElement} hovered
- * @param {HTMLLIElement} sibling
- * @returns {void}
- */
-function highlight(hovered, sibling) {
-  const unHighlightNext = highlightNext(hovered);
-  const unHighlightReduced = highlightReduced(sibling);
-
-  const onMouseLeave = () => {
-    if (unHighlightNext && typeof unHighlightNext === 'function') {
-      unHighlightNext();
-    }
-    if (unHighlightReduced && typeof unHighlightReduced === 'function') {
-      unHighlightReduced();
-    }
-    hovered.removeEventListener('mouseleave', onMouseLeave);
-  };
-
-  hovered.addEventListener('mouseleave', onMouseLeave);
-}
-
-/**
- * @param {HTMLElement} elem
- * @returns {() => void}
- */
-function highlightNext(elem) {
-  const rangesStr = elem.dataset.next;
-  if (!rangesStr) { return; }
-
+export function highlightNext(rawCode, rangesStr) {
   const ranges = parseRanges(rangesStr);
   const entire = ranges.shift();
-
-  const code = elem.querySelector('code');
-  const rawCode = code.textContent;
 
   const [before, subCode, after] = strSplits(rawCode, entire);
 
@@ -71,41 +25,22 @@ function highlightNext(elem) {
   fragment.appendChild(span);
   fragment.appendChild(document.createTextNode(after))
 
-  code.innerHTML = '';
-  code.appendChild(fragment);
-
-  return () => {
-    code.innerHTML = '';
-    code.textContent = rawCode;
-  };
+  return fragment;
 }
 
 /**
- * @param {HTMLElement} elem
- * @returns {() => void}
+ * @param {string} rawCode
+ * @param {string} rangesStr
+ * @returns {DocumentFragment}
  */
-function highlightReduced(elem) {
-  const rangesStr = elem.dataset.reduced;
-  if (!rangesStr) { return; }
-
+export function highlightReduced(rawCode, rangesStr) {
   const ranges = parseRanges(rangesStr);
 
-  const code = elem.querySelector('code');
-  const rawCode = code.textContent;
-
-  const parts = wrapParts(
+  return wrapParts(
     (_index, text) => wrap(text, 'reduced'),
     rawCode,
     ranges,
   );
-
-  code.innerHTML = '';
-  code.appendChild(parts);
-
-  return () => {
-    code.innerHTML = '';
-    code.textContent = rawCode;
-  };
 }
 
 /**
