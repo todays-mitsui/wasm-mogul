@@ -17,15 +17,17 @@ hero:
       icon: github
 ---
 
+import RunnerLink from '../../components/RunnerLink.astro';
+
 ## これは何？
 
 Tuber は型無しラムダ計算をステップごとに簡約するインタプリタです。
-Tuber は Rust で実装されたライブラリであり、Web ブラウザから実行可能なインターフェースとして [ski Mogul](https://mogul-lang.mudatobunka.org/) があります。
+Tuber は Rust で実装されたライブラリであり、Web ブラウザから実行可能なインターフェースとして [skiMogul](https://mogul-lang.mudatobunka.org/) があります。
 
 型無しラムダ計算はチューリング完全であることが知られています。
 例えば Tuber を使って `2 + 3 == 5 → true` を確かめると以下のようなステップが表示されます。
 
-https://mogul-lang.mudatobunka.org/?run=EQ(ADD(2,3),5)
+<RunnerLink run="EQ(ADD(2, 3), 5)" />
 
 <div class="ski-mogul-result scroll">
 ```
