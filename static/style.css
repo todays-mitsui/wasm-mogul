@@ -143,6 +143,9 @@ main > nav .inner h2 {
 #settings fieldset {
   border: none;
 }
+#settings fieldset:not(:first-child) {
+  margin-top: 8px;
+}
 #settings legend {
   font-size: .9rem;
   font-weight: 500;
@@ -166,6 +169,14 @@ main > nav .inner h2 {
   font-weight: 500;
   border-radius: 4px;
   background-color: #ddd;
+}
+
+#settings ul {
+  margin-top: .4em;
+  padding-left: .4em;
+}
+#settings li:not(:first-child) {
+  margin-top: .4em;
 }
 
 /* ========================================================================== */
@@ -370,4 +381,22 @@ main > #input::before {
   font-size: 1.1em;
   line-height: 1;
   pointer-events: none;
+}
+
+/* ========================================================================== */
+
+button {
+  appearance: none;
+  border: none;
+  background: none;
+
+  padding: .2em .6em;
+  font-size: .9rem;
+  font-weight: 600;
+  border: 1px solid #bababa;
+  border-radius: 4px;
+  background-color: #fafafa;
+}
+button:hover {
+  background-color: #ececf1;
 }
