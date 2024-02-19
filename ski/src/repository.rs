@@ -28,7 +28,9 @@ pub fn get_context() -> Result<Context> {
     for command in get_func_history()?.into_iter() {
         match command {
             Command::Update(func) => context.def(func),
-            Command::Del(id) => context.del(&id),
+            Command::Del(id) => {
+                context.del(&id);
+            }
             _ => unreachable!(),
         }
     }

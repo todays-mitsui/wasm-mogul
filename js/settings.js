@@ -48,7 +48,7 @@ function resetContext(module) {
       const context = new module.Context();
       context.reset();
       updateContext(module);
-      alert('Context が初期状態に戻されました')
+      alert('Context が初期状態に戻されました');
     }
   }
 }
@@ -57,6 +57,10 @@ function clearContext(module) {
   return () => {
     console.log('resetContext');
     if (confirm('Context に登録された全ての Function が削除されます。よろしいですか？')) {
+      const context = new module.Context();
+      context.deleteAll();
+      updateContext(module);
+      alert('Context に登録された全ての Function が削除されました');
     }
   }
 }

@@ -52,6 +52,14 @@ impl JsContext {
     pub fn reset(&self) -> Result<(), JsError> {
         clear_history().map_err(|err| JsError::new(err.to_string().as_str()))
     }
+
+    #[wasm_bindgen(js_name = deleteAll)]
+    pub fn delete_all(&mut self) -> Result<(), JsError> {
+        for (id, _) in self.0.iter() {
+            push_history_del(id).map_err(|err| JsError::new(err.to_string().as_str()))?;
+        }
+        Ok(())
+    }
 }
 
 impl From<Context> for JsContext {
