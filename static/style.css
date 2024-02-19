@@ -278,15 +278,11 @@ main > #output li:not(:last-child) {
 
 /* ========================================================================== */
 
-main > #output li code > .code-next,
 main > #output li code > .code-reduced {
   display: none;
 }
 
-main > #output li:has(.code-next):hover code > .code-raw {
-  display: none;
-}
-main > #output li:hover + li code > .code-raw {
+main > #output li:hover + li code > .code-next {
   display: none;
 }
 main > #output li:hover code > .code-next {
@@ -296,25 +292,25 @@ main > #output li:hover + li code > .code-reduced {
   display: inline;
 }
 
-span.next {
+li:hover span.next {
   outline: 1px solid lightgray;
   outline-offset: 1px;
 }
-span.callee {
+li:hover span.callee {
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-decoration-color: red;
   text-decoration-skip-ink: none;
 }
-span.argument {
+li:hover span.argument {
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-decoration-skip-ink: none;
 }
-span.argument:nth-child(odd) {
+li:hover span.argument:nth-child(odd) {
   text-decoration-color: green;
 }
-span.argument:nth-child(even) {
+li:hover span.argument:nth-child(even) {
   text-decoration-color: blue;
 }
 

@@ -16,11 +16,6 @@ export function displayEvalInit(expr, next) {
     const li = document.createElement('li');
     const code = document.createElement('code');
 
-    const spanRaw = document.createElement('span');
-    spanRaw.classList.add('code-raw');
-    spanRaw.textContent = expr;
-    code.appendChild(spanRaw);
-
     if (next) {
       li.setAttribute('data-next', next);
 
@@ -46,11 +41,6 @@ export function displayEval(ol, expr, reduced, next) {
   {
     const li = document.createElement('li');
     const code = document.createElement('code');
-
-    const spanRaw = document.createElement('span');
-    spanRaw.classList.add('code-raw');
-    spanRaw.textContent = expr;
-    code.appendChild(spanRaw);
 
     if (reduced) {
       li.setAttribute('data-reduced', reduced);
