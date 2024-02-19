@@ -1,5 +1,6 @@
 import { displayEvalInit, displayEval, displayUpdate, displayDelete, displayUnlambda, displayCodeList, displayParseError } from './display.js';
 import { showLoader, hideLoader } from './loader.js';
+import { updateContext } from './updateContext.js';
 
 const STEP_LIMIT = 2000;
 
@@ -47,6 +48,7 @@ export async function run(module, src, outputBox) {
     } break;
 
     case 'update': {
+      console.log(module);
       const func = exec.input;
       const context = exec.updateResult;
       console.info({ func, context: context.getAll().map(func => func.format(displayStyle)) });

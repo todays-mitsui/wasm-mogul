@@ -28,7 +28,9 @@ pub fn get_context() -> Result<Context> {
     for command in get_func_history()?.into_iter() {
         match command {
             Command::Update(func) => context.def(func),
-            Command::Del(id) => context.del(&id),
+            Command::Del(id) => {
+                context.del(&id);
+            }
             _ => unreachable!(),
         }
     }
@@ -86,6 +88,14 @@ pub fn push_history_del(id: &Identifier) -> Result<()> {
 
     storage
         .set_item(KEY_FUNC_HISTORY, history_string.as_str())
+        .map_err(|err| anyhow!("Failed to set func history to localStorage: {:?}", err))
+}
+
+pub fn clear_history() -> Result<()> {
+    let storage = local_storage()?;
+
+    storage
+        .set_item(KEY_FUNC_HISTORY, "")
         .map_err(|err| anyhow!("Failed to set func history to localStorage: {:?}", err))
 }
 

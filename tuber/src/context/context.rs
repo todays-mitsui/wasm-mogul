@@ -22,8 +22,9 @@ impl Context {
         self.0.insert(func.name().into(), func);
     }
 
-    pub fn del(&mut self, id: &Identifier) {
+    pub fn del(&mut self, id: &Identifier) -> &mut Self {
         self.0.remove(id);
+        self
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&Identifier, &Func)> {
