@@ -89,6 +89,14 @@ pub fn push_history_del(id: &Identifier) -> Result<()> {
         .map_err(|err| anyhow!("Failed to set func history to localStorage: {:?}", err))
 }
 
+pub fn clear_history() -> Result<()> {
+    let storage = local_storage()?;
+
+    storage
+        .set_item(KEY_FUNC_HISTORY, "")
+        .map_err(|err| anyhow!("Failed to set func history to localStorage: {:?}", err))
+}
+
 // ========================================================================== //
 
 // #[cfg(test)]

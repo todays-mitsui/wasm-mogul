@@ -1,7 +1,7 @@
 import { updateContext } from './updateContext.js';
 
 /**
- * @param {{ context: () => string[] }} module
+ * @param {{ Context: Context }} module
  */
 export function initSettings(module) {
   const displayStyle = getDisplayStyle();
@@ -18,12 +18,12 @@ export function initSettings(module) {
 
   const resetButton = document.querySelector(`button[name=${KEY_RESET_CONTEXT}]`);
   if (resetButton) {
-    resetButton.addEventListener('click', resetContext);
+    resetButton.addEventListener('click', resetContext(module));
   }
 
   const clearButton = document.querySelector(`button[name=${KEY_CLEAR_CONTEXT}]`);
   if (clearButton) {
-    clearButton.addEventListener('click', clearContext);
+    clearButton.addEventListener('click', clearContext(module));
   }
 }
 
@@ -41,14 +41,22 @@ function setDisplayStyle(value) {
   strage.setItem(KEY_DISPLAY_STYLE, value);
 }
 
-function resetContext() {
-  console.log('resetContext');
-  if (confirm('Context が初期状態に戻されます。よろしいですか？')) {
+function resetContext(module) {
+  return () => {
+    console.log('resetContext');
+    if (confirm('Context が初期状態に戻されます。よろしいですか？')) {
+      const context = new module.Context();
+      context.reset();
+      updateContext(module);
+      alert('Context が初期状態に戻されました')
+    }
   }
 }
 
-function clearContext() {
-  console.log('clearContext');
-  if (confirm('Context に登録された全ての Function が削除されます。よろしいですか？')) {
+function clearContext(module) {
+  return () => {
+    console.log('resetContext');
+    if (confirm('Context に登録された全ての Function が削除されます。よろしいですか？')) {
+    }
   }
 }

@@ -1,5 +1,5 @@
 use super::{JsDisplayStyle, JsFunc};
-use crate::repository::{get_context, push_history_def, push_history_del};
+use crate::repository::{clear_history, get_context, push_history_def, push_history_del};
 use tuber::{parse_update_or_delete, Command, Context, Format};
 use wasm_bindgen::prelude::*;
 
@@ -47,6 +47,10 @@ impl JsContext {
             .map(|func| func.into())
             .collect::<Vec<_>>()
             .into_boxed_slice()
+    }
+
+    pub fn reset(&self) -> Result<(), JsError> {
+        clear_history().map_err(|err| JsError::new(err.to_string().as_str()))
     }
 }
 
