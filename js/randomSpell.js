@@ -45,6 +45,8 @@ export function initRandomSpell() {
       spell = getRandomSpell(displayStyle);
     } while (input.value === spell);
 
+    gtag('event', 'click', { event_category: 'control', event_label: 'randomSpell', spell });
+
     input.value = spell;
 
     input.dispatchEvent(new Event('input'));

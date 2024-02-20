@@ -43,24 +43,28 @@ function setDisplayStyle(value) {
 
 function resetContext(module) {
   return () => {
-    console.log('resetContext');
     if (confirm('Context が初期状態に戻されます。よろしいですか？')) {
+      gtag('event', 'click', { event_category: 'control', event_label: 'resetContext', execute: 1 });
       const context = new module.Context();
       context.reset();
       updateContext(module);
       alert('Context が初期状態に戻されました');
+    } else {
+      gtag('event', 'click', { event_category: 'control', event_label: 'resetContext', execute: 0 });
     }
   }
 }
 
 function clearContext(module) {
   return () => {
-    console.log('resetContext');
     if (confirm('Context に登録された全ての Function が削除されます。よろしいですか？')) {
+      gtag('event', 'click', { event_category: 'control', event_label: 'clearContext', execute: 1 });
       const context = new module.Context();
       context.deleteAll();
       updateContext(module);
       alert('Context に登録された全ての Function が削除されました');
+    } else {
+      gtag('event', 'click', { event_category: 'control', event_label: 'clearContext', execute: 0 });
     }
   }
 }

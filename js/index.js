@@ -35,6 +35,8 @@ async function onSubmit(module) {
   const input = document.querySelector('#input input');
   const outputBox = document.querySelector('#output');
 
+  gtag('event', 'submit', { event_category: 'execute', input: input.value });
+
   const src = input.value;
   if (!src.trim()) { return; }  // 何も入力されていないなら何もしない
 
