@@ -4,7 +4,7 @@ use tsify_next::Tsify;
 use tuber::{self, Format};
 use wasm_bindgen::prelude::*;
 
-#[derive(Tsify, Serialize, Deserialize)]
+#[derive(Tsify, Serialize, Deserialize, Debug)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub enum Expr {
     Variable { identifier: String },

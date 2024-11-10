@@ -1,8 +1,7 @@
 use super::apply::apply;
 use super::arity::arity;
 use crate::context::Context;
-use crate::expr::{self, Expr};
-use crate::expr::{Path, PathBuilder};
+use crate::expr::{self, Expr, Path, PathBuilder};
 use std::{cmp, iter, slice};
 
 #[derive(Clone, Debug, PartialEq)]

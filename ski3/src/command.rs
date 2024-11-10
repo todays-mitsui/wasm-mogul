@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::*;
 
 #[derive(Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-enum Command {
+pub enum Command {
     Delete { identifier: String },
     Update { func: Func },
     Evaluate { expr: Expr },
