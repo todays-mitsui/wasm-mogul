@@ -1,6 +1,6 @@
-use super::{JsDisplayStyle, JsFunc};
+use super::JsFunc;
 use crate::repository::{clear_history, get_context, push_history_def, push_history_del};
-use tuber::{parse_update_or_delete, Command, Context, Format};
+use tuber::{parse_update_or_delete, Command, Context};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = Context)]

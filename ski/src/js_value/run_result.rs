@@ -27,7 +27,7 @@ impl JsRunResult {
             RunResult::Update { input, .. } => input.format(&display_style),
             RunResult::Eval { input, .. } => input.format(&display_style),
             RunResult::Query { input, .. } => input.as_str().to_string(),
-            RunResult::Context { .. } => String::from(""),
+            RunResult::Context { .. } => String::from("?"),
             RunResult::Unlambda { input, .. } => input.format(&display_style),
         }
     }

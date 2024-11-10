@@ -1,4 +1,5 @@
 export function implant(module) {
+  console.log(Object.keys(module));
   const methodNames = [];
   for (const key of Object.keys(module)) {
     const methodName = module[key].toString().match(/^class /)

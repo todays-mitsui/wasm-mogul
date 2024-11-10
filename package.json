@@ -7,14 +7,19 @@
     "start": "rimraf dist pkg && webpack-dev-server --open",
     "test": "cargo test && wasm-pack test --headless",
     "docs:start": "astro dev --root ./docs",
-    "docs:build": "astro check --root ./docs && astro build --root ./docs"
+    "docs:build": "astro check --root ./docs && astro build --root ./docs",
+    "build:ski": "wasm-pack build --out-name index --out-dir pkg ski3",
+    "build:ski:watch": "watch \"npm run build:ski\" ski3/src"
   },
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "^1.7.0",
     "copy-webpack-plugin": "^11.0.0",
+    "rimraf": "^5.0.5",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.6.3",
+    "watch": "^1.0.2",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1",
-    "rimraf": "^5.0.5"
+    "webpack-dev-server": "^4.15.1"
   }
 }

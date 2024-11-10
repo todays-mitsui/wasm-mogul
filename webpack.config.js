@@ -13,6 +13,19 @@ module.exports = {
     path: dist,
     filename: "[name].js",
   },
+  // resolve: {
+  //   extensions: [".ts", ".tsx", ".js"],
+  //   extensionAlias: {
+  //     ".js": [".js", ".ts"],
+  //     ".cjs": [".cjs", ".cts"],
+  //     ".mjs": [".mjs", ".mts"]
+  //   }
+  // },
+  // module: {
+  //   rules: [
+  //     { test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }
+  //   ]
+  // },
   devServer: {
     static: {
       directory: dist,
@@ -28,6 +41,14 @@ module.exports = {
     new WasmPackPlugin({
       crateDirectory: path.resolve(__dirname, "ski"),
 
+      watchDirectories: [
+        path.resolve(__dirname, "tuber/src")
+      ],
+    }),
+
+    new WasmPackPlugin({
+      crateDirectory: path.resolve(__dirname, "ski2"),
+      extraArgs: "--target bundler --mode normal",
       watchDirectories: [
         path.resolve(__dirname, "tuber/src")
       ],
