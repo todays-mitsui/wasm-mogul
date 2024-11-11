@@ -3,11 +3,6 @@ use crate::calc;
 use crate::context::Context;
 use crate::expr::{self, Path, PathBuilder};
 
-fn reducible_path(context: &Context, expr: expr::Expr) -> Option<Path> {
-    let expr = Expr::new(context, expr);
-    expr.reducible_path(context)
-}
-
 pub struct Reducer {
     context: Context,
     step: usize,
@@ -28,6 +23,10 @@ impl Reducer {
             step: 0,
             expr,
         }
+    }
+
+    pub fn reducible_path(&self) -> Option<Path> {
+        self.expr.reducible_path(&self.context)
     }
 }
 

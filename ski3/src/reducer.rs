@@ -1,28 +1,27 @@
-use crate::context::Context;
+use crate::context::{to_tuber_context, Context};
 use crate::expression::Expr;
-use js_sys::Symbol;
 use serde::{Deserialize, Serialize};
+use serde_wasm_bindgen;
 use tsify_next::Tsify;
-use tuber::Eval;
+use tuber;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub struct Reducer(Eval);
+pub struct Reducer(tuber::Reducer);
 
 #[wasm_bindgen]
 impl Reducer {
     #[wasm_bindgen(constructor)]
-    pub fn new(context: Context, expr: Expr) -> Self {
-        let tuber_context = context.into();
+    pub fn new(context: JsValue, expr: Expr) -> Self {
+        let context: Context =
+            serde_wasm_bindgen::from_value(context).expect("Failed to parse context");
+        let tuber_context = to_tuber_context(context);
         let tuber_expr = expr.into();
-        Self(Eval::new(tuber_context, tuber_expr))
+        Self(tuber::Reducer::new(tuber_context, tuber_expr))
     }
 
-    // #[wasm_bindgen(js_name = next)]
-    // pub fn js_next(&mut self) -> JsNext {}
-
-    pub fn reducible(&self) -> bool {
-        self.0.next_path().is_some()
+    pub fn reducible_path(&self) -> Option<tuber::Path> {
+        self.0.reducible_path()
     }
 }
 

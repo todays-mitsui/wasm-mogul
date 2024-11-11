@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
-import { loadWasmModule } from '../../ski2/loadWasmModule.ts';
+import { printContext } from '../../ski3/pkg/index.js';
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
@@ -10,16 +10,16 @@ createRoot(document.getElementById("root")!).render(
 	</StrictMode>,
 );
 
-console.log({ loadWasmModule });
-
-const wasmModule = await loadWasmModule();
-console.log({ wasmModule });
-
-const { parseExpr, formatExpr } = wasmModule;
-console.log({ parseExpr, formatExpr });
-
-const expr = parseExpr("```sxyz");
-console.log({ expr });
-
-const formattedExpr = formatExpr(expr, "ECMAScript");
-console.log({ formattedExpr });
+console.log({printContext});
+console.log(printContext({
+	i: {
+		name: 'i',
+		params: [],
+		body: {Variable: {identifier: 'i'}}
+	},
+	k: {
+		name: 'k',
+		params: [ 'x', 'y' ],
+		body: {Variable: {identifier: 'x'}}
+	},
+}));

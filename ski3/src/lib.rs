@@ -4,7 +4,7 @@ mod display_style;
 mod expression;
 mod function;
 mod identifier;
-// mod reducer;
+mod reducer;
 mod utils;
 
 pub use command::{parse_command, Command};
