@@ -59,9 +59,28 @@ pub fn parse_expr(input: &str) -> Result<Expr, JsError> {
     }
 }
 
-#[wasm_bindgen(js_name = formatExpr)]
-pub fn format_expr(expr: Expr, display_style: DisplayStyle) -> String {
+#[wasm_bindgen(js_name = renderExpr)]
+pub fn render_expr(expr: Expr, display_style: DisplayStyle) -> String {
     let tuber_expr: tuber::Expr = expr.into();
     let tuber_display_style: tuber::DisplayStyle = display_style.into();
     tuber_expr.format(&tuber_display_style)
 }
+
+// #[wasm_bindgen(js_name = formatExpr)]
+// pub fn format_expr(expr: Expr, display_style: DisplayStyle) -> String {
+//     let tuber_expr: tuber::Expr = expr.into();
+//     let tuber_display_style: tuber::DisplayStyle = display_style.into();
+
+//     match tuber_display_style {
+//         tuber::DisplayStyle::EcmaScript => tuber::ecmascript_format(&tuber_expr),
+//         tuber::DisplayStyle::LazyK => tuber_expr.format(&tuber_display_style),
+//     }
+
+//     tuber_expr.format(&tuber_display_style)
+// }
+
+// struct FormatOption {
+//     display_style: DisplayStyle,
+//     reducible_path: tuber::Path,
+//     splits: Vec<tuber::Path>,
+// }

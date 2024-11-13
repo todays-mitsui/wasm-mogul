@@ -24,6 +24,7 @@ impl From<tuber::Context> for Context {
 impl From<Context> for tuber::Context {
     fn from(ski_context: Context) -> tuber::Context {
         ski_context
+            .0
             .into_iter()
             .map(|(id, func)| (id.into(), func.into()))
             .collect::<HashMap<tuber::Identifier, tuber::Func>>()
