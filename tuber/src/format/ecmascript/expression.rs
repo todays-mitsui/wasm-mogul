@@ -4,7 +4,7 @@ use super::super::tag::Tag;
 use crate::expr::Expr;
 use crate::expr::Path;
 
-pub fn format(expr: &Expr, splits: &[Path]) -> Formed {
+pub fn format(expr: &Expr, splits: &[&Path]) -> Formed {
     Compact::from(expr).reform(splits).into()
 }
 

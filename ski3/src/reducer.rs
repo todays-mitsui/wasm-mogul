@@ -2,7 +2,7 @@ use crate::context::Context;
 use crate::expression::Expr;
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
-use tuber::{self, ecmascript_format, lazy_k_format, Format};
+use tuber::{self, ecmascript_format, lazy_k_format, Format, Tag};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -29,7 +29,15 @@ impl Reducer {
         let tuber_reduce_result = self.0.next();
         JsNext {
             done: tuber_reduce_result.is_none(),
-            value: tuber_reduce_result.map(|result| result.into()),
+            value: tuber_reduce_result.map(|result| {
+                ReduceResult::new(
+                    result.step,
+                    result.expr.into(),
+                    result.reduced_path,
+                    self.0.reducible_path(),
+                    tuber::DisplayStyle::EcmaScript,
+                )
+            }),
         }
     }
 
@@ -39,8 +47,8 @@ impl Reducer {
     }
 }
 
-#[derive(Tsify, Serialize, Deserialize)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
+#[derive(Tsify, Serialize)]
+#[tsify(into_wasm_abi)]
 struct JsNext {
     done: bool,
     value: Option<ReduceResult>,
@@ -54,7 +62,7 @@ struct ReduceResult {
     step: usize,
     expr: Expr,
     reduced_path: Path,
-    reducible_path: Option<tuber::Path>,
+    reducible_path: Option<Path>,
     formed: Formed,
 }
 
@@ -66,12 +74,12 @@ impl ReduceResult {
         reducible_path: Option<tuber::Path>,
         display_style: tuber::DisplayStyle,
     ) -> Result<Self, Error> {
-        let formed = format_expr(&expr, reduced_path, reducible_path, display_style)?;
+        let formed = format_expr(&expr, &reduced_path, &reducible_path, display_style)?;
         Ok(Self {
             step,
             expr: expr.into(),
             reduced_path: Path::from(&reduced_path),
-            reducible_path,
+            reducible_path: reducible_path.map(|path| Path::from(&path)),
             formed,
         })
     }
@@ -89,10 +97,18 @@ struct Formed {
 #[tsify(into_wasm_abi, from_wasm_abi)]
 struct Range(std::ops::Range<usize>);
 
+#[derive(Tsify, Serialize, Deserialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+struct ReducibleRange {
+    entire: Range,
+    callee: Range,
+    args: Vec<Range>,
+}
+
 fn format_expr(
     expr: &tuber::Expr,
-    reduced_path: tuber::Path,           // &tuber::Path にしたい
-    reducible_path: Option<tuber::Path>, // Option<&tuber::Path> にしたい
+    reduced_path: &tuber::Path,
+    reducible_path: &Option<tuber::Path>,
     display_style: tuber::DisplayStyle,
 ) -> Result<Formed, Error> {
     let mut paths = vec![reduced_path];
@@ -108,12 +124,58 @@ fn format_expr(
     let reduced_range =
         reduced_path_to_range(&formed.mapping, &reduced_path).ok_or(Error::InvalidRange)?;
     let reducible_range =
-        reducible_path.and_then(|path| next_path_to_range(&formed.mapping, &path));
+        reducible_path.and_then(|path| reduciblePath_path_to_range(&formed.mapping, &path));
 
     Ok(Formed {
         expr: formed.expr,
         reduced_range,
         reducible_range,
+    })
+}
+
+fn reduced_path_to_range(mapping: &[Tag], path: &tuber::Path) -> Result<Range, Error> {
+    path.range(mapping).ok_or(Error::InvalidRange)?.into()
+}
+
+fn reduciblePath_path_to_range(
+    mapping: &[Tag],
+    path: &tuber::Path,
+) -> Result<ReducibleRange, Error> {
+    let arity: usize = path.get_arity();
+
+    let mut callee_path = path.clone();
+    callee_path.set_arity(0);
+
+    let args_path = (0..arity).map(|index| {
+        let mut path = path.clone();
+        path.set_arity(index + 1);
+        path.last_arg();
+        path
+    });
+
+    let entire = path
+        .range(mapping)
+        .ok_or(Error::InvalidRange) // Tuber 側で Error 返すようにしたほうがいい
+        .map(|range| range.into())?;
+
+    let callee = callee_path
+        .range(mapping)
+        .ok_or(Error::InvalidRange)
+        .map(|range| range.into())?;
+
+    let mut args = Vec::new();
+    for arg_path in args_path {
+        let arg_range = arg_path
+            .range(mapping)
+            .ok_or(Error::InvalidRange)
+            .map(|range| range.into())?;
+        args.push(arg_range);
+    }
+
+    Ok(ReducibleRange {
+        entire,
+        callee,
+        args,
     })
 }
 
