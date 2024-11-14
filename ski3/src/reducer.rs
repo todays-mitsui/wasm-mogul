@@ -2,7 +2,7 @@ use crate::context::Context;
 use crate::expression::Expr;
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
-use tuber::{self, Format};
+use tuber::{self, ecmascript_format, lazy_k_format, Format};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -26,11 +26,16 @@ impl Reducer {
 
     #[wasm_bindgen(js_name = next)]
     pub fn js_next(&mut self) -> JsNext {
-        let next = self.0.next();
+        let tuber_reduce_result = self.0.next();
         JsNext {
-            done: next.is_none(),
-            value: next.map(|result| result.into()),
+            done: tuber_reduce_result.is_none(),
+            value: tuber_reduce_result.map(|result| result.into()),
         }
+    }
+
+    #[wasm_bindgen(js_name = hasNext)]
+    pub fn has_next(&self) -> bool {
+        self.reducible_path().is_some()
     }
 }
 
@@ -43,33 +48,76 @@ struct JsNext {
 
 // ========================================================================== //
 
-#[derive(Tsify, Serialize, Deserialize)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
+#[derive(Tsify, Serialize)]
+#[tsify(into_wasm_abi)]
 struct ReduceResult {
     step: usize,
     expr: Expr,
-    reduced_path: String,
+    reduced_path: Path,
+    reducible_path: Option<tuber::Path>,
+    formed: Formed,
 }
 
-impl From<tuber::ReduceResult> for ReduceResult {
-    fn from(result: tuber::ReduceResult) -> Self {
-        Self {
-            step: result.step,
-            expr: result.expr.into(),
-            reduced_path: "".to_string(), //result.reduced_path.to_string(),
-        }
+impl ReduceResult {
+    fn new(
+        step: usize,
+        expr: tuber::Expr,
+        reduced_path: tuber::Path,
+        reducible_path: Option<tuber::Path>,
+        display_style: tuber::DisplayStyle,
+    ) -> Result<Self, Error> {
+        let formed = format_expr(&expr, reduced_path, reducible_path, display_style)?;
+        Ok(Self {
+            step,
+            expr: expr.into(),
+            reduced_path: Path::from(&reduced_path),
+            reducible_path,
+            formed,
+        })
     }
 }
 
-// impl From<ReduceResult> for tuber::ReduceResult {
-//     fn from(result: ReduceResult) -> Self {
-//         Self {
-//             step: result.step,
-//             expr: result.expr.into(),
-//             reduced_path: result.reduced_path.into(),
-//         }
-//     }
-// }
+#[derive(Tsify, Serialize)]
+#[tsify(into_wasm_abi)]
+struct Formed {
+    expr: String,
+    reduced_range: Range,
+    reducible_range: Option<Range>,
+}
+
+#[derive(Tsify, Serialize, Deserialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+struct Range(std::ops::Range<usize>);
+
+fn format_expr(
+    expr: &tuber::Expr,
+    reduced_path: tuber::Path,           // &tuber::Path にしたい
+    reducible_path: Option<tuber::Path>, // Option<&tuber::Path> にしたい
+    display_style: tuber::DisplayStyle,
+) -> Result<Formed, Error> {
+    let mut paths = vec![reduced_path];
+    if let Some(reducible_path) = reducible_path {
+        paths.push(reducible_path);
+    }
+
+    let formed = match display_style {
+        DisplayStyle::EcmaScript => ecmascript_format(expr, &paths),
+        DisplayStyle::LazyK => lazy_k_format(expr),
+    };
+
+    let reduced_range =
+        reduced_path_to_range(&formed.mapping, &reduced_path).ok_or(Error::InvalidRange)?;
+    let reducible_range =
+        reducible_path.and_then(|path| next_path_to_range(&formed.mapping, &path));
+
+    Ok(Formed {
+        expr: formed.expr,
+        reduced_range,
+        reducible_range,
+    })
+}
+
+// ========================================================================== //
 
 #[derive(Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
@@ -103,5 +151,17 @@ impl From<&Path> for tuber::Path {
             path = tuber::Path::Arg(*index, Box::new(path));
         }
         path
+    }
+}
+
+impl From<tuber::Path> for Path {
+    fn from(tuber_path: tuber::Path) -> Self {
+        tuber_path.into()
+    }
+}
+
+impl From<Path> for tuber::Path {
+    fn from(ski_path: Path) -> Self {
+        ski_path.into()
     }
 }
