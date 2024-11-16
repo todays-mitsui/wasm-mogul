@@ -25,20 +25,24 @@ impl Reducer {
     }
 
     #[wasm_bindgen(js_name = next)]
-    pub fn js_next(&mut self) -> JsNext {
+    pub fn js_next(&mut self) -> Result<NextResult, JsError> {
         let tuber_reduce_result = self.0.next();
-        JsNext {
-            done: tuber_reduce_result.is_none(),
-            value: tuber_reduce_result.map(|result| {
-                ReduceResult::new(
-                    result.step,
-                    result.expr.into(),
-                    result.reduced_path,
-                    self.0.reducible_path(),
-                    tuber::DisplayStyle::EcmaScript,
-                )
-            }),
-        }
+
+        let ski_reduce_result = match tuber_reduce_result {
+            Some(result) => Some(ReduceResult::new(
+                result.step,
+                result.expr.clone(),
+                result.reduced_path.clone(),
+                self.0.reducible_path(),
+                tuber::DisplayStyle::EcmaScript,
+            )?),
+            None => None,
+        };
+
+        Ok(NextResult {
+            done: ski_reduce_result.is_none(),
+            value: ski_reduce_result,
+        })
     }
 
     #[wasm_bindgen(js_name = hasNext)]
@@ -49,7 +53,7 @@ impl Reducer {
 
 #[derive(Tsify, Serialize)]
 #[tsify(into_wasm_abi)]
-struct JsNext {
+struct NextResult {
     done: bool,
     value: Option<ReduceResult>,
 }
@@ -73,7 +77,7 @@ impl ReduceResult {
         reduced_path: tuber::Path,
         reducible_path: Option<tuber::Path>,
         display_style: tuber::DisplayStyle,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, JsError> {
         let formed = format_expr(&expr, &reduced_path, &reducible_path, display_style)?;
         Ok(Self {
             step,
@@ -90,12 +94,24 @@ impl ReduceResult {
 struct Formed {
     expr: String,
     reduced_range: Range,
-    reducible_range: Option<Range>,
+    reducible_range: Option<ReducibleRange>,
 }
 
 #[derive(Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 struct Range(std::ops::Range<usize>);
+
+impl From<std::ops::Range<usize>> for Range {
+    fn from(range: std::ops::Range<usize>) -> Self {
+        Range(range)
+    }
+}
+
+impl From<Range> for std::ops::Range<usize> {
+    fn from(range: Range) -> Self {
+        range.0
+    }
+}
 
 #[derive(Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
@@ -110,21 +126,25 @@ fn format_expr(
     reduced_path: &tuber::Path,
     reducible_path: &Option<tuber::Path>,
     display_style: tuber::DisplayStyle,
-) -> Result<Formed, Error> {
+) -> Result<Formed, JsError> {
     let mut paths = vec![reduced_path];
     if let Some(reducible_path) = reducible_path {
         paths.push(reducible_path);
     }
 
     let formed = match display_style {
-        DisplayStyle::EcmaScript => ecmascript_format(expr, &paths),
-        DisplayStyle::LazyK => lazy_k_format(expr),
+        tuber::DisplayStyle::EcmaScript => ecmascript_format(expr, &paths),
+        tuber::DisplayStyle::LazyK => lazy_k_format(expr),
     };
 
-    let reduced_range =
-        reduced_path_to_range(&formed.mapping, &reduced_path).ok_or(Error::InvalidRange)?;
-    let reducible_range =
-        reducible_path.and_then(|path| reduciblePath_path_to_range(&formed.mapping, &path));
+    let reduced_range = reduced_path_to_range(&formed.mapping, &reduced_path)?;
+    let reducible_range = match reducible_path {
+        None => None,
+        Some(reducible_path) => Some(reduciblePath_path_to_range(
+            &formed.mapping,
+            reducible_path,
+        )?),
+    };
 
     Ok(Formed {
         expr: formed.expr,
@@ -133,14 +153,17 @@ fn format_expr(
     })
 }
 
-fn reduced_path_to_range(mapping: &[Tag], path: &tuber::Path) -> Result<Range, Error> {
-    path.range(mapping).ok_or(Error::InvalidRange)?.into()
+fn reduced_path_to_range(mapping: &[Tag], path: &tuber::Path) -> Result<Range, JsError> {
+    match path.range(mapping) {
+        Some(range) => Ok(range.into()),
+        None => Err(JsError::new("InvalidRange")),
+    }
 }
 
 fn reduciblePath_path_to_range(
     mapping: &[Tag],
     path: &tuber::Path,
-) -> Result<ReducibleRange, Error> {
+) -> Result<ReducibleRange, JsError> {
     let arity: usize = path.get_arity();
 
     let mut callee_path = path.clone();
@@ -155,19 +178,19 @@ fn reduciblePath_path_to_range(
 
     let entire = path
         .range(mapping)
-        .ok_or(Error::InvalidRange) // Tuber 側で Error 返すようにしたほうがいい
+        .ok_or(JsError::new("InvalidRange")) // Tuber 側で JsError 返すようにしたほうがいい
         .map(|range| range.into())?;
 
     let callee = callee_path
         .range(mapping)
-        .ok_or(Error::InvalidRange)
+        .ok_or(JsError::new("InvalidRange"))
         .map(|range| range.into())?;
 
     let mut args = Vec::new();
     for arg_path in args_path {
         let arg_range = arg_path
             .range(mapping)
-            .ok_or(Error::InvalidRange)
+            .ok_or(JsError::new("InvalidRange"))
             .map(|range| range.into())?;
         args.push(arg_range);
     }
