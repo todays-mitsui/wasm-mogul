@@ -60,9 +60,10 @@ pub fn parse_expr(input: &str) -> Result<Expr, JsError> {
 }
 
 #[wasm_bindgen(js_name = renderExpr)]
-pub fn render_expr(expr: Expr, display_style: DisplayStyle) -> String {
+#[allow(non_snake_case)]
+pub fn render_expr(expr: Expr, displayStyle: DisplayStyle) -> String {
     let tuber_expr: tuber::Expr = expr.into();
-    let tuber_display_style: tuber::DisplayStyle = display_style.into();
+    let tuber_display_style: tuber::DisplayStyle = displayStyle.into();
     tuber_expr.format(&tuber_display_style)
 }
 
