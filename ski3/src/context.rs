@@ -31,3 +31,10 @@ impl From<Context> for tuber::Context {
             .into()
     }
 }
+
+// ========================================================================== //
+
+#[wasm_bindgen(js_name = defaultContext)]
+pub fn default_context() -> Context {
+    Context::from(tuber::Context::default())
+}

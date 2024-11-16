@@ -8,7 +8,8 @@ mod reducer;
 mod utils;
 
 pub use command::{parse_command, Command};
-pub use context::Context;
+pub use context::{default_context, Context};
 pub use display_style::DisplayStyle;
 pub use expression::{parse_expr, render_expr, Expr};
 pub use function::Func;
+pub use utils::set_panic_hook;

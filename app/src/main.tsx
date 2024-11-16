@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
-import { printContext } from '../../ski3/pkg/index.js';
+import { defaultContext, parseExpr, Reducer } from '../../ski3/pkg/index.js';
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
@@ -10,16 +10,19 @@ createRoot(document.getElementById("root")!).render(
 	</StrictMode>,
 );
 
-console.log({printContext});
-console.log(printContext({
-	i: {
-		name: 'i',
-		params: [],
-		body: {Variable: {identifier: 'i'}}
-	},
-	k: {
-		name: 'k',
-		params: [ 'x', 'y' ],
-		body: {Variable: {identifier: 'x'}}
-	},
-}));
+const context = defaultContext();
+console.log(context);
+Object.defineProperty(window, 'mogulContext', {
+  value: context,
+  writable: false,
+});
+
+Object.defineProperty(window, 'mogulParseExpr', {
+  value: parseExpr,
+  writable: false,
+});
+
+Object.defineProperty(window, 'MogulReducer', {
+  value: Reducer,
+  writable: false,
+});

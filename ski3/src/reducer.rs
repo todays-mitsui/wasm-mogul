@@ -2,7 +2,7 @@ use crate::context::Context;
 use crate::expression::Expr;
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
-use tuber::{self, ecmascript_format, lazy_k_format, Format, Tag};
+use tuber::{self, ecmascript_format, lazy_k_format, Tag};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -25,7 +25,7 @@ impl Reducer {
     }
 
     #[wasm_bindgen(js_name = next)]
-    pub fn js_next(&mut self) -> Result<NextResult, JsError> {
+    pub fn js_next(&mut self) -> Result<IteratorResult, JsError> {
         let tuber_reduce_result = self.0.next();
 
         let ski_reduce_result = match tuber_reduce_result {
@@ -39,7 +39,7 @@ impl Reducer {
             None => None,
         };
 
-        Ok(NextResult {
+        Ok(IteratorResult {
             done: ski_reduce_result.is_none(),
             value: ski_reduce_result,
         })
@@ -53,7 +53,7 @@ impl Reducer {
 
 #[derive(Tsify, Serialize)]
 #[tsify(into_wasm_abi)]
-struct NextResult {
+pub struct IteratorResult {
     done: bool,
     value: Option<ReduceResult>,
 }
@@ -62,6 +62,7 @@ struct NextResult {
 
 #[derive(Tsify, Serialize)]
 #[tsify(into_wasm_abi)]
+#[serde(rename_all = "camelCase")]
 struct ReduceResult {
     step: usize,
     expr: Expr,
@@ -91,24 +92,25 @@ impl ReduceResult {
 
 #[derive(Tsify, Serialize)]
 #[tsify(into_wasm_abi)]
+#[serde(rename_all = "camelCase")]
 struct Formed {
     expr: String,
-    reduced_range: Range,
+    reduced_range: ExprRange,
     reducible_range: Option<ReducibleRange>,
 }
 
 #[derive(Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-struct Range(std::ops::Range<usize>);
+struct ExprRange(std::ops::Range<usize>);
 
-impl From<std::ops::Range<usize>> for Range {
+impl From<std::ops::Range<usize>> for ExprRange {
     fn from(range: std::ops::Range<usize>) -> Self {
-        Range(range)
+        Self(range)
     }
 }
 
-impl From<Range> for std::ops::Range<usize> {
-    fn from(range: Range) -> Self {
+impl From<ExprRange> for std::ops::Range<usize> {
+    fn from(range: ExprRange) -> Self {
         range.0
     }
 }
@@ -116,9 +118,9 @@ impl From<Range> for std::ops::Range<usize> {
 #[derive(Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 struct ReducibleRange {
-    entire: Range,
-    callee: Range,
-    args: Vec<Range>,
+    entire: ExprRange,
+    callee: ExprRange,
+    args: Vec<ExprRange>,
 }
 
 fn format_expr(
@@ -140,7 +142,7 @@ fn format_expr(
     let reduced_range = reduced_path_to_range(&formed.mapping, &reduced_path)?;
     let reducible_range = match reducible_path {
         None => None,
-        Some(reducible_path) => Some(reduciblePath_path_to_range(
+        Some(reducible_path) => Some(reducible_path_path_to_range(
             &formed.mapping,
             reducible_path,
         )?),
@@ -153,14 +155,14 @@ fn format_expr(
     })
 }
 
-fn reduced_path_to_range(mapping: &[Tag], path: &tuber::Path) -> Result<Range, JsError> {
+fn reduced_path_to_range(mapping: &[Tag], path: &tuber::Path) -> Result<ExprRange, JsError> {
     match path.range(mapping) {
         Some(range) => Ok(range.into()),
         None => Err(JsError::new("InvalidRange")),
     }
 }
 
-fn reduciblePath_path_to_range(
+fn reducible_path_path_to_range(
     mapping: &[Tag],
     path: &tuber::Path,
 ) -> Result<ReducibleRange, JsError> {
@@ -206,7 +208,7 @@ fn reduciblePath_path_to_range(
 
 #[derive(Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-struct Path(Vec<usize>);
+pub struct Path(Vec<usize>);
 
 impl From<&tuber::Path> for Path {
     fn from(tuber_path: &tuber::Path) -> Self {
