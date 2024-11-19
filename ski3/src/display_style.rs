@@ -27,3 +27,12 @@ impl From<tuber::DisplayStyle> for DisplayStyle {
         }
     }
 }
+
+impl From<&tuber::DisplayStyle> for DisplayStyle {
+    fn from(tuber_display_style: &tuber::DisplayStyle) -> DisplayStyle {
+        match tuber_display_style {
+            tuber::DisplayStyle::EcmaScript => DisplayStyle::EcmaScript,
+            tuber::DisplayStyle::LazyK => DisplayStyle::LazyK,
+        }
+    }
+}

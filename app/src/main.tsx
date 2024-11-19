@@ -53,12 +53,14 @@ function main(exprStr: string) {
 
   console.info({ expr, reducer });
   console.info(`step: 0`, reducer.formed);
+  console.info(`hasNext: ${reducer.hasNext()}`);
   while(1) {
     const { done, value } = reducer.next();
     if (done || value == null) { break; }
 
     const { step, formed } = value;
     console.info(`step: ${step}`, formed);
+    console.info(`hasNext: ${reducer.hasNext()}`);
   }
 }
 Object.defineProperty(window, 'main', {
