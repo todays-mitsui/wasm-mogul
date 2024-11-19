@@ -199,7 +199,7 @@ fn format_reduced_expr(
         tuber::DisplayStyle::LazyK => lazy_k_format(expr),
     };
 
-    let reduced_range = reduced_path_to_range(&formed.mapping, &reduced_path)?;
+    let reduced_range = reduced_path_to_range(&formed.mapping, reduced_path)?;
     let reducible_range = match reducible_path {
         None => None,
         Some(reducible_path) => Some(reducible_path_path_to_range(

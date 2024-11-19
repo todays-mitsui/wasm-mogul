@@ -1,7 +1,6 @@
 use crate::{expression::Expr, function::Func};
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
-use tuber;
 use wasm_bindgen::prelude::*;
 
 #[derive(Tsify, Serialize, Deserialize)]

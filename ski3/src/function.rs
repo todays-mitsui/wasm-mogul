@@ -2,7 +2,6 @@ use crate::expression::Expr;
 use crate::identifier::Identifier;
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
-use tuber;
 use wasm_bindgen::prelude::*;
 
 #[derive(Tsify, Serialize, Deserialize, Debug)]
