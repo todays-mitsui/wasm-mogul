@@ -1,4 +1,5 @@
 use crate::context::Context;
+use crate::display_style::DisplayStyle;
 use crate::expression::Expr;
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
@@ -6,35 +7,52 @@ use tuber::{self, ecmascript_format, lazy_k_format, Tag};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub struct Reducer(tuber::Reducer);
+pub struct Reducer {
+    reducer: tuber::Reducer,
+    reducible_path: Option<tuber::Path>,
+    display_style: tuber::DisplayStyle,
+}
 
 #[wasm_bindgen]
 impl Reducer {
     #[wasm_bindgen(constructor)]
-    pub fn new(context: Context, expr: Expr) -> Self {
+    pub fn new(context: Context, expr: Expr, display_style: Option<DisplayStyle>) -> Self {
         let tuber_context = context.into();
         let tuber_expr = expr.into();
-        Self(tuber::Reducer::new(tuber_context, tuber_expr))
+        let reducer = tuber::Reducer::new(tuber_context, tuber_expr);
+        let display_style = display_style
+            .map(tuber::DisplayStyle::from)
+            .unwrap_or(tuber::DisplayStyle::EcmaScript);
+        Self {
+            reducible_path: reducer.reducible_path(),
+            reducer,
+            display_style,
+        }
     }
 
-    #[wasm_bindgen(js_name = reduciblePath)]
-    pub fn reducible_path(&self) -> Option<Path> {
-        self.0
-            .reducible_path()
-            .map(|tuber_path| Path::from(&tuber_path))
+    #[wasm_bindgen(getter)]
+    pub fn formed(&self) -> Result<FormedExpr, JsError> {
+        let expr = self.reducer.expr();
+        format_expr(&expr, &self.reducible_path, &self.display_style)
+    }
+
+    #[wasm_bindgen(js_name = hasNext)]
+    pub fn has_next(&self) -> bool {
+        self.reducible_path.is_some()
     }
 
     #[wasm_bindgen(js_name = next)]
     pub fn js_next(&mut self) -> Result<IteratorResult, JsError> {
-        let tuber_reduce_result = self.0.next();
+        let tuber_reduce_result = self.reducer.next();
+        self.reducible_path = self.reducer.reducible_path();
 
         let ski_reduce_result = match tuber_reduce_result {
             Some(result) => Some(ReduceResult::new(
                 result.step,
                 result.expr.clone(),
-                result.reduced_path.clone(),
-                self.0.reducible_path(),
-                tuber::DisplayStyle::EcmaScript,
+                result.reduced_path,
+                &self.reducible_path,
+                &self.display_style,
             )?),
             None => None,
         };
@@ -43,11 +61,6 @@ impl Reducer {
             done: ski_reduce_result.is_none(),
             value: ski_reduce_result,
         })
-    }
-
-    #[wasm_bindgen(js_name = hasNext)]
-    pub fn has_next(&self) -> bool {
-        self.reducible_path().is_some()
     }
 }
 
@@ -58,6 +71,49 @@ pub struct IteratorResult {
     value: Option<ReduceResult>,
 }
 
+#[derive(Tsify, Serialize, Deserialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+struct ExprRange(std::ops::Range<usize>);
+
+// ========================================================================== //
+
+#[derive(Tsify, Serialize)]
+#[tsify(into_wasm_abi)]
+#[serde(rename_all = "camelCase")]
+pub struct FormedExpr {
+    expr: String,
+    reducible_range: Option<ReducibleRange>,
+}
+
+fn format_expr(
+    expr: &tuber::Expr,
+    reducible_path: &Option<tuber::Path>,
+    display_style: &tuber::DisplayStyle,
+) -> Result<FormedExpr, JsError> {
+    let mut paths: Vec<&tuber::Path> = Vec::new();
+    if let Some(reducible_path) = reducible_path {
+        paths.push(reducible_path);
+    }
+
+    let formed = match display_style {
+        tuber::DisplayStyle::EcmaScript => ecmascript_format(expr, &paths),
+        tuber::DisplayStyle::LazyK => lazy_k_format(expr),
+    };
+
+    let reducible_range = match reducible_path {
+        None => None,
+        Some(reducible_path) => Some(reducible_path_path_to_range(
+            &formed.mapping,
+            reducible_path,
+        )?),
+    };
+
+    Ok(FormedExpr {
+        expr: formed.expr,
+        reducible_range,
+    })
+}
+
 // ========================================================================== //
 
 #[derive(Tsify, Serialize)]
@@ -66,9 +122,7 @@ pub struct IteratorResult {
 struct ReduceResult {
     step: usize,
     expr: Expr,
-    reduced_path: Path,
-    reducible_path: Option<Path>,
-    formed: Formed,
+    formed: FormedReducedExpr,
 }
 
 impl ReduceResult {
@@ -76,15 +130,13 @@ impl ReduceResult {
         step: usize,
         expr: tuber::Expr,
         reduced_path: tuber::Path,
-        reducible_path: Option<tuber::Path>,
-        display_style: tuber::DisplayStyle,
+        reducible_path: &Option<tuber::Path>,
+        display_style: &tuber::DisplayStyle,
     ) -> Result<Self, JsError> {
-        let formed = format_expr(&expr, &reduced_path, &reducible_path, display_style)?;
+        let formed = format_reduced_expr(&expr, &reduced_path, reducible_path, display_style)?;
         Ok(Self {
             step,
             expr: expr.into(),
-            reduced_path: Path::from(&reduced_path),
-            reducible_path: reducible_path.map(|path| Path::from(&path)),
             formed,
         })
     }
@@ -93,15 +145,11 @@ impl ReduceResult {
 #[derive(Tsify, Serialize)]
 #[tsify(into_wasm_abi)]
 #[serde(rename_all = "camelCase")]
-struct Formed {
+struct FormedReducedExpr {
     expr: String,
     reduced_range: ExprRange,
     reducible_range: Option<ReducibleRange>,
 }
-
-#[derive(Tsify, Serialize, Deserialize)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-struct ExprRange(std::ops::Range<usize>);
 
 impl From<std::ops::Range<usize>> for ExprRange {
     fn from(range: std::ops::Range<usize>) -> Self {
@@ -123,12 +171,12 @@ struct ReducibleRange {
     args: Vec<ExprRange>,
 }
 
-fn format_expr(
+fn format_reduced_expr(
     expr: &tuber::Expr,
     reduced_path: &tuber::Path,
     reducible_path: &Option<tuber::Path>,
-    display_style: tuber::DisplayStyle,
-) -> Result<Formed, JsError> {
+    display_style: &tuber::DisplayStyle,
+) -> Result<FormedReducedExpr, JsError> {
     let mut paths = vec![reduced_path];
     if let Some(reducible_path) = reducible_path {
         paths.push(reducible_path);
@@ -148,7 +196,7 @@ fn format_expr(
         )?),
     };
 
-    Ok(Formed {
+    Ok(FormedReducedExpr {
         expr: formed.expr,
         reduced_range,
         reducible_range,
@@ -202,53 +250,4 @@ fn reducible_path_path_to_range(
         callee,
         args,
     })
-}
-
-// ========================================================================== //
-
-#[derive(Tsify, Serialize, Deserialize)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct Path(Vec<usize>);
-
-impl From<&tuber::Path> for Path {
-    fn from(tuber_path: &tuber::Path) -> Self {
-        let mut indices = Vec::new();
-        let mut path = tuber_path;
-        loop {
-            match path {
-                tuber::Path::Arg(index, next) => {
-                    indices.push(*index);
-                    path = next;
-                }
-                tuber::Path::Callee(arity) => {
-                    indices.push(*arity);
-                    break;
-                }
-            }
-        }
-        Path(indices)
-    }
-}
-
-impl From<&Path> for tuber::Path {
-    fn from(ski_path: &Path) -> Self {
-        let mut indices = ski_path.0.iter().rev();
-        let mut path = tuber::Path::Callee(*indices.next().unwrap());
-        for index in indices {
-            path = tuber::Path::Arg(*index, Box::new(path));
-        }
-        path
-    }
-}
-
-impl From<tuber::Path> for Path {
-    fn from(tuber_path: tuber::Path) -> Self {
-        tuber_path.into()
-    }
-}
-
-impl From<Path> for tuber::Path {
-    fn from(ski_path: Path) -> Self {
-        ski_path.into()
-    }
 }

@@ -46,3 +46,22 @@ Object.defineProperty(window, 'mogulRenderExpr', {
   value: renderExpr,
   writable: false,
 });
+
+function main(exprStr: string) {
+  const expr = parseExpr(exprStr);
+  const reducer = new Reducer(context, expr);
+
+  console.info({ expr, reducer });
+  console.info(`step: 0`, reducer.formed);
+  while(1) {
+    const { done, value } = reducer.next();
+    if (done || value == null) { break; }
+
+    const { step, formed } = value;
+    console.info(`step: ${step}`, formed);
+  }
+}
+Object.defineProperty(window, 'main', {
+  value: main,
+  writable: false,
+});

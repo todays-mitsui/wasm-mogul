@@ -25,6 +25,10 @@ impl Reducer {
         }
     }
 
+    pub fn expr(&self) -> expr::Expr {
+        self.expr.clone().into()
+    }
+
     pub fn reducible_path(&self) -> Option<Path> {
         self.expr.reducible_path(&self.context)
     }
