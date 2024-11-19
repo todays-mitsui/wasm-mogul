@@ -1,9 +1,0 @@
-pub fn make_reducer(context: JsValue, js_expr: JsValue, display_style: ) -> Result<JsValue, JsError> {
-    let expr_json: ExprJson = js_expr.into_serde().map_err(|err| JsError::new(&err.to_string()))?;
-    let expr: Expr = expr_json.into();
-    let command = Command::Update(expr);
-    let display_style = JsDisplayStyle::default();
-    let result = execute(context.into(), command.into(), display_style.into())
-        .map_err(|err| JsError::new(&err.to_string()))?;
-    Ok(serde_wasm_bindgen::to_value(&result).unwrap())
-}
