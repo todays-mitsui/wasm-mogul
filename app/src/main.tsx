@@ -51,16 +51,19 @@ function main(exprStr: string) {
   const expr = parseExpr(exprStr);
   const reducer = new Reducer(context, expr);
 
+  console.log({ displayStyle: reducer.displayStyle });
+  reducer.displayStyle = 'LazyK';
+
   console.info({ expr, reducer });
   console.info(`step: 0`, reducer.formed);
-  console.info(`hasNext: ${reducer.hasNext()}`);
-  while(1) {
+  console.info(`hasNext: ${reducer.hasNext}`);
+  for(let i = 0; i < 1000; i++) {
     const { done, value } = reducer.next();
     if (done || value == null) { break; }
 
     const { step, formed } = value;
     console.info(`step: ${step}`, formed);
-    console.info(`hasNext: ${reducer.hasNext()}`);
+    console.info(`hasNext: ${reducer.hasNext}`);
   }
 }
 Object.defineProperty(window, 'main', {

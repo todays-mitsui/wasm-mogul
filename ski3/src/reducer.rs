@@ -15,12 +15,13 @@ pub struct Reducer {
 
 #[wasm_bindgen]
 impl Reducer {
+    #[allow(non_snake_case)]
     #[wasm_bindgen(constructor)]
-    pub fn new(context: Context, expr: Expr, display_style: Option<DisplayStyle>) -> Self {
+    pub fn new(context: Context, expr: Expr, displayStyle: Option<DisplayStyle>) -> Self {
         let tuber_context = context.into();
         let tuber_expr = expr.into();
         let reducer = tuber::Reducer::new(tuber_context, tuber_expr);
-        let display_style = display_style
+        let display_style = displayStyle
             .map(tuber::DisplayStyle::from)
             .unwrap_or(tuber::DisplayStyle::EcmaScript);
         Self {
@@ -30,13 +31,24 @@ impl Reducer {
         }
     }
 
+    #[wasm_bindgen(getter = displayStyle)]
+    pub fn get_display_style(&self) -> DisplayStyle {
+        (&self.display_style).into()
+    }
+
+    #[allow(non_snake_case)]
+    #[wasm_bindgen(setter = displayStyle)]
+    pub fn set_display_style(&mut self, displayStyle: DisplayStyle) {
+        self.display_style = displayStyle.into();
+    }
+
     #[wasm_bindgen(getter)]
     pub fn formed(&self) -> Result<FormedExpr, JsError> {
         let expr = self.reducer.expr();
         format_expr(&expr, &self.reducible_path, &self.display_style)
     }
 
-    #[wasm_bindgen(js_name = hasNext)]
+    #[wasm_bindgen(getter = hasNext)]
     pub fn has_next(&self) -> bool {
         self.reducible_path.is_some()
     }
