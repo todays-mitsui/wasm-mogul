@@ -139,7 +139,7 @@ mod tests {
     fn test_format_2() {
         let expr = expr::a(expr::a(expr::a(expr::a("f", "w"), "x"), "y"), "z");
 
-        let formed = format(&expr, &vec![Path::Callee(1), Path::Callee(3)]);
+        let formed = format(&expr, &vec![&Path::Callee(1), &Path::Callee(3)]);
 
         println!("{:?}", formed.expr);
         println!("{:#?}", formed);
@@ -220,7 +220,7 @@ mod tests {
             expr::a("g", "h"),
         );
 
-        let formed = format(&expr, &vec![Path::Arg(3, Box::new(Path::Callee(1)))]);
+        let formed = format(&expr, &vec![&Path::Arg(3, Box::new(Path::Callee(1)))]);
 
         println!("{:?}", formed.expr);
         println!("{:#?}", formed);
