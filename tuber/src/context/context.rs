@@ -72,6 +72,27 @@ impl From<Vec<Func>> for Context {
     }
 }
 
+impl IntoIterator for Context {
+    type Item = (Identifier, Func);
+    type IntoIter = std::collections::hash_map::IntoIter<Identifier, Func>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl From<Context> for HashMap<Identifier, Func> {
+    fn from(tuber_context: Context) -> HashMap<Identifier, Func> {
+        tuber_context.0
+    }
+}
+
+impl From<HashMap<Identifier, Func>> for Context {
+    fn from(context: HashMap<Identifier, Func>) -> Context {
+        Context(context)
+    }
+}
+
 // ========================================================================== //
 
 struct Feature {

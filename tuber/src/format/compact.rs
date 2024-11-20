@@ -80,16 +80,16 @@ fn from_expr<'a>(expr: &'a Expr, tag: &Tag) -> Compact<'a> {
 // ========================================================================== //
 
 impl<'a> Compact<'a> {
-    pub fn reform(self, split: &[Path]) -> Compact<'a> {
+    pub fn reform(self, split: &[&Path]) -> Compact<'a> {
         if let Compact::Apply { callee, args, tag } = self {
-            let next: HashMap<usize, Vec<Path>> = group(
+            let next: HashMap<usize, Vec<&Path>> = group(
                 split
                     .iter()
                     .filter_map(|path| match path {
-                        Path::Arg(index, next) => Some((*index, (**next).clone())),
+                        Path::Arg(index, next) => Some((*index, next as &Path)),
                         Path::Callee(_) => None,
                     })
-                    .collect::<Vec<(usize, Path)>>(),
+                    .collect::<Vec<(usize, &Path)>>(),
             );
 
             let reformed_args: Vec<_> = args
@@ -335,7 +335,7 @@ mod tests {
         let expr = expr::a(expr::a(expr::a(expr::a("f", "w"), "x"), "y"), "z");
         let compact = Compact::from(&expr);
 
-        let new_compact = compact.reform(&vec![Path::Callee(1), Path::Callee(3)]);
+        let new_compact = compact.reform(&vec![&Path::Callee(1), &Path::Callee(3)]);
 
         println!("{:#?}", new_compact);
 
@@ -386,7 +386,7 @@ mod tests {
         );
         let compact = Compact::from(&expr);
 
-        let new_compact = compact.reform(&vec![Path::Arg(3, Box::new(Path::Callee(1)))]);
+        let new_compact = compact.reform(&vec![&Path::Arg(3, Box::new(Path::Callee(1)))]);
 
         println!("{:#?}", new_compact);
 

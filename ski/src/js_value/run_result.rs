@@ -27,7 +27,7 @@ impl JsRunResult {
             RunResult::Update { input, .. } => input.format(&display_style),
             RunResult::Eval { input, .. } => input.format(&display_style),
             RunResult::Query { input, .. } => input.as_str().to_string(),
-            RunResult::Context { .. } => String::from(""),
+            RunResult::Context { .. } => String::from("?"),
             RunResult::Unlambda { input, .. } => input.format(&display_style),
         }
     }
@@ -59,7 +59,7 @@ impl JsRunResult {
             let next_path = eval.next_path();
             if let Some(path) = next_path {
                 let display_style = self.1;
-                let paths = vec![path.clone()];
+                let paths = vec![&path];
                 let formed = match display_style {
                     DisplayStyle::EcmaScript => ecmascript_format(&expr, &paths),
                     DisplayStyle::LazyK => lazy_k_format(&expr),

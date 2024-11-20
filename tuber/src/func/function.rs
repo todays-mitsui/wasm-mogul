@@ -11,6 +11,10 @@ pub struct Func {
 }
 
 impl Func {
+    pub fn new(name: Identifier, params: Vec<Identifier>, body: Expr) -> Self {
+        Self { name, params, body }
+    }
+
     pub fn name(&self) -> &str {
         self.name.as_str()
     }
