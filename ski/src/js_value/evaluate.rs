@@ -107,8 +107,8 @@ impl From<EvalStep> for JsEvalStep {
 
 impl From<(EvalStep, DisplayStyle)> for JsEvalStep {
     fn from((step, display_style): (EvalStep, DisplayStyle)) -> JsEvalStep {
-        let mut paths = vec![step.reduced_path.clone()];
-        if let Some(next_path) = step.next_path.clone() {
+        let mut paths = vec![&step.reduced_path];
+        if let Some(next_path) = &step.next_path {
             paths.push(next_path);
         }
 

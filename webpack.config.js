@@ -45,14 +45,6 @@ module.exports = {
         path.resolve(__dirname, "tuber/src")
       ],
     }),
-
-    new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, "ski2"),
-      extraArgs: "--target bundler --mode normal",
-      watchDirectories: [
-        path.resolve(__dirname, "tuber/src")
-      ],
-    }),
   ],
   experiments: {
     asyncWebAssembly: true,
