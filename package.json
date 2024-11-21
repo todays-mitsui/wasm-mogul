@@ -8,8 +8,10 @@
     "test": "cargo test && wasm-pack test --headless",
     "docs:start": "astro dev --root ./docs",
     "docs:build": "astro check --root ./docs && astro build --root ./docs",
-    "build:ski": "wasm-pack build --out-name index --out-dir pkg ski3",
-    "build:ski:watch": "watch \"npm run build:ski\" ski3/src"
+    "build:ski": "wasm-pack build --release --out-name index --out-dir pkg ski3",
+    "watch:ski": "watch \"npm run build:ski\" ski3/src",
+    "build:ski:dev": "wasm-pack build --out-name index --out-dir pkg ski3",
+    "watch:ski:dev": "watch \"npm run build:ski:dev\" ski3/src"
   },
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "^1.7.0",
