@@ -1,7 +1,7 @@
 import ParseExpr from "~/components/ParseExpr";
 import "./index.css";
 
-export default function Home() {
+export default function Page() {
   return (
     <main>
       <h1>Hello world!</h1>
