@@ -15,11 +15,6 @@
     "precommit": "npm run --prefix mogul gen:hcm && npm run --prefix mogul fmt",
     "prepare": "husky"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "precommit"
-    }
-  },
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "^1.7.0",
     "copy-webpack-plugin": "^11.0.0",
