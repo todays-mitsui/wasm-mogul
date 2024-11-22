@@ -3,6 +3,8 @@
   "name": "ski-mogul",
   "version": "0.2.0",
   "scripts": {
+    "prepare": "husky",
+    "precommit": "npm run --prefix mogul gen:hcm && npm run --prefix mogul fmt",
     "build": "rimraf dist pkg && webpack",
     "start": "rimraf dist pkg && webpack-dev-server --open",
     "test": "cargo test && wasm-pack test --headless",
@@ -11,9 +13,7 @@
     "build:ski": "wasm-pack build --release --out-name index --out-dir pkg ski3",
     "watch:ski": "watch \"npm run build:ski\" ski3/src",
     "build:ski:dev": "wasm-pack build --out-name index --out-dir pkg ski3",
-    "watch:ski:dev": "watch \"npm run build:ski:dev\" ski3/src",
-    "precommit": "npm run --prefix mogul gen:hcm && npm run --prefix mogul fmt",
-    "prepare": "husky"
+    "watch:ski:dev": "watch \"npm run build:ski:dev\" ski3/src"
   },
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "^1.7.0",
