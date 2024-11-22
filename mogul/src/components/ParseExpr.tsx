@@ -7,7 +7,7 @@ export default function ParseExpr() {
   const [parsedExpr, setParsedExpr] = createSignal<Expr | null>(null);
   const onClick = () => {
     try {
-      const expr = parseExpr( inputStr ( ) );
+      const expr = parseExpr(inputStr());
       setParsedExpr(expr);
     } catch (err) {
       console.error(err);
