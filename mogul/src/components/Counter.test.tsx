@@ -5,7 +5,7 @@ import Counter from "./Counter";
 
 describe("<Counter />", () => {
   it("increments value", async () => {
-    const { queryByRole } = render(() => <Counter />);
+    const { queryByRole } = render( ( ) => <Counter /> );
     const button = queryByRole("button") as HTMLButtonElement;
     expect(button).toBeInTheDocument();
     expect(button).toHaveTextContent(/Clicks: 0/);
