@@ -8,7 +8,8 @@
     "test-watch": "vitest",
     "test-ui": "vitest --ui",
     "gen:hcm": "hcm 'src/**/*.module.{css,scss,less}'",
-    "fmt": "npx @biomejs/biome format --write ./src"
+    "fmt": "npx @biomejs/biome format --write ./src",
+    "precommit": "npm run gen:hcm && npm run fmt"
   },
   "type": "module",
   "devDependencies": {

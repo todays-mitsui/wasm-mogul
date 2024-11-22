@@ -11,11 +11,19 @@
     "build:ski": "wasm-pack build --release --out-name index --out-dir pkg ski3",
     "watch:ski": "watch \"npm run build:ski\" ski3/src",
     "build:ski:dev": "wasm-pack build --out-name index --out-dir pkg ski3",
-    "watch:ski:dev": "watch \"npm run build:ski:dev\" ski3/src"
+    "watch:ski:dev": "watch \"npm run build:ski:dev\" ski3/src",
+    "precommit": "npm run --prefix mogul gen:hcm && npm run --prefix mogul fmt",
+    "prepare": "husky"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "precommit"
+    }
   },
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "^1.7.0",
     "copy-webpack-plugin": "^11.0.0",
+    "husky": "^9.1.7",
     "rimraf": "^5.0.5",
     "ts-loader": "^9.5.1",
     "typescript": "^5.6.3",
