@@ -16,6 +16,7 @@ export default function Prompt(): JSX.Element {
     }
     console.info({ command });
     runCommand(command);
+    setCommandStr("");
   };
 
   return (

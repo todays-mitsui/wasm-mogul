@@ -5,9 +5,11 @@ import {
   queryFunction,
 } from "~/service/context";
 import { putConsoleItem } from "~/service/console";
+import { reduce, type ReduceResult } from "~/service/reduce";
+import { createSignal } from "solid-js";
 export { Command, parseCommand };
 
-export function runCommand(command: Command) {
+export async function runCommand(command: Command) {
   switch (command.type) {
     case "Delete":
       deleteFunction(command.identifier);
@@ -18,7 +20,22 @@ export function runCommand(command: Command) {
       putConsoleItem({ type: "Update", func: command.func });
       return;
     case "Reduce":
-      break;
+      await reduce(
+        command.expr,
+        ({ reducer }) => {
+          console.log("onInit");
+          // const reduceResults: ReduceResult[] = [];
+          const [reduceResults, setReduceResults] = createSignal<
+            ReduceResult[]
+          >([]);
+          putConsoleItem({ type: "Reduce", reduceResults });
+          return { setReduceResults };
+        },
+        ({ reduceResult, payload: { setReduceResults } }) => {
+          setReduceResults((prev) => [...prev, reduceResult]);
+        },
+      );
+      return;
     case "ReduceLast":
       break;
     case "ReduceHead":

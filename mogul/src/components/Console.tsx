@@ -2,6 +2,7 @@ import {
   type ConsoleItem,
   type ConsoleItemUpdate,
   type ConsoleItemDelete,
+  type ConsoleItemReduce,
   type ConsoleItemQueryDefined,
   type ConsoleItemQueryUndefined,
   type ConsoleItemContext,
@@ -31,6 +32,8 @@ function ConsoleUnit(item: ConsoleItem): JSX.Element {
       return <ConsoleUnitUpdate {...item} />;
     case "Delete":
       return <ConsoleUnitDelete {...item} />;
+    case "Reduce":
+      return <ConsoleUnitReduce {...item} />;
     case "QueryDefined":
       return <ConsoleUnitQueryDefined {...item} />;
     case "QueryUndefined":
@@ -65,6 +68,16 @@ function ConsoleUnitDelete(item: ConsoleItemDelete): JSX.Element {
       <li>
         <code>{item.identifier}</code>
       </li>
+    </ul>
+  );
+}
+
+function ConsoleUnitReduce(item: ConsoleItemReduce): JSX.Element {
+  return (
+    <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
+      <Index each={item.reduceResults()}>
+        {(result) => <li>{result().formed.expr}</li>}
+      </Index>
     </ul>
   );
 }

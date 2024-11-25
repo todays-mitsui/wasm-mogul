@@ -62,7 +62,8 @@
 }
 
 .define,
-.reduce .unlambda {
+.reduce,
+.unlambda {
   li:not(:first-child)::after {
     grid-column: 2 / 3;
     grid-row: 1 / 2;

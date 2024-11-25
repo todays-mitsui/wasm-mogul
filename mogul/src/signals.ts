@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal, type Accessor } from "solid-js";
 import { makePersisted } from "@solid-primitives/storage";
 import {
   type Identifier,
@@ -6,6 +6,7 @@ import {
   type Context,
   defaultContext,
   type DisplayStyle,
+  type ReduceResult,
 } from "../../ski3/pkg/index";
 
 export const [commandStr, setCommandStr] = createSignal("");
@@ -40,6 +41,7 @@ export interface ConsoleItemDelete {
 
 export interface ConsoleItemReduce {
   type: "Reduce";
+  reduceResults: Accessor<ReduceResult[]>;
 }
 
 export interface ConsoleItemQueryDefined {
