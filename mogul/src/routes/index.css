@@ -1,4 +1,6 @@
-body {
+@import url(../global.css);
+
+/* body {
   font-family: Gordita, Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
     "Helvetica Neue", sans-serif;
 }
@@ -33,4 +35,4 @@ p {
   p {
     max-width: none;
   }
-}
+} */

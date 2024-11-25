@@ -1,0 +1,31 @@
+.header {
+  display: flex;
+  padding: 4px 12px;
+  color: var(--color-text-gloom);
+  background-color: var(--color-background-gloom);
+
+  h1 {
+    font-weight: 400;
+    font-size: 1.4rem;
+
+    a {
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  }
+
+  ul {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: 16px;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    color: inherit;
+  }
+}

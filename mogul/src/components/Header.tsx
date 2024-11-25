@@ -1,9 +1,12 @@
 import { A } from "@solidjs/router";
+import styles from "./Header.module.css";
 
 export default function Header() {
   return (
-    <header>
-      <h1>ski Mogul</h1>
+    <header class={styles.header}>
+      <h1>
+        <A href="/">ski Mogul</A>
+      </h1>
       <ul>
         <li>
           <a href="https://github.com/todays-mitsui/wasm-mogul" target="_blank">

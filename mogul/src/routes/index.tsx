@@ -1,5 +1,4 @@
-import ParseExpr from "~/components/ParseExpr";
-// import Prompt from "~/components/Prompt";
+// import '../global.css';
 import "./index.css";
 import { clientOnly } from "@solidjs/start";
 import Header from "~/components/Header";

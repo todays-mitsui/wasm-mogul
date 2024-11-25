@@ -1,0 +1,16 @@
+.button {
+  appearance: none;
+  border: none;
+  background: none;
+
+  padding: .2em .6em;
+  font-size: .9rem;
+  font-weight: 600;
+  border: 1px solid #bababa;
+  border-radius: 4px;
+  background-color: var(--color-background);
+
+  &:hover {
+    background-color: var(--color-border);
+  }
+}

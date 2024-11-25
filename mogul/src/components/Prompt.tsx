@@ -1,6 +1,7 @@
 import { type JSX } from "solid-js";
 import { commandStr, setCommandStr } from "~/signals";
 import { type Command, parseCommand, runCommand } from "~/service/command";
+import styles from "./Prompt.module.css";
 
 export default function Prompt(): JSX.Element {
   const onSubmit: JSX.EventHandler<HTMLFormElement, SubmitEvent> = (event) => {
@@ -20,10 +21,12 @@ export default function Prompt(): JSX.Element {
   return (
     <form onSubmit={onSubmit}>
       <div>
-        <button type="button" title="Random Spell">
+        <button class={styles.button} type="button" title="Random Spell">
           Random
         </button>
-        <button type="submit">Run</button>
+        <button class={styles.button} type="submit">
+          Run
+        </button>
       </div>
       <input
         value={commandStr()}

@@ -10,10 +10,12 @@ import {
 } from "~/signals";
 import { renderFunc } from "~/service/func";
 import { type JSX, Index, For } from "solid-js";
+import styles from "./Console.module.css";
+import classNames from "classnames";
 
 export default function Console() {
   return (
-    <div>
+    <div class={styles.console}>
       <Index each={console()} fallback={<div>Loading...</div>}>
         {(item) => <ConsoleUnit {...item()} />}
       </Index>
@@ -43,18 +45,26 @@ function ConsoleUnit(item: ConsoleItem): JSX.Element {
 function ConsoleUnitUpdate(item: ConsoleItemUpdate): JSX.Element {
   const [signature, body] = renderFunc(item.func);
   return (
-    <ul>
-      <li>{signature}</li>
-      <li>{body}</li>
+    <ul class={classNames(styles.unit, styles.unordered, styles.define)}>
+      <li>
+        <code>{signature}</code>
+      </li>
+      <li>
+        <code>{body}</code>
+      </li>
     </ul>
   );
 }
 
 function ConsoleUnitDelete(item: ConsoleItemDelete): JSX.Element {
   return (
-    <ul>
-      <li>{item.identifier}</li>
-      <li>{item.identifier}</li>
+    <ul class={classNames(styles.unit, styles.unordered, styles.define)}>
+      <li>
+        <code>{item.identifier}</code>
+      </li>
+      <li>
+        <code>{item.identifier}</code>
+      </li>
     </ul>
   );
 }
@@ -62,9 +72,13 @@ function ConsoleUnitDelete(item: ConsoleItemDelete): JSX.Element {
 function ConsoleUnitQueryDefined(item: ConsoleItemQueryDefined): JSX.Element {
   const [signature, body] = renderFunc(item.func);
   return (
-    <ul>
-      <li>{signature}</li>
-      <li>{body}</li>
+    <ul class={classNames(styles.unit, styles.unordered, styles.define)}>
+      <li>
+        <code>{signature}</code>
+      </li>
+      <li>
+        <code>{body}</code>
+      </li>
     </ul>
   );
 }
@@ -73,9 +87,13 @@ function ConsoleUnitQueryUndefined(
   item: ConsoleItemQueryUndefined,
 ): JSX.Element {
   return (
-    <ul>
-      <li>{item.identifier}</li>
-      <li>{item.identifier}</li>
+    <ul class={classNames(styles.unit, styles.unordered, styles.define)}>
+      <li>
+        <code>{item.identifier}</code>
+      </li>
+      <li>
+        <code>{item.identifier}</code>
+      </li>
     </ul>
   );
 }
@@ -85,11 +103,15 @@ function ConsoleUnitContext(item: ConsoleItemContext): JSX.Element {
     a.name < b.name ? -1 : 1,
   );
   return (
-    <ul>
+    <ul class={classNames(styles.unit, styles.unordered)}>
       <For each={functions}>
         {(func) => {
           const [signature, body] = renderFunc(func);
-          return <li>{`${signature} = ${body}`}</li>;
+          return (
+            <li>
+              <code>{`${signature} = ${body}`}</code>
+            </li>
+          );
         }}
       </For>
     </ul>
