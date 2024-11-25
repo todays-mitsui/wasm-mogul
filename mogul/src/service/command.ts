@@ -11,14 +11,18 @@ export { Command, parseCommand };
 
 export async function runCommand(command: Command) {
   switch (command.type) {
-    case "Delete":
+    case "Delete": {
       deleteFunction(command.identifier);
       putConsoleItem({ type: "Delete", identifier: command.identifier });
       return;
-    case "Update":
+    }
+
+    case "Update": {
       updateFunction(command.func);
       putConsoleItem({ type: "Update", func: command.func });
       return;
+    }
+
     case "Reduce": {
       const [reduceResults, setReduceResults] = createSignal<
         {
@@ -46,6 +50,7 @@ export async function runCommand(command: Command) {
       });
       return;
     }
+
     case "ReduceLast": {
       const [reduceResult, setReduceResult] = createSignal<{
         readonly step: number;
@@ -68,26 +73,35 @@ export async function runCommand(command: Command) {
       });
       return;
     }
-    case "ReduceHead":
-      break;
-    case "ReduceTail":
-      break;
-    case "Query":
+
+    case "ReduceHead": {
+      return;
+    }
+
+    case "ReduceTail": {
+      return;
+    }
+
+    case "Query": {
       const func = queryFunction(command.identifier);
       if (func == null) {
         putConsoleItem({
           type: "QueryUndefined",
           identifier: command.identifier,
         });
-        return;
       } else {
         putConsoleItem({ type: "QueryDefined", func });
-        return;
       }
-    case "Context":
+      return;
+    }
+
+    case "Context": {
       putConsoleItem({ type: "Context" });
       return;
-    case "Unlambda":
-      break;
+    }
+
+    case "Unlambda": {
+      return;
+    }
   }
 }
