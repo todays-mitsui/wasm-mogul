@@ -4,6 +4,7 @@ import {
   type ConsoleItemDelete,
   type ConsoleItemReduce,
   type ConsoleItemReduceLast,
+  type ConsoleItemReduceHead,
   type ConsoleItemQueryDefined,
   type ConsoleItemQueryUndefined,
   type ConsoleItemContext,
@@ -37,6 +38,8 @@ function ConsoleUnit(item: ConsoleItem): JSX.Element {
       return <ConsoleUnitReduce {...item} />;
     case "ReduceLast":
       return <ConsoleUnitReduceLast {...item} />;
+    case "ReduceHead":
+      return <ConsoleUnitReduceHead {...item} />;
     case "QueryDefined":
       return <ConsoleUnitQueryDefined {...item} />;
     case "QueryUndefined":
@@ -97,6 +100,19 @@ function ConsoleUnitReduceLast(item: ConsoleItemReduceLast): JSX.Element {
       <Show when={item.reduceResult()}>
         {(result) => <li data-step={result().step}>{result().formed.expr}</li>}
       </Show>
+    </ul>
+  );
+}
+
+function ConsoleUnitReduceHead(item: ConsoleItemReduceHead): JSX.Element {
+  return (
+    <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
+      <li data-step="0">
+        <code>{item.formed.expr}</code>
+      </li>
+      <Index each={item.reduceResults()}>
+        {(result) => <li data-step={result().step}>{result().formed.expr}</li>}
+      </Index>
     </ul>
   );
 }

@@ -75,6 +75,31 @@ export async function runCommand(command: Command) {
     }
 
     case "ReduceHead": {
+      const [reduceResults, setReduceResults] = createSignal<
+        {
+          readonly step: number;
+          readonly formed: FormedReducedExpr;
+        }[]
+      >([]);
+      await reduce(command.expr, {
+        maxSteps: command.count,
+        onInit: ({ reducer }) => {
+          putConsoleItem({
+            type: "ReduceHead",
+            formed: reducer.formed,
+            reduceResults,
+          });
+        },
+        onReduce: ({ reduceResult: { step, formed } }) => {
+          setReduceResults((prev) => [
+            ...prev,
+            {
+              step,
+              formed,
+            },
+          ]);
+        },
+      });
       return;
     }
 
