@@ -13,8 +13,9 @@
   },
   "type": "module",
   "devDependencies": {
+    "@solid-primitives/storage": "^4.2.1",
     "@solidjs/meta": "^0.29.4",
-    "@solidjs/router": "^0.15.0",
+    "@solidjs/router": "^0.15.1",
     "@solidjs/start": "^1.0.10",
     "@solidjs/testing-library": "^0.8.10",
     "@testing-library/jest-dom": "^6.6.2",

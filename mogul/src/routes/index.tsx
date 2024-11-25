@@ -1,18 +1,18 @@
 import ParseExpr from "~/components/ParseExpr";
+// import Prompt from "~/components/Prompt";
 import "./index.css";
+import { clientOnly } from "@solidjs/start";
+import Header from "~/components/Header";
+
+const Prompt = clientOnly(() => import("../components/Prompt"));
+const Console = clientOnly(() => import("../components/Console"));
 
 export default function Page() {
   return (
     <main>
-      <h1>Hello world!</h1>
-      <ParseExpr />
-      <p>
-        Visit{" "}
-        <a href="https://solidjs.com" target="_blank">
-          solidjs.com
-        </a>{" "}
-        to learn how to build Solid apps.
-      </p>
+      <Header />
+      <Console />
+      <Prompt />
     </main>
   );
 }
