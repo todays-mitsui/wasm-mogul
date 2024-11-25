@@ -5,7 +5,12 @@ import {
   queryFunction,
 } from "~/service/context";
 import { putConsoleItem } from "~/service/console";
-import { reduce, reduceLast, type FormedReducedExpr } from "~/service/reduce";
+import {
+  reduceHead,
+  reduceTail,
+  reduceLast,
+  type FormedReducedExpr,
+} from "~/service/reduce";
 import { createSignal } from "solid-js";
 export { Command, parseCommand };
 
@@ -30,15 +35,15 @@ export async function runCommand(command: Command) {
           readonly formed: FormedReducedExpr;
         }[]
       >([]);
-      await reduce(command.expr, {
-        onInit: ({ reducer }) => {
+      await reduceHead(command.expr, {
+        onInit: ({ formed }) => {
           putConsoleItem({
             type: "Reduce",
-            formed: reducer.formed,
+            formed,
             reduceResults,
           });
         },
-        onReduce: ({ reduceResult: { step, formed } }) => {
+        onReduce: ({ step, formed }) => {
           setReduceResults((prev) => [
             ...prev,
             {
@@ -57,14 +62,14 @@ export async function runCommand(command: Command) {
         readonly formed: FormedReducedExpr;
       } | null>(null);
       await reduceLast(command.expr, {
-        onInit: ({ reducer }) => {
+        onInit: ({ formed }) => {
           putConsoleItem({
             type: "ReduceLast",
-            formed: reducer.formed,
-            reduceResult: reduceResult,
+            formed,
+            reduceResult,
           });
         },
-        onReduce: ({ reduceResult: { step, formed } }) => {
+        onReduce: ({ step, formed }) => {
           setReduceResult({
             step,
             formed,
@@ -81,16 +86,16 @@ export async function runCommand(command: Command) {
           readonly formed: FormedReducedExpr;
         }[]
       >([]);
-      await reduce(command.expr, {
+      await reduceHead(command.expr, {
         maxSteps: command.count,
-        onInit: ({ reducer }) => {
+        onInit: ({ formed }) => {
           putConsoleItem({
             type: "ReduceHead",
-            formed: reducer.formed,
+            formed,
             reduceResults,
           });
         },
-        onReduce: ({ reduceResult: { step, formed } }) => {
+        onReduce: ({ step, formed }) => {
           setReduceResults((prev) => [
             ...prev,
             {
@@ -104,6 +109,31 @@ export async function runCommand(command: Command) {
     }
 
     case "ReduceTail": {
+      const [reduceResults, setReduceResults] = createSignal<
+        {
+          readonly step: number;
+          readonly formed: FormedReducedExpr;
+        }[]
+      >([]);
+      await reduceTail(command.expr, {
+        count: command.count,
+        onInit: ({ formed }) => {
+          putConsoleItem({
+            type: "ReduceTail",
+            formed,
+            reduceResults,
+          });
+        },
+        onReduce: ({ step, formed }) => {
+          setReduceResults((prev) => [
+            ...prev,
+            {
+              step,
+              formed,
+            },
+          ]);
+        },
+      });
       return;
     }
 

@@ -10,15 +10,12 @@ export { ReduceResult, FormedReducedExpr };
 const MAX_STEPS = 1000;
 
 interface ReduceOptions {
-  onInit?: (_: { reducer: Reducer }) => void;
-  onReduce?: (_: {
-    reducer: Reducer;
-    reduceResult: ReduceResult;
-  }) => void;
+  onInit?: (reducer: Reducer) => void;
+  onReduce?: (reduceResult: ReduceResult) => void;
   maxSteps?: number;
 }
 
-export async function reduce(
+export async function reduceHead(
   expr: Expr,
   options?: ReduceOptions,
 ): Promise<void> {
@@ -26,28 +23,61 @@ export async function reduce(
 
   const reducer = new Reducer(context(), expr, displayStyle());
 
-  onInit?.({ reducer });
+  onInit?.(reducer);
 
   while (true) {
     const result = reducer.next();
 
-    if (result.done) {
-      return;
-    }
+    if (result.done) return;
 
     const reduceResult = result.value;
 
-    if (reduceResult == null) {
-      continue;
-    }
+    if (reduceResult == null) continue;
 
-    onReduce?.({ reducer, reduceResult });
+    onReduce?.(reduceResult);
 
-    if ((maxSteps ?? MAX_STEPS) <= reduceResult.step) {
-      return;
+    if ((maxSteps ?? MAX_STEPS) <= reduceResult.step) return;
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+}
+
+export async function reduceTail(
+  expr: Expr,
+  options: ReduceOptions & { count: number },
+): Promise<void> {
+  const { onInit, onReduce, maxSteps, count } = options;
+
+  const reducer = new Reducer(context(), expr, displayStyle());
+
+  onInit?.(reducer);
+
+  let reduceResults: ReduceResult[] = [];
+
+  while (true) {
+    const result = reducer.next();
+
+    if (result.done) break;
+
+    const reduceResult = result.value;
+
+    if (reduceResult == null) continue;
+
+    reduceResults.push(reduceResult);
+
+    if (!reducer.hasNext) break;
+    if ((maxSteps ?? MAX_STEPS) <= reduceResult.step) break;
+
+    if (reduceResults.length > count * 2) {
+      reduceResults = reduceResults.slice(-count);
     }
 
     await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+
+  const tail = reduceResults.slice(-count);
+  for (const reduceResult of tail) {
+    onReduce?.(reduceResult);
   }
 }
 
@@ -59,29 +89,23 @@ export async function reduceLast(
 
   const reducer = new Reducer(context(), expr, displayStyle());
 
-  onInit?.({ reducer });
+  onInit?.(reducer);
 
   while (true) {
     const result = reducer.next();
 
-    if (result.done) {
-      return;
-    }
+    if (result.done) return;
 
     const reduceResult = result.value;
 
-    if (reduceResult == null) {
-      continue;
-    }
+    if (reduceResult == null) continue;
 
     if (!reducer.hasNext) {
-      onReduce?.({ reducer, reduceResult });
+      onReduce?.(reduceResult);
       return;
     }
 
-    if ((maxSteps ?? MAX_STEPS) <= reduceResult.step) {
-      return;
-    }
+    if ((maxSteps ?? MAX_STEPS) <= reduceResult.step) return;
 
     await new Promise((resolve) => setTimeout(resolve, 0));
   }

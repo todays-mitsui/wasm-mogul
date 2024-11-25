@@ -71,6 +71,17 @@ export interface ConsoleItemReduceHead {
   >;
 }
 
+export interface ConsoleItemReduceTail {
+  type: "ReduceTail";
+  formed: FormedExpr;
+  reduceResults: Accessor<
+    {
+      readonly step: number;
+      readonly formed: FormedReducedExpr;
+    }[]
+  >;
+}
+
 export interface ConsoleItemQueryDefined {
   type: "QueryDefined";
   func: Func;
@@ -91,6 +102,7 @@ export type ConsoleItem =
   | ConsoleItemReduce
   | ConsoleItemReduceLast
   | ConsoleItemReduceHead
+  | ConsoleItemReduceTail
   | ConsoleItemQueryDefined
   | ConsoleItemQueryUndefined
   | ConsoleItemContext;
