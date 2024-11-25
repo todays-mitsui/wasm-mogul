@@ -88,7 +88,11 @@ function ConsoleUnitReduce(item: ConsoleItemReduce): JSX.Element {
         <code>{item.formed.expr}</code>
       </li>
       <Index each={item.reduceResults()}>
-        {(result) => <li data-step={result().step}>{result().formed.expr}</li>}
+        {(result) => (
+          <li data-step={result().step}>
+            <code>{result().formed.expr}</code>
+          </li>
+        )}
       </Index>
     </ul>
   );
@@ -101,7 +105,11 @@ function ConsoleUnitReduceLast(item: ConsoleItemReduceLast): JSX.Element {
         <code>{item.formed.expr}</code>
       </li>
       <Show when={item.reduceResult()}>
-        {(result) => <li data-step={result().step}>{result().formed.expr}</li>}
+        {(result) => (
+          <li data-step={result().step}>
+            <code>{result().formed.expr}</code>
+          </li>
+        )}
       </Show>
     </ul>
   );
@@ -114,7 +122,11 @@ function ConsoleUnitReduceHead(item: ConsoleItemReduceHead): JSX.Element {
         <code>{item.formed.expr}</code>
       </li>
       <Index each={item.reduceResults()}>
-        {(result) => <li data-step={result().step}>{result().formed.expr}</li>}
+        {(result) => (
+          <li data-step={result().step}>
+            <code>{result().formed.expr}</code>
+          </li>
+        )}
       </Index>
     </ul>
   );
@@ -127,7 +139,11 @@ function ConsoleUnitReduceTail(item: ConsoleItemReduceTail): JSX.Element {
         <code>{item.formed.expr}</code>
       </li>
       <Index each={item.reduceResults()}>
-        {(result) => <li data-step={result().step}>{result().formed.expr}</li>}
+        {(result) => (
+          <li data-step={result().step}>
+            <code>{result().formed.expr}</code>
+          </li>
+        )}
       </Index>
     </ul>
   );
