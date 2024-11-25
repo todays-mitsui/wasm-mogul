@@ -1,30 +1,38 @@
-import { type Expr, Reducer, type ReduceResult } from "../../../ski3/pkg/index";
+import {
+  type Expr,
+  Reducer,
+  type ReduceResult,
+  type FormedReducedExpr,
+} from "../../../ski3/pkg/index";
 import { context, displayStyle } from "~/signals";
-export { ReduceResult };
+export { ReduceResult, FormedReducedExpr };
 
 const MAX_STEPS = 1000;
 
-export async function reduce<T>(
-  expr: Expr,
-  onInit: (_: { reducer: Reducer }) => T,
-  onReduce: (_: {
+interface ReduceOptions {
+  onInit?: (_: { reducer: Reducer }) => void;
+  onReduce?: (_: {
     reducer: Reducer;
     reduceResult: ReduceResult;
-    payload: T;
-  }) => void,
-  maxSteps: number = MAX_STEPS,
+  }) => void;
+  maxSteps?: number;
+}
+
+export async function reduce(
+  expr: Expr,
+  options?: ReduceOptions,
 ): Promise<void> {
-  console.log({ reduce: expr });
+  const { onInit, onReduce, maxSteps } = options ?? {};
 
   const reducer = new Reducer(context(), expr, displayStyle());
 
-  const payload = onInit({ reducer });
+  onInit?.({ reducer });
 
   while (true) {
-    let result = reducer.next();
+    const result = reducer.next();
 
     if (result.done) {
-      break;
+      return;
     }
 
     const reduceResult = result.value;
@@ -33,10 +41,46 @@ export async function reduce<T>(
       continue;
     }
 
-    onReduce({ reducer, reduceResult, payload });
+    onReduce?.({ reducer, reduceResult });
 
-    if (maxSteps <= reduceResult.step) {
-      break;
+    if ((maxSteps ?? MAX_STEPS) <= reduceResult.step) {
+      return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+}
+
+export async function reduceLast(
+  expr: Expr,
+  options?: ReduceOptions,
+): Promise<void> {
+  const { onInit, onReduce, maxSteps } = options ?? {};
+
+  const reducer = new Reducer(context(), expr, displayStyle());
+
+  onInit?.({ reducer });
+
+  while (true) {
+    const result = reducer.next();
+
+    if (result.done) {
+      return;
+    }
+
+    const reduceResult = result.value;
+
+    if (reduceResult == null) {
+      continue;
+    }
+
+    if (!reducer.hasNext) {
+      onReduce?.({ reducer, reduceResult });
+      return;
+    }
+
+    if ((maxSteps ?? MAX_STEPS) <= reduceResult.step) {
+      return;
     }
 
     await new Promise((resolve) => setTimeout(resolve, 0));

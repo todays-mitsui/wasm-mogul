@@ -5,7 +5,7 @@ import {
   queryFunction,
 } from "~/service/context";
 import { putConsoleItem } from "~/service/console";
-import { reduce, type ReduceResult } from "~/service/reduce";
+import { reduce, reduceLast, type FormedReducedExpr } from "~/service/reduce";
 import { createSignal } from "solid-js";
 export { Command, parseCommand };
 
@@ -19,25 +19,55 @@ export async function runCommand(command: Command) {
       updateFunction(command.func);
       putConsoleItem({ type: "Update", func: command.func });
       return;
-    case "Reduce":
-      await reduce(
-        command.expr,
-        ({ reducer }) => {
-          console.log("onInit");
-          // const reduceResults: ReduceResult[] = [];
-          const [reduceResults, setReduceResults] = createSignal<
-            ReduceResult[]
-          >([]);
-          putConsoleItem({ type: "Reduce", reduceResults });
-          return { setReduceResults };
+    case "Reduce": {
+      const [reduceResults, setReduceResults] = createSignal<
+        {
+          readonly step: number;
+          readonly formed: FormedReducedExpr;
+        }[]
+      >([]);
+      await reduce(command.expr, {
+        onInit: ({ reducer }) => {
+          putConsoleItem({
+            type: "Reduce",
+            formed: reducer.formed,
+            reduceResults,
+          });
         },
-        ({ reduceResult, payload: { setReduceResults } }) => {
-          setReduceResults((prev) => [...prev, reduceResult]);
+        onReduce: ({ reduceResult: { step, formed } }) => {
+          setReduceResults((prev) => [
+            ...prev,
+            {
+              step,
+              formed,
+            },
+          ]);
         },
-      );
+      });
       return;
-    case "ReduceLast":
-      break;
+    }
+    case "ReduceLast": {
+      const [reduceResult, setReduceResult] = createSignal<{
+        readonly step: number;
+        readonly formed: FormedReducedExpr;
+      } | null>(null);
+      await reduceLast(command.expr, {
+        onInit: ({ reducer }) => {
+          putConsoleItem({
+            type: "ReduceLast",
+            formed: reducer.formed,
+            reduceResult: reduceResult,
+          });
+        },
+        onReduce: ({ reduceResult: { step, formed } }) => {
+          setReduceResult({
+            step,
+            formed,
+          });
+        },
+      });
+      return;
+    }
     case "ReduceHead":
       break;
     case "ReduceTail":

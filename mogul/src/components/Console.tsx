@@ -3,6 +3,7 @@ import {
   type ConsoleItemUpdate,
   type ConsoleItemDelete,
   type ConsoleItemReduce,
+  type ConsoleItemReduceLast,
   type ConsoleItemQueryDefined,
   type ConsoleItemQueryUndefined,
   type ConsoleItemContext,
@@ -10,7 +11,7 @@ import {
   context,
 } from "~/signals";
 import { renderFunc } from "~/service/func";
-import { type JSX, Index, For } from "solid-js";
+import { type JSX, Index, For, Show } from "solid-js";
 import styles from "./Console.module.css";
 import classNames from "classnames";
 
@@ -34,6 +35,8 @@ function ConsoleUnit(item: ConsoleItem): JSX.Element {
       return <ConsoleUnitDelete {...item} />;
     case "Reduce":
       return <ConsoleUnitReduce {...item} />;
+    case "ReduceLast":
+      return <ConsoleUnitReduceLast {...item} />;
     case "QueryDefined":
       return <ConsoleUnitQueryDefined {...item} />;
     case "QueryUndefined":
@@ -75,9 +78,25 @@ function ConsoleUnitDelete(item: ConsoleItemDelete): JSX.Element {
 function ConsoleUnitReduce(item: ConsoleItemReduce): JSX.Element {
   return (
     <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
+      <li data-step="0">
+        <code>{item.formed.expr}</code>
+      </li>
       <Index each={item.reduceResults()}>
-        {(result) => <li>{result().formed.expr}</li>}
+        {(result) => <li data-step={result().step}>{result().formed.expr}</li>}
       </Index>
+    </ul>
+  );
+}
+
+function ConsoleUnitReduceLast(item: ConsoleItemReduceLast): JSX.Element {
+  return (
+    <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
+      <li data-step="0">
+        <code>{item.formed.expr}</code>
+      </li>
+      <Show when={item.reduceResult()}>
+        {(result) => <li data-step={result().step}>{result().formed.expr}</li>}
+      </Show>
     </ul>
   );
 }

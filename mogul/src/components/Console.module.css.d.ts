@@ -4,6 +4,7 @@ declare const styles:
   & Readonly<{ "unordered": string }>
   & Readonly<{ "unit": string }>
   & Readonly<{ "define": string }>
+  & Readonly<{ "reduce": string }>
   & Readonly<{ "define": string }>
   & Readonly<{ "reduce": string }>
   & Readonly<{ "unlambda": string }>

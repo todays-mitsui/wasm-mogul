@@ -6,7 +6,8 @@ import {
   type Context,
   defaultContext,
   type DisplayStyle,
-  type ReduceResult,
+  type FormedExpr,
+  type FormedReducedExpr,
 } from "../../ski3/pkg/index";
 
 export const [commandStr, setCommandStr] = createSignal("");
@@ -41,7 +42,22 @@ export interface ConsoleItemDelete {
 
 export interface ConsoleItemReduce {
   type: "Reduce";
-  reduceResults: Accessor<ReduceResult[]>;
+  formed: FormedExpr;
+  reduceResults: Accessor<
+    {
+      readonly step: number;
+      readonly formed: FormedReducedExpr;
+    }[]
+  >;
+}
+
+export interface ConsoleItemReduceLast {
+  type: "ReduceLast";
+  formed: FormedExpr;
+  reduceResult: Accessor<{
+    readonly step: number;
+    readonly formed: FormedReducedExpr;
+  } | null>;
 }
 
 export interface ConsoleItemQueryDefined {
@@ -62,6 +78,7 @@ export type ConsoleItem =
   | ConsoleItemUpdate
   | ConsoleItemDelete
   | ConsoleItemReduce
+  | ConsoleItemReduceLast
   | ConsoleItemQueryDefined
   | ConsoleItemQueryUndefined
   | ConsoleItemContext;

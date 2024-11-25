@@ -5,12 +5,8 @@
   background-color: var(--color-background);
 }
 
-.ordered {
-  counter-reset: ordered-list -1;
-  li::before {
-    counter-increment: ordered-list;
-    content: counter(ordered-list);
-  }
+.ordered li::before {
+  content: attr(data-step) " ";
 }
 
 .unordered li::before {
@@ -58,6 +54,12 @@
 .define {
   li:not(:first-child)::after {
     content: "=";
+  }
+}
+
+.reduce {
+  li:not(:first-child)::after {
+    content: "⇒";
   }
 }
 
