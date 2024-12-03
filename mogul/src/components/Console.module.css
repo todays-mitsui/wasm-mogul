@@ -3,6 +3,9 @@
 
   color: var(--text-color);
   background-color: var(--color-background);
+
+  overflow-y: scroll;
+  scroll-behavior: smooth;
 }
 
 .ordered li::before {

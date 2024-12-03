@@ -1,1 +1,1 @@
-{"version":3,"sources":["./Prompt.module.css"],"names":["button"],"mappings":"AAAA;AAAA,E,aAAAA,Q,WAAA;AAAA;AAAA","file":"Prompt.module.css.d.ts","sourceRoot":""}
+{"version":3,"sources":["./Prompt.module.css"],"names":["prompt","button"],"mappings":"AAAA;AAAA,E,aAAAA,Q,WAAA;AAAA,E,aAMAC,Q,WANA;AAAA;AAAA","file":"Prompt.module.css.d.ts","sourceRoot":""}

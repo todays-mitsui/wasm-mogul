@@ -17,9 +17,20 @@ import { type JSX, Index, For, Show } from "solid-js";
 import styles from "./Console.module.css";
 import classNames from "classnames";
 
-export default function Console() {
+interface Props {
+  class?: string | string[];
+}
+
+export default function Console(props: Props): JSX.Element {
+  const className =
+    props.class == null
+      ? []
+      : Array.isArray(props.class)
+        ? props.class
+        : [props.class];
+
   return (
-    <div class={styles.console}>
+    <div class={classNames(...className, styles.console)}>
       <Index each={console()} fallback={<div>Loading...</div>}>
         {(item) => <ConsoleUnit {...item()} />}
       </Index>

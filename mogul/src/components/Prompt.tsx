@@ -2,8 +2,20 @@ import { type JSX } from "solid-js";
 import { commandStr, setCommandStr } from "~/signals";
 import { type Command, parseCommand, runCommand } from "~/service/command";
 import styles from "./Prompt.module.css";
+import classNames from "classnames";
 
-export default function Prompt(): JSX.Element {
+interface Props {
+  class?: string | string[];
+}
+
+export default function Prompt(props: Props): JSX.Element {
+  const className =
+    props.class == null
+      ? []
+      : Array.isArray(props.class)
+        ? props.class
+        : [props.class];
+
   const onSubmit: JSX.EventHandler<HTMLFormElement, SubmitEvent> = (event) => {
     event.preventDefault();
     console.info({ commandStr: commandStr() });
@@ -20,19 +32,21 @@ export default function Prompt(): JSX.Element {
   };
 
   return (
-    <form onSubmit={onSubmit}>
-      <div>
-        <button class={styles.button} type="button" title="Random Spell">
-          Random
-        </button>
-        <button class={styles.button} type="submit">
-          Run
-        </button>
-      </div>
-      <input
-        value={commandStr()}
-        onInput={(event) => setCommandStr(event.target.value)}
-      />
-    </form>
+    <div class={classNames(...className, styles.prompt)}>
+      <form onSubmit={onSubmit}>
+        <div>
+          <button class={styles.button} type="button" title="Random Spell">
+            Random
+          </button>
+          <button class={styles.button} type="submit">
+            Run
+          </button>
+        </div>
+        <input
+          value={commandStr()}
+          onInput={(event) => setCommandStr(event.target.value)}
+        />
+      </form>
+    </div>
   );
 }

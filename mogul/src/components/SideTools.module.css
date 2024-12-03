@@ -1,0 +1,11 @@
+.side_tools {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  padding: 4px;
+  border-left: 1px solid #999;
+  background-color: #ececf1;
+}

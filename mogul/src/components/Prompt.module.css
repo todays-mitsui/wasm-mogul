@@ -1,3 +1,9 @@
+.prompt {
+  position: relative;
+  padding: 2px;
+  border-top: 1px solid #999;
+}
+
 .button {
   appearance: none;
   border: none;
