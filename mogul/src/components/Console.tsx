@@ -12,7 +12,7 @@ import {
   console,
   context,
 } from "~/signals";
-import { renderFunc } from "~/service/func";
+import { type DisplayStyle, renderFunc } from "~/service/func";
 import { type JSX, Index, For, Show } from "solid-js";
 import styles from "./Console.module.css";
 import classNames from "classnames";
@@ -65,8 +65,10 @@ function ConsoleUnit(item: ConsoleItem): JSX.Element {
   }
 }
 
-function ConsoleUnitUpdate(item: ConsoleItemUpdate): JSX.Element {
-  const [signature, body] = renderFunc(item.func);
+export function ConsoleUnitUpdate(
+  props: ConsoleItemUpdate & { displayStyle?: DisplayStyle },
+): JSX.Element {
+  const [signature, body] = renderFunc(props.func, props.displayStyle);
   return (
     <ul class={classNames(styles.unit, styles.unordered, styles.define)}>
       <li>
@@ -79,26 +81,26 @@ function ConsoleUnitUpdate(item: ConsoleItemUpdate): JSX.Element {
   );
 }
 
-function ConsoleUnitDelete(item: ConsoleItemDelete): JSX.Element {
+function ConsoleUnitDelete(props: ConsoleItemDelete): JSX.Element {
   return (
     <ul class={classNames(styles.unit, styles.unordered, styles.define)}>
       <li>
-        <code>{item.identifier}</code>
+        <code>{props.identifier}</code>
       </li>
       <li>
-        <code>{item.identifier}</code>
+        <code>{props.identifier}</code>
       </li>
     </ul>
   );
 }
 
-function ConsoleUnitReduce(item: ConsoleItemReduce): JSX.Element {
+function ConsoleUnitReduce(props: ConsoleItemReduce): JSX.Element {
   return (
     <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
       <li data-step="0">
-        <code>{item.formed.expr}</code>
+        <code>{props.formed.expr}</code>
       </li>
-      <Index each={item.reduceResults()}>
+      <Index each={props.reduceResults()}>
         {(result) => (
           <li data-step={result().step}>
             <code>{result().formed.expr}</code>
@@ -109,13 +111,13 @@ function ConsoleUnitReduce(item: ConsoleItemReduce): JSX.Element {
   );
 }
 
-function ConsoleUnitReduceLast(item: ConsoleItemReduceLast): JSX.Element {
+function ConsoleUnitReduceLast(props: ConsoleItemReduceLast): JSX.Element {
   return (
     <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
       <li data-step="0">
-        <code>{item.formed.expr}</code>
+        <code>{props.formed.expr}</code>
       </li>
-      <Show when={item.reduceResult()}>
+      <Show when={props.reduceResult()}>
         {(result) => (
           <li data-step={result().step}>
             <code>{result().formed.expr}</code>
@@ -126,13 +128,13 @@ function ConsoleUnitReduceLast(item: ConsoleItemReduceLast): JSX.Element {
   );
 }
 
-function ConsoleUnitReduceHead(item: ConsoleItemReduceHead): JSX.Element {
+function ConsoleUnitReduceHead(props: ConsoleItemReduceHead): JSX.Element {
   return (
     <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
       <li data-step="0">
-        <code>{item.formed.expr}</code>
+        <code>{props.formed.expr}</code>
       </li>
-      <Index each={item.reduceResults()}>
+      <Index each={props.reduceResults()}>
         {(result) => (
           <li data-step={result().step}>
             <code>{result().formed.expr}</code>
@@ -143,13 +145,13 @@ function ConsoleUnitReduceHead(item: ConsoleItemReduceHead): JSX.Element {
   );
 }
 
-function ConsoleUnitReduceTail(item: ConsoleItemReduceTail): JSX.Element {
+function ConsoleUnitReduceTail(props: ConsoleItemReduceTail): JSX.Element {
   return (
     <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
       <li data-step="0">
-        <code>{item.formed.expr}</code>
+        <code>{props.formed.expr}</code>
       </li>
-      <Index each={item.reduceResults()}>
+      <Index each={props.reduceResults()}>
         {(result) => (
           <li data-step={result().step}>
             <code>{result().formed.expr}</code>
@@ -160,8 +162,10 @@ function ConsoleUnitReduceTail(item: ConsoleItemReduceTail): JSX.Element {
   );
 }
 
-function ConsoleUnitQueryDefined(item: ConsoleItemQueryDefined): JSX.Element {
-  const [signature, body] = renderFunc(item.func);
+export function ConsoleUnitQueryDefined(
+  props: ConsoleItemQueryDefined & { displayStyle?: DisplayStyle },
+): JSX.Element {
+  const [signature, body] = renderFunc(props.func, props.displayStyle);
   return (
     <ul class={classNames(styles.unit, styles.unordered, styles.define)}>
       <li>
@@ -174,22 +178,22 @@ function ConsoleUnitQueryDefined(item: ConsoleItemQueryDefined): JSX.Element {
   );
 }
 
-function ConsoleUnitQueryUndefined(
-  item: ConsoleItemQueryUndefined,
+export function ConsoleUnitQueryUndefined(
+  props: ConsoleItemQueryUndefined,
 ): JSX.Element {
   return (
     <ul class={classNames(styles.unit, styles.unordered, styles.define)}>
       <li>
-        <code>{item.identifier}</code>
+        <code>{props.identifier}</code>
       </li>
       <li>
-        <code>{item.identifier}</code>
+        <code>{props.identifier}</code>
       </li>
     </ul>
   );
 }
 
-function ConsoleUnitContext(item: ConsoleItemContext): JSX.Element {
+function ConsoleUnitContext(_props: ConsoleItemContext): JSX.Element {
   const functions = Object.values(context()).toSorted((a, b) =>
     a.name < b.name ? -1 : 1,
   );
