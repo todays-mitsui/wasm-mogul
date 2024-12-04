@@ -94,7 +94,7 @@ function ConsoleUnitDelete(props: ConsoleItemDelete): JSX.Element {
   );
 }
 
-function ConsoleUnitReduce(props: ConsoleItemReduce): JSX.Element {
+export function ConsoleUnitReduce(props: ConsoleItemReduce): JSX.Element {
   return (
     <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
       <li data-step="0">
