@@ -3,5 +3,13 @@
     "enabled": true,
     "ignore": ["*.d.ts"],
     "indentStyle": "space"
+  },
+  "organizeImports": {
+    "enabled": true
+  },
+  "css": {
+    "parser": {
+      "cssModules": true
+    }
   }
 }

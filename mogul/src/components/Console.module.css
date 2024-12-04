@@ -83,3 +83,29 @@
     grid-column: 3 / 4;
   }
 }
+
+.reduce {
+  li:hover {
+    :global(.reducible) {
+      outline: 1px solid lightgray;
+      outline-offset: 1px;
+    }
+    :global(.callee) {
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-decoration-color: red;
+      text-decoration-skip-ink: none;
+    }
+    :global(.argument) {
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-decoration-skip-ink: none;
+      &:nth-child(odd) {
+        text-decoration-color: green;
+      }
+      &:nth-child(even) {
+        text-decoration-color: blue;
+      }
+    }
+  }
+}

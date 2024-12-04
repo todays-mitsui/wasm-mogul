@@ -1,3 +1,4 @@
+import { onMount } from "solid-js";
 import {
   type ConsoleItem,
   type ConsoleItemUpdate,
@@ -16,6 +17,7 @@ import { type DisplayStyle, renderFunc } from "~/service/func";
 import { type JSX, Index, For, Show } from "solid-js";
 import styles from "./Console.module.css";
 import classNames from "classnames";
+import { markReducible, markReduced } from "~/lib/mark";
 
 interface Props {
   class?: string | string[];
@@ -95,10 +97,19 @@ function ConsoleUnitDelete(props: ConsoleItemDelete): JSX.Element {
 }
 
 export function ConsoleUnitReduce(props: ConsoleItemReduce): JSX.Element {
+  let step0Ref: HTMLElement | undefined;
+  const reducible = () =>
+    props.formed.reducibleRange == null
+      ? document.createTextNode(props.formed.expr)
+      : markReducible(props.formed.expr, props.formed.reducibleRange);
+  onMount(() => {
+    step0Ref?.appendChild(reducible());
+  });
+
   return (
     <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
       <li data-step="0">
-        <code>{props.formed.expr}</code>
+        <code ref={step0Ref} />
       </li>
       <Index each={props.reduceResults()}>
         {(result) => (
