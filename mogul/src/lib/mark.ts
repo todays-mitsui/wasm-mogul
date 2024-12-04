@@ -1,4 +1,4 @@
-import { type ExprRange, type ReducibleRange } from "../../../ski3/pkg/index";
+import type { ExprRange, ReducibleRange } from "../../../ski3/pkg/index";
 
 export function markReducible(
   rawCode: string,

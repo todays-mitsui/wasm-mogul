@@ -1,11 +1,13 @@
 {
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "formatter": {
     "enabled": true,
     "ignore": ["*.d.ts"],
     "indentStyle": "space"
   },
   "organizeImports": {
-    "enabled": true
+    "enabled": true,
+    "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
   },
   "css": {
     "parser": {

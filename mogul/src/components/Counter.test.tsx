@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
 import { render } from "@solidjs/testing-library";
 import userEvent from "@testing-library/user-event";
+import { describe, expect, it } from "vitest";
 import Counter from "./Counter";
 
 describe("<Counter />", () => {

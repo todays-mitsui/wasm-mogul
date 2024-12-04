@@ -1,4 +1,4 @@
-import { Component, mergeProps, splitProps } from "solid-js";
+import { type Component, mergeProps, splitProps } from "solid-js";
 import "./button.css";
 
 export interface ButtonProps {

@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from "storybook-solidjs";
 import { expect, userEvent, within } from "@storybook/test";
+import type { Meta, StoryObj } from "storybook-solidjs";
 
 import { Page } from "./Page";
 

@@ -1,10 +1,10 @@
+import { displayStyle as getDisplayStyle } from "~/signals";
 import {
   type DisplayStyle,
   type Func,
   renderFunc as render,
 } from "../../../ski3/pkg/index";
-import { displayStyle as getDisplayStyle } from "~/signals";
-export { type DisplayStyle, type Func };
+export type { DisplayStyle, Func };
 
 export function renderFunc(
   func: Func,

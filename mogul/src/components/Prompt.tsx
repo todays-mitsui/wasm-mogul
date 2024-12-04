@@ -1,8 +1,8 @@
-import { type JSX } from "solid-js";
-import { commandStr, setCommandStr } from "~/signals";
-import { type Command, parseCommand, runCommand } from "~/service/command";
-import styles from "./Prompt.module.css";
 import classNames from "classnames";
+import type { JSX } from "solid-js";
+import { type Command, parseCommand, runCommand } from "~/service/command";
+import { commandStr, setCommandStr } from "~/signals";
+import styles from "./Prompt.module.css";
 
 interface Props {
   class?: string | string[];

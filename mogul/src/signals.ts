@@ -1,13 +1,13 @@
-import { createSignal, type Accessor } from "solid-js";
 import { makePersisted } from "@solid-primitives/storage";
+import { type Accessor, createSignal } from "solid-js";
 import {
-  type Identifier,
-  type Func,
   type Context,
-  defaultContext,
   type DisplayStyle,
   type FormedExpr,
   type FormedReducedExpr,
+  type Func,
+  type Identifier,
+  defaultContext,
 } from "../../ski3/pkg/index";
 
 export const [commandStr, setCommandStr] = createSignal("");

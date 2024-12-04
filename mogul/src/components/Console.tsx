@@ -1,23 +1,22 @@
-import { onMount } from "solid-js";
+import classNames from "classnames";
+import { For, Index, type JSX, Show, onMount } from "solid-js";
+import { markReduced, markReducible } from "~/lib/mark";
+import { type DisplayStyle, renderFunc } from "~/service/func";
 import {
+  console,
   type ConsoleItem,
-  type ConsoleItemUpdate,
+  type ConsoleItemContext,
   type ConsoleItemDelete,
-  type ConsoleItemReduce,
-  type ConsoleItemReduceLast,
-  type ConsoleItemReduceHead,
-  type ConsoleItemReduceTail,
   type ConsoleItemQueryDefined,
   type ConsoleItemQueryUndefined,
-  type ConsoleItemContext,
-  console,
+  type ConsoleItemReduce,
+  type ConsoleItemReduceHead,
+  type ConsoleItemReduceLast,
+  type ConsoleItemReduceTail,
+  type ConsoleItemUpdate,
   context,
 } from "~/signals";
-import { type DisplayStyle, renderFunc } from "~/service/func";
-import { type JSX, Index, For, Show } from "solid-js";
 import styles from "./Console.module.css";
-import classNames from "classnames";
-import { markReducible, markReduced } from "~/lib/mark";
 
 interface Props {
   class?: string | string[];

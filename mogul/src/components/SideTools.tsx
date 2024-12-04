@@ -1,6 +1,6 @@
-import { type JSX } from "solid-js";
-import styles from "./SideTools.module.css";
 import classNames from "classnames";
+import type { JSX } from "solid-js";
+import styles from "./SideTools.module.css";
 
 interface Props {
   class?: string | string[];

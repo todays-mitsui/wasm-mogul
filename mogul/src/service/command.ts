@@ -1,18 +1,18 @@
-import { type Command, parseCommand } from "../../../ski3/pkg/index";
-import {
-  updateFunction,
-  deleteFunction,
-  queryFunction,
-} from "~/service/context";
+import { createSignal } from "solid-js";
 import { putConsoleItem } from "~/service/console";
 import {
-  reduceHead,
-  reduceTail,
-  reduceLast,
+  deleteFunction,
+  queryFunction,
+  updateFunction,
+} from "~/service/context";
+import {
   type FormedReducedExpr,
+  reduceHead,
+  reduceLast,
+  reduceTail,
 } from "~/service/reduce";
-import { createSignal } from "solid-js";
-export { Command, parseCommand };
+import { type Command, parseCommand } from "../../../ski3/pkg/index";
+export { type Command, parseCommand };
 
 export async function runCommand(command: Command) {
   switch (command.type) {

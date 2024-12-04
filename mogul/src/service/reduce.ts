@@ -1,11 +1,11 @@
+import { context, displayStyle } from "~/signals";
 import {
   type Expr,
-  Reducer,
-  type ReduceResult,
   type FormedReducedExpr,
+  type ReduceResult,
+  Reducer,
 } from "../../../ski3/pkg/index";
-import { context, displayStyle } from "~/signals";
-export { ReduceResult, FormedReducedExpr };
+export type { ReduceResult, FormedReducedExpr };
 
 const MAX_STEPS = 1000;
 

@@ -1,6 +1,6 @@
 import { context, setContext } from "~/signals";
-import { type Func } from "../../../ski3/pkg/index";
-export { type Context } from "../../../ski3/pkg/index";
+import type { Func } from "../../../ski3/pkg/index";
+export type { Context } from "../../../ski3/pkg/index";
 
 export function updateFunction(func: Func) {
   setContext((prev) => ({ ...prev, [func.name]: func }));
