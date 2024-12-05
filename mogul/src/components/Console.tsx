@@ -127,7 +127,7 @@ export function ConsoleUnitReduceLast(
   props: ConsoleItemReduceLast,
 ): JSX.Element {
   return (
-    <ul class={classNames(styles.unit, styles.ordered, styles.reduce_last)}>
+    <ul class={classNames(styles.unit, styles.ordered, styles.reduceLast)}>
       <li data-step="0">
         <code>
           <ReduceRow

@@ -3,7 +3,7 @@
   grid-template-columns: 1fr auto;
   grid-template-rows: minmax(0, 1fr) auto;
 
-  .side_tools {
+  .side-tools {
     grid-column: 2 / 3;
     grid-row: 1 / 2;
   }

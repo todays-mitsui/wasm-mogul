@@ -13,7 +13,7 @@ export default function Page() {
     <>
       <Header />
       <main class={styles.main}>
-        <SideTools class={styles.side_tools} />
+        <SideTools class={styles.sideTools} />
         <Console class={styles.console} />
         <Prompt class={styles.prompt} />
       </main>

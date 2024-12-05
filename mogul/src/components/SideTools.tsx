@@ -14,5 +14,5 @@ export default function SideTools(props: Props): JSX.Element {
         ? props.class
         : [props.class];
 
-  return <nav class={classNames(...className, styles.side_tools)}>A</nav>;
+  return <nav class={classNames(...className, styles.sideTools)}>A</nav>;
 }

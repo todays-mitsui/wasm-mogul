@@ -18,6 +18,11 @@ const config: StorybookConfig = {
   async viteFinal(config) {
     return mergeConfig(config, {
       plugins: [tsconfigPaths(), wasm(), topLevelAwait()],
+      css: {
+        modules: {
+          localsConvention: 'camelCase',
+        }
+      },
     });
   },
 };

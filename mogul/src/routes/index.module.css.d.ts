@@ -1,6 +1,6 @@
 declare const styles:
   & Readonly<{ "main": string }>
-  & Readonly<{ "side_tools": string }>
+  & Readonly<{ "sideTools": string }>
   & Readonly<{ "console": string }>
   & Readonly<{ "prompt": string }>
 ;

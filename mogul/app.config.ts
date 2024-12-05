@@ -5,5 +5,10 @@ import topLevelAwait from "vite-plugin-top-level-await";
 export default defineConfig({
   vite: {
     plugins: [wasm(), topLevelAwait()],
+    css: {
+      modules: {
+        localsConvention: 'camelCase',
+      }
+    }
   },
 });

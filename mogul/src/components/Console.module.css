@@ -85,7 +85,7 @@
 }
 
 .reduce,
-.reduce_last {
+.reduce-last {
   li:not(:last-child) :global(.expr-mark-reduced) {
     display: none;
   }
