@@ -9,8 +9,10 @@ declare const styles:
   & Readonly<{ "reduce": string }>
   & Readonly<{ "unlambda": string }>
   & Readonly<{ "reduce": string }>
+  & Readonly<{ "reduceHead": string }>
   & Readonly<{ "reduceLast": string }>
   & Readonly<{ "reduce": string }>
+  & Readonly<{ "reduceHead": string }>
 ;
 export default styles;
 //# sourceMappingURL=./Console.module.css.d.ts.map

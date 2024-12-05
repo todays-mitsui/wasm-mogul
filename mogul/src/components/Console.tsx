@@ -153,16 +153,29 @@ export function ConsoleUnitReduceLast(
   );
 }
 
-function ConsoleUnitReduceHead(props: ConsoleItemReduceHead): JSX.Element {
+export function ConsoleUnitReduceHead(
+  props: ConsoleItemReduceHead,
+): JSX.Element {
   return (
-    <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
+    <ul class={classNames(styles.unit, styles.ordered, styles.reduceHead)}>
       <li data-step="0">
-        <code>{props.formed.expr}</code>
+        <code>
+          <ReduceRow
+            expr={props.formed.expr}
+            reducibleRange={props.formed.reducibleRange}
+          />
+        </code>
       </li>
       <Index each={props.reduceResults()}>
         {(result) => (
           <li data-step={result().step}>
-            <code>{result().formed.expr}</code>
+            <code>
+              <ReduceRow
+                expr={result().formed.expr}
+                reducedRange={result().formed.reducedRange}
+                reducibleRange={result().formed.reducibleRange}
+              />
+            </code>
           </li>
         )}
       </Index>

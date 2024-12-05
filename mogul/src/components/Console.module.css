@@ -85,6 +85,7 @@
 }
 
 .reduce,
+.reduce-head,
 .reduce-last {
   li:not(:last-child) :global(.expr-mark-reduced) {
     display: none;
@@ -116,7 +117,8 @@
   }
 }
 
-.reduce {
+.reduce,
+.reduce-head {
   li:hover + li {
     :global(.expr-mark-reduced) {
       display: inline;
