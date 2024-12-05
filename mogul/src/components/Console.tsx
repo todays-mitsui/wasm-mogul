@@ -1,6 +1,11 @@
 import classNames from "classnames";
-import { For, Index, type JSX, Show, onMount } from "solid-js";
-import { markReduced, markReducible } from "~/lib/mark";
+import { For, Index, type JSX, Show } from "solid-js";
+import {
+  ExprRange,
+  ReducibleRange,
+  markReduced,
+  markReducible,
+} from "~/lib/mark";
 import { type DisplayStyle, renderFunc } from "~/service/func";
 import {
   console,
@@ -17,6 +22,7 @@ import {
   context,
 } from "~/signals";
 import styles from "./Console.module.css";
+import { ReduceRow } from "./ReduceRow";
 
 interface Props {
   class?: string | string[];
@@ -96,24 +102,26 @@ function ConsoleUnitDelete(props: ConsoleItemDelete): JSX.Element {
 }
 
 export function ConsoleUnitReduce(props: ConsoleItemReduce): JSX.Element {
-  let step0Ref: HTMLElement | undefined;
-  const reducible = () =>
-    props.formed.reducibleRange == null
-      ? document.createTextNode(props.formed.expr)
-      : markReducible(props.formed.expr, props.formed.reducibleRange);
-  onMount(() => {
-    step0Ref?.appendChild(reducible());
-  });
-
   return (
     <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
       <li data-step="0">
-        <code ref={step0Ref} />
+        <code>
+          <ReduceRow
+            expr={props.formed.expr}
+            reducibleRange={props.formed.reducibleRange}
+          />
+        </code>
       </li>
       <Index each={props.reduceResults()}>
         {(result) => (
           <li data-step={result().step}>
-            <code>{result().formed.expr}</code>
+            <code>
+              <ReduceRow
+                expr={result().formed.expr}
+                reducedRange={result().formed.reducedRange}
+                reducibleRange={result().formed.reducibleRange}
+              />
+            </code>
           </li>
         )}
       </Index>

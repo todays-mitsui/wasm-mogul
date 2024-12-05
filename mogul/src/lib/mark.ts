@@ -1,9 +1,14 @@
 import type { ExprRange, ReducibleRange } from "../../../ski3/pkg/index";
+export type { ExprRange, ReducibleRange };
 
 export function markReducible(
   rawCode: string,
-  ranges: ReducibleRange,
-): DocumentFragment {
+  ranges: ReducibleRange | null,
+): DocumentFragment | Text {
+  if (ranges == null) {
+    return document.createTextNode(rawCode);
+  }
+
   const [before, subCode, after] = strSplits(rawCode, [
     ranges.entire.start,
     ranges.entire.end,
@@ -30,9 +35,9 @@ export function markReducible(
 
 export function markReduced(
   rawCode: string,
-  ranges: readonly ExprRange[],
+  range: ExprRange,
 ): DocumentFragment {
-  return wrapParts((_index, text) => wrap(text, "reduced"), rawCode, ranges);
+  return wrapParts((_index, text) => wrap(text, "reduced"), rawCode, [range]);
 }
 
 function wrap(textContent: string, className: string): HTMLSpanElement {
@@ -48,10 +53,10 @@ function wrapParts(
   ranges: readonly ExprRange[],
   offset = 0,
 ): DocumentFragment {
-  ranges = ranges.toSorted((a, b) => a.start - b.start);
+  const sortedRanges = ranges.toSorted((a, b) => a.start - b.start);
   const strs = strSplits(
     str,
-    ranges
+    sortedRanges
       .flatMap(({ start, end }) => [start, end])
       .map((index) => index - offset),
   );
@@ -73,17 +78,18 @@ function wrapParts(
 }
 
 function strSplits(str: string, indexes: readonly number[]): string[] {
+  let s = str;
   const strs: string[] = [];
   let current = 0;
   for (const index of indexes) {
     const [before, after] = [
-      str.substring(0, index - current),
-      str.substring(index - current),
+      s.substring(0, index - current),
+      s.substring(index - current),
     ];
     strs.push(before);
-    str = after;
+    s = after;
     current = index;
   }
-  strs.push(str);
+  strs.push(s);
   return strs;
 }

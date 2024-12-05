@@ -85,10 +85,15 @@
 }
 
 .reduce {
+  li:not(:last-child) :global(.expr-mark-reduced) {
+    display: none;
+  }
+
   li:hover {
     :global(.reducible) {
       outline: 1px solid lightgray;
       outline-offset: 1px;
+      border-radius: 2px;
     }
     :global(.callee) {
       text-decoration: underline;
@@ -106,6 +111,20 @@
       &:nth-child(even) {
         text-decoration-color: blue;
       }
+    }
+  }
+
+  li:hover + li {
+    :global(.expr-mark-reduced) {
+      display: inline;
+    }
+    :global(.expr-mark-reducible) {
+      display: none;
+    }
+    :global(.reduced) {
+      outline: 1px solid lightgray;
+      outline-offset: 1px;
+      border-radius: 2px;
     }
   }
 }
