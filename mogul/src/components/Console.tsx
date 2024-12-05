@@ -1,11 +1,5 @@
 import classNames from "classnames";
 import { For, Index, type JSX, Show } from "solid-js";
-import {
-  ExprRange,
-  ReducibleRange,
-  markReduced,
-  markReducible,
-} from "~/lib/mark";
 import { type DisplayStyle, renderFunc } from "~/service/func";
 import {
   console,
@@ -129,16 +123,29 @@ export function ConsoleUnitReduce(props: ConsoleItemReduce): JSX.Element {
   );
 }
 
-function ConsoleUnitReduceLast(props: ConsoleItemReduceLast): JSX.Element {
+export function ConsoleUnitReduceLast(
+  props: ConsoleItemReduceLast,
+): JSX.Element {
   return (
-    <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
+    <ul class={classNames(styles.unit, styles.ordered, styles.reduce_last)}>
       <li data-step="0">
-        <code>{props.formed.expr}</code>
+        <code>
+          <ReduceRow
+            expr={props.formed.expr}
+            reducibleRange={props.formed.reducibleRange}
+          />
+        </code>
       </li>
       <Show when={props.reduceResult()}>
         {(result) => (
           <li data-step={result().step}>
-            <code>{result().formed.expr}</code>
+            <code>
+              <ReduceRow
+                expr={result().formed.expr}
+                reducedRange={result().formed.reducedRange}
+                reducibleRange={result().formed.reducibleRange}
+              />
+            </code>
           </li>
         )}
       </Show>

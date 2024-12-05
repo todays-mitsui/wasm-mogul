@@ -84,7 +84,8 @@
   }
 }
 
-.reduce {
+.reduce,
+.reduce_last {
   li:not(:last-child) :global(.expr-mark-reduced) {
     display: none;
   }
@@ -113,7 +114,9 @@
       }
     }
   }
+}
 
+.reduce {
   li:hover + li {
     :global(.expr-mark-reduced) {
       display: inline;
