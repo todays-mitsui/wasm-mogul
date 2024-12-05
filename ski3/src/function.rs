@@ -1,7 +1,9 @@
+use crate::display_style::DisplayStyle;
 use crate::expression::Expr;
 use crate::identifier::Identifier;
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
+use tuber::{self, Format};
 use wasm_bindgen::prelude::*;
 
 #[derive(Tsify, Serialize, Deserialize, Debug)]
@@ -34,4 +36,12 @@ impl From<Func> for tuber::Func {
             ski_func.body.into(),
         )
     }
+}
+
+#[wasm_bindgen(js_name = renderFunc)]
+#[allow(non_snake_case)]
+pub fn render_func(func: Func, displayStyle: DisplayStyle) -> String {
+    let tuber_func: tuber::Func = func.into();
+    let tuber_display_style: tuber::DisplayStyle = displayStyle.into();
+    tuber_func.format(&tuber_display_style)
 }

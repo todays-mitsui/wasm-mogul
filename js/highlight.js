@@ -87,7 +87,7 @@ function wrapParts(wrap, str, ranges, offset = 0) {
         fragment.appendChild(document.createTextNode(s));
       }
     } else {
-      const index = (i - 1) * 0.5;
+      const index = (i - 1) * 0.5; // i >> 1
       fragment.appendChild(wrap(index, s));
     }
   }
