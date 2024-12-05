@@ -136,6 +136,9 @@ export function ConsoleUnitReduceLast(
           />
         </code>
       </li>
+      <li class={styles.omitted}>
+        <code>……</code>
+      </li>
       <Show when={props.reduceResult()}>
         {(result) => (
           <li data-step={result().step}>
@@ -183,16 +186,32 @@ export function ConsoleUnitReduceHead(
   );
 }
 
-function ConsoleUnitReduceTail(props: ConsoleItemReduceTail): JSX.Element {
+export function ConsoleUnitReduceTail(
+  props: ConsoleItemReduceTail,
+): JSX.Element {
   return (
-    <ul class={classNames(styles.unit, styles.ordered, styles.reduce)}>
+    <ul class={classNames(styles.unit, styles.ordered, styles.reduceTail)}>
       <li data-step="0">
-        <code>{props.formed.expr}</code>
+        <code>
+          <ReduceRow
+            expr={props.formed.expr}
+            reducibleRange={props.formed.reducibleRange}
+          />
+        </code>
+      </li>
+      <li class={styles.omitted}>
+        <code>……</code>
       </li>
       <Index each={props.reduceResults()}>
         {(result) => (
           <li data-step={result().step}>
-            <code>{result().formed.expr}</code>
+            <code>
+              <ReduceRow
+                expr={result().formed.expr}
+                reducedRange={result().formed.reducedRange}
+                reducibleRange={result().formed.reducibleRange}
+              />
+            </code>
           </li>
         )}
       </Index>
