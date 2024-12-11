@@ -1,7 +1,12 @@
 import classNames from "classnames";
 import { type JSX, createEffect, createSignal, splitProps } from "solid-js";
 import { type Command, parseCommand, runCommand } from "~/service/command";
-import { commandStr, setCommandStr } from "~/signals";
+import {
+  commandStr,
+  setCommandStr,
+  commandHistory,
+  addCommandHistory,
+} from "~/signals";
 import styles from "./Prompt.module.css";
 
 interface Props {
@@ -29,6 +34,7 @@ export default function Prompt(props: Props): JSX.Element {
       return;
     }
     console.info({ command });
+    addCommandHistory(commandStr());
     runCommand(command);
     setCommandStr("");
   };

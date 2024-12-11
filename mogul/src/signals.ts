@@ -12,6 +12,18 @@ import {
 
 export const [commandStr, setCommandStr] = createSignal("");
 
+const [commandHistory, setCommandHistory] = makePersisted(
+  createSignal<string[]>([]),
+  {
+    name: "command-history",
+    storage: localStorage,
+  },
+);
+export { commandHistory };
+export function addCommandHistory(command: string) {
+  setCommandHistory((prev) => [...prev, command].slice(-10));
+}
+
 export const [displayStyle, setDisplayStyle] = makePersisted(
   createSignal<DisplayStyle>("EcmaScript"),
   {
