@@ -190,16 +190,15 @@ function ElasticInput(props: ElasticInputProps): JSX.Element {
   ]);
 
   let textareaRef: HTMLTextAreaElement | undefined;
-  createEffect(() => {
+  const value = () => {
     if (textareaRef != null) {
-      textareaRef.value = props.value ?? "";
-      textareaRef.style.height = "auto";
-      textareaRef.style.height = `${textareaRef.scrollHeight}px`;
+      setTimeout(() => {
+        textareaRef.style.height = "auto";
+        textareaRef.style.height = `${textareaRef.scrollHeight}px`;
+      }, 0);
     }
-    if (textareaRef != null && props.ref != null) {
-      props.ref = textareaRef;
-    }
-  });
+    return props.value;
+  };
 
   const onInput: JSX.EventHandler<HTMLTextAreaElement, TextareaInputEvent> = (
     event,
@@ -213,6 +212,7 @@ function ElasticInput(props: ElasticInputProps): JSX.Element {
 
   return (
     <textarea
+      value={value()}
       ref={textareaRef}
       onInput={onInput}
       rows={props.rows ?? 1}
