@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { type JSX, createSignal } from "solid-js";
+import { type JSX, createEffect, createSignal, splitProps } from "solid-js";
 import { type Command, parseCommand, runCommand } from "~/service/command";
 import { commandStr, setCommandStr } from "~/signals";
 import styles from "./Prompt.module.css";
@@ -51,7 +51,7 @@ export default function Prompt(props: Props): JSX.Element {
             Run
           </button>
         </div>
-        <input
+        <ElasticTextarea
           class={styles.input}
           value={commandStr()}
           placeholder={focus() ? "" : "_"}
@@ -61,5 +61,49 @@ export default function Prompt(props: Props): JSX.Element {
         />
       </form>
     </div>
+  );
+}
+
+// ========================================================================== //
+
+type TextareaInputEvent = InputEvent & {
+  currentTarget: HTMLTextAreaElement;
+  target: HTMLTextAreaElement;
+};
+
+interface ElasticTextareaProps {
+  onInput?: JSX.EventHandler<HTMLTextAreaElement, TextareaInputEvent>;
+  ref?: HTMLTextAreaElement;
+  style?: Record<string, string>;
+  [key: string]: any;
+}
+
+function ElasticTextarea(props: ElasticTextareaProps): JSX.Element {
+  const [, remainingProps] = splitProps(props, ["onInput", "ref", "style"]);
+
+  const [height, setHeight] = createSignal(0);
+  const onInput: JSX.EventHandler<HTMLTextAreaElement, TextareaInputEvent> = (
+    event,
+  ) => {
+    setHeight(event.currentTarget.scrollHeight);
+    props.onInput?.(event);
+  };
+
+  let textareaRef: HTMLTextAreaElement | undefined;
+  createEffect(() => {
+    if (textareaRef != null) {
+      props.ref = textareaRef;
+      setHeight(textareaRef.scrollHeight);
+    }
+  });
+
+  return (
+    <textarea
+      value={commandStr()}
+      onInput={onInput}
+      ref={textareaRef}
+      style={{ ...props.style, height: `${height()}px` }}
+      {...remainingProps}
+    />
   );
 }
