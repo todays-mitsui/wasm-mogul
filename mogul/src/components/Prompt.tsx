@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import type { JSX } from "solid-js";
+import { type JSX, createSignal } from "solid-js";
 import { type Command, parseCommand, runCommand } from "~/service/command";
 import { commandStr, setCommandStr } from "~/signals";
 import styles from "./Prompt.module.css";
@@ -15,6 +15,8 @@ export default function Prompt(props: Props): JSX.Element {
       : Array.isArray(props.class)
         ? props.class
         : [props.class];
+
+  const [focus, setFocus] = createSignal(false);
 
   const onSubmit: JSX.EventHandler<HTMLFormElement, SubmitEvent> = (event) => {
     event.preventDefault();
@@ -34,16 +36,27 @@ export default function Prompt(props: Props): JSX.Element {
   return (
     <div class={classNames(...className, styles.prompt)}>
       <form onSubmit={onSubmit}>
-        <div>
-          <button class={styles.button} type="button" title="Random Spell">
+        <div class={styles.buttons}>
+          <button
+            class={classNames(styles.button, styles.randomSpell)}
+            type="button"
+            title="Random Spell"
+          >
             Random
           </button>
-          <button class={styles.button} type="submit">
+          <button
+            class={classNames(styles.button, styles.submit)}
+            type="submit"
+          >
             Run
           </button>
         </div>
         <input
+          class={styles.input}
           value={commandStr()}
+          placeholder={focus() ? "" : "_"}
+          onFocusIn={() => setFocus(true)}
+          onFocusOut={() => setFocus(false)}
           onInput={(event) => setCommandStr(event.target.value)}
         />
       </form>
