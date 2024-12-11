@@ -2,10 +2,10 @@ import classNames from "classnames";
 import { type JSX, createEffect, createSignal, splitProps } from "solid-js";
 import { type Command, parseCommand, runCommand } from "~/service/command";
 import {
+  addCommandHistory,
+  commandHistory,
   commandStr,
   setCommandStr,
-  commandHistory,
-  addCommandHistory,
 } from "~/signals";
 import styles from "./Prompt.module.css";
 
@@ -177,11 +177,29 @@ interface ElasticInputProps {
   value: string;
   onInput?: JSX.EventHandler<HTMLTextAreaElement, TextareaInputEvent>;
   rows?: number;
+  ref?: HTMLTextAreaElement;
   [key: string]: any;
 }
 
 function ElasticInput(props: ElasticInputProps): JSX.Element {
-  const [, remainingProps] = splitProps(props, ["value", "onInput", "rows"]);
+  const [, remainingProps] = splitProps(props, [
+    "value",
+    "onInput",
+    "rows",
+    "ref",
+  ]);
+
+  let textareaRef: HTMLTextAreaElement | undefined;
+  createEffect(() => {
+    if (textareaRef != null) {
+      textareaRef.value = props.value ?? "";
+      textareaRef.style.height = "auto";
+      textareaRef.style.height = `${textareaRef.scrollHeight}px`;
+    }
+    if (textareaRef != null && props.ref != null) {
+      props.ref = textareaRef;
+    }
+  });
 
   const onInput: JSX.EventHandler<HTMLTextAreaElement, TextareaInputEvent> = (
     event,
@@ -195,7 +213,7 @@ function ElasticInput(props: ElasticInputProps): JSX.Element {
 
   return (
     <textarea
-      value={props.value}
+      ref={textareaRef}
       onInput={onInput}
       rows={props.rows ?? 1}
       {...remainingProps}
