@@ -5,13 +5,14 @@ use wasm_bindgen::prelude::*;
 
 #[derive(Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(tag = "type")]
 pub enum Command {
     Delete { identifier: String },
     Update { func: Func },
-    Evaluate { expr: Expr },
-    EvaluateLast { expr: Expr },
-    EvaluateHead { count: usize, expr: Expr },
-    EvaluateTail { count: usize, expr: Expr },
+    Reduce { expr: Expr },
+    ReduceLast { expr: Expr },
+    ReduceHead { count: usize, expr: Expr },
+    ReduceTail { count: usize, expr: Expr },
     Query { identifier: String },
     Context,
     Unlambda { level: u8, expr: Expr },
@@ -26,17 +27,17 @@ impl From<tuber::Command> for Command {
             tuber::Command::Update(func) => Command::Update {
                 func: Func::from(func),
             },
-            tuber::Command::Eval(expr) => Command::Evaluate {
+            tuber::Command::Eval(expr) => Command::Reduce {
                 expr: Expr::from(expr),
             },
-            tuber::Command::EvalLast(expr) => Command::EvaluateLast {
+            tuber::Command::EvalLast(expr) => Command::ReduceLast {
                 expr: Expr::from(expr),
             },
-            tuber::Command::EvalHead(count, expr) => Command::EvaluateHead {
+            tuber::Command::EvalHead(count, expr) => Command::ReduceHead {
                 count,
                 expr: Expr::from(expr),
             },
-            tuber::Command::EvalTail(count, expr) => Command::EvaluateTail {
+            tuber::Command::EvalTail(count, expr) => Command::ReduceTail {
                 count,
                 expr: Expr::from(expr),
             },
@@ -57,10 +58,10 @@ impl From<Command> for tuber::Command {
         match ski_command {
             Command::Delete { identifier } => tuber::Command::Del(identifier.into()),
             Command::Update { func } => tuber::Command::Update(func.into()),
-            Command::Evaluate { expr } => tuber::Command::Eval(expr.into()),
-            Command::EvaluateLast { expr } => tuber::Command::EvalLast(expr.into()),
-            Command::EvaluateHead { count, expr } => tuber::Command::EvalHead(count, expr.into()),
-            Command::EvaluateTail { count, expr } => tuber::Command::EvalTail(count, expr.into()),
+            Command::Reduce { expr } => tuber::Command::Eval(expr.into()),
+            Command::ReduceLast { expr } => tuber::Command::EvalLast(expr.into()),
+            Command::ReduceHead { count, expr } => tuber::Command::EvalHead(count, expr.into()),
+            Command::ReduceTail { count, expr } => tuber::Command::EvalTail(count, expr.into()),
             Command::Query { identifier } => tuber::Command::Query(identifier.into()),
             Command::Context => tuber::Command::Context,
             Command::Unlambda { level, expr } => tuber::Command::Unlambda(level, expr.into()),
