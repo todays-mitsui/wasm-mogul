@@ -39,6 +39,23 @@ export default function Prompt(props: Props): JSX.Element {
     setCommandStr("");
   };
 
+  // Enter キー押下で (改行ではなく) コマンドを実行する
+  // ただし Shift, Ctrl, Command が同時に押下されていれば改行する
+  const onEnter: JSX.EventHandler<HTMLTextAreaElement, KeyboardEvent> = (
+    event,
+  ) => {
+    console.log({ onKeyDown: event });
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey &&
+      !event.ctrlKey &&
+      !event.metaKey
+    ) {
+      event.preventDefault();
+      event.currentTarget.form?.dispatchEvent(new Event("submit"));
+    }
+  };
+
   return (
     <div class={classNames(...className, styles.prompt)}>
       <form onSubmit={onSubmit}>
@@ -64,6 +81,7 @@ export default function Prompt(props: Props): JSX.Element {
           onFocusIn={() => setFocus(true)}
           onFocusOut={() => setFocus(false)}
           onInput={(event) => setCommandStr(event.target.value)}
+          onKeyDown={onEnter}
           history={commandHistory()}
         />
       </form>
