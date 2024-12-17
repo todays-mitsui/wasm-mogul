@@ -13,6 +13,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
+    value: "",
     history: ["1st", "2nd", "3rd", "4th", "5th"],
   },
 };
