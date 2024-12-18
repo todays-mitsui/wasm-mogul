@@ -1,6 +1,6 @@
 import {
-  type JSX,
   type Accessor,
+  type JSX,
   createRenderEffect,
   splitProps,
 } from "solid-js";
