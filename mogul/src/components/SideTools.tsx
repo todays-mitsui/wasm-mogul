@@ -3,7 +3,8 @@ import type { JSX } from "solid-js";
 import styles from "./SideTools.module.css";
 import Context from "./SideTools/Context";
 import Settings from "./SideTools/Settings";
-import ToolBox from "./SideTools/ToolBox";
+import ToolBox, { useToolBox } from "./SideTools/ToolBox";
+import { sideTools } from "~/signals";
 
 interface Props {
   class?: string | string[];
@@ -12,10 +13,18 @@ interface Props {
 export default function SideTools(props: Props): JSX.Element {
   return (
     <nav class={classNames(styles.sideTools, props.class)}>
-      <ToolBox boxName="Context" boxTitle="Context">
+      <ToolBox
+        boxName="context"
+        boxTitle="Context"
+        open={sideTools.context.isOpen()}
+      >
         <Context />
       </ToolBox>
-      <ToolBox boxName="Settings" boxTitle="Settings">
+      <ToolBox
+        boxName="settings"
+        boxTitle="Settings"
+        open={sideTools.settings.isOpen()}
+      >
         <Settings />
       </ToolBox>
     </nav>

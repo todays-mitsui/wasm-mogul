@@ -1,5 +1,5 @@
 import { makePersisted } from "@solid-primitives/storage";
-import { type Accessor, createSignal } from "solid-js";
+import { type Accessor, createSignal, batch } from "solid-js";
 import {
   type Context,
   type DisplayStyle,
@@ -39,6 +39,46 @@ export const [context, setContext] = makePersisted(
     storage: sessionStorage,
   },
 );
+
+function createToolBoxSignal() {
+  const [isOpen, setIsOpen] = createSignal(false);
+  return {
+    isOpen,
+    open() {
+      setIsOpen(true);
+    },
+    close() {
+      setIsOpen(false);
+    },
+    toggle() {
+      setIsOpen((state) => !state);
+    },
+  };
+}
+
+const sideToolSignals = {
+  context: createToolBoxSignal(),
+  settings: createToolBoxSignal(),
+};
+
+export type SideTools = keyof typeof sideToolSignals;
+
+export const sideTools = {
+  isOpen(name: SideTools) {
+    return sideToolSignals[name].isOpen();
+  },
+  toggle(name: SideTools) {
+    const isOpen = sideToolSignals[name].isOpen();
+    batch(() => {
+      for (const toolBox of Object.values(sideToolSignals)) {
+        toolBox.close();
+      }
+      if (!isOpen) {
+        sideToolSignals[name].open();
+      }
+    });
+  },
+};
 
 export const [console, setConsole] = createSignal<ConsoleItem[]>([]);
 
