@@ -9,3 +9,23 @@
   border-left: 1px solid #999;
   background-color: #ececf1;
 }
+
+.context {
+  summary {
+    background-color: red;
+
+    &::before {
+      content: "fx";
+      font-family: "M PLUS 1 Code", monospace;
+      font-weight: 600;
+      font-size: 22px;
+      color: var(--color-text-gloom);
+    }
+  }
+}
+
+.settings {
+  summary {
+    background-color: blue;
+  }
+}

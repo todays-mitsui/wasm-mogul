@@ -9,6 +9,8 @@ export default createHandler(() => (
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />
+          {/* <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inconsolata&family=M+PLUS+1+Code:wght@600&family=Slabo+13px&display=swap" /> */}
+          {/* <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" /> */}
           {assets}
         </head>
         <body>
