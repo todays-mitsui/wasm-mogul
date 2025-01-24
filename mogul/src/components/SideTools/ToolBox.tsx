@@ -7,6 +7,7 @@ interface ToolBoxProps {
   class?: string;
   boxName: SideTools;
   boxTitle: string;
+  summary?: string | JSX.Element;
   open: boolean;
   onClick?: () => void;
   children?: JSX.Element;
@@ -18,28 +19,25 @@ export default function ToolBox(props: ToolBoxProps): JSX.Element {
     "class",
     "boxName",
     "boxTitle",
+    "summary",
     "open",
     "onClick",
     "children",
   ]);
-  const { boxName } = props;
 
-  const onClick: JSX.EventHandler<HTMLDetailsElement, MouseEvent> = (event) => {
+  const onClick: JSX.EventHandler<HTMLElement, MouseEvent> = (event) => {
     event.preventDefault();
-    sideTools.toggle(boxName);
-    console.log({ boxName });
     props.onClick?.();
   };
 
   return (
     <details
       class={classNames(props.class, styles.toolBox)}
-      onClick={onClick}
-      open={sideTools.isOpen(boxName)}
+      open={props.open}
       {...remainingProps}
     >
-      <summary class={styles.summary} title={props.boxTitle}>
-        {props.boxName}
+      <summary class={styles.summary} title={props.boxTitle} onClick={onClick}>
+        {props.summary ?? props.boxName}
       </summary>
       <div class={styles.inner}>{props.children}</div>
     </details>

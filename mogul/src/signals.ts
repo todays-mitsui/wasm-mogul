@@ -78,6 +78,13 @@ export const sideTools = {
       }
     });
   },
+  closeAll() {
+    batch(() => {
+      for (const toolBox of Object.values(sideToolSignals)) {
+        toolBox.close();
+      }
+    });
+  },
 };
 
 export const [console, setConsole] = createSignal<ConsoleItem[]>([]);

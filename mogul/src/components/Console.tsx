@@ -14,6 +14,7 @@ import {
   type ConsoleItemReduceTail,
   type ConsoleItemUpdate,
   context,
+  sideTools,
 } from "~/signals";
 import styles from "./Console.module.css";
 import { ReduceRow } from "./ReduceRow";
@@ -31,7 +32,10 @@ export default function Console(props: Props): JSX.Element {
         : [props.class];
 
   return (
-    <div class={classNames(...className, styles.console)}>
+    <div
+      class={classNames(...className, styles.console)}
+      onClick={() => sideTools.closeAll()}
+    >
       <Index each={console()} fallback={<div>Loading...</div>}>
         {(item) => <ConsoleUnit {...item()} />}
       </Index>

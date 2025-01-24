@@ -5,6 +5,7 @@ import Context from "./SideTools/Context";
 import Settings from "./SideTools/Settings";
 import ToolBox from "./SideTools/ToolBox";
 import { sideTools } from "~/signals";
+import SettingsIcon from "./Icon/SettingsIcon";
 
 interface Props {
   class?: string | string[];
@@ -18,6 +19,7 @@ export default function SideTools(props: Props): JSX.Element {
         boxName="context"
         boxTitle="Context"
         open={sideTools.isOpen("context")}
+        onClick={() => sideTools.toggle("context")}
       >
         <Context />
       </ToolBox>
@@ -25,7 +27,9 @@ export default function SideTools(props: Props): JSX.Element {
         class={styles.settings}
         boxName="settings"
         boxTitle="Settings"
+        summary={<SettingsIcon fill="var(--color-text)" />}
         open={sideTools.isOpen("settings")}
+        onClick={() => sideTools.toggle("settings")}
       >
         <Settings />
       </ToolBox>

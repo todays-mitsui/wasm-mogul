@@ -12,20 +12,12 @@
 
 .context {
   summary {
-    background-color: red;
-
     &::before {
       content: "fx";
       font-family: "M PLUS 1 Code", monospace;
       font-weight: 600;
       font-size: 22px;
-      color: var(--color-text-gloom);
+      color: var(--color-text);
     }
-  }
-}
-
-.settings {
-  summary {
-    background-color: blue;
   }
 }

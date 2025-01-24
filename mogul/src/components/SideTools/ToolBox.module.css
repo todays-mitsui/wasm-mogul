@@ -1,5 +1,6 @@
 .tool-box {
-  &[open] .summary {
+  &[open] .summary,
+  .summary:hover {
     background-color: var(--color-border-gloom);
   }
 }
