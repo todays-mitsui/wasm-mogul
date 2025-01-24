@@ -1,0 +1,18 @@
+.context {
+  h2 {
+    font-size: .9rem;
+    font-weight: 500;
+    color: #666;
+  }
+
+  ul {
+    padding-left: .4em;
+  }
+
+  code {
+    font-family: monospace;
+    font-weight: 500;
+    line-height: 1.3;
+    word-break: break-all;
+  }
+}

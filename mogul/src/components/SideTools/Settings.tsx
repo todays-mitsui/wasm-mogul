@@ -1,5 +1,6 @@
 import type { JSX } from "solid-js";
 import styles from "./Settings.module.css";
+import { displayStyle, setDisplayStyle } from "~/signals";
 
 export default function Settings(): JSX.Element {
   return (
@@ -7,7 +8,13 @@ export default function Settings(): JSX.Element {
       <fieldset class={styles.fieldset}>
         <legend>Expr Display Style</legend>
         <label>
-          <input type="radio" name="tuber_display_style" value="ECMAScript" />
+          <input
+            type="radio"
+            name="tuber_display_style"
+            value="ECMAScript"
+            checked={displayStyle() === "EcmaScript"}
+            onClick={() => setDisplayStyle("EcmaScript")}
+          />
           <span>
             ECMAScript Style
             <small>
@@ -16,7 +23,13 @@ export default function Settings(): JSX.Element {
           </span>
         </label>
         <label>
-          <input type="radio" name="tuber_display_style" value="Lazy_K" />
+          <input
+            type="radio"
+            name="tuber_display_style"
+            value="Lazy_K"
+            checked={displayStyle() === "LazyK"}
+            onClick={() => setDisplayStyle("LazyK")}
+          />
           <span>
             Lazy_K Style
             <small>
