@@ -9,6 +9,8 @@ import {
 } from "~/signals";
 import styles from "./Prompt.module.css";
 
+const [historyIndex, setHistoryIndex] = createSignal(-1);
+
 interface Props {
   class?: string | string[];
 }
@@ -35,6 +37,7 @@ export default function Prompt(props: Props): JSX.Element {
     }
     console.info({ command });
     addCommandHistory(commandStr());
+    setHistoryIndex(-1);
     runCommand(command);
     setCommandStr("");
   };
@@ -111,7 +114,6 @@ export function HistoryInput(props: HistoryInputProps): JSX.Element {
   ]);
 
   const [text, setText] = createSignal("");
-  const [historyIndex, setHistoryIndex] = createSignal(-1);
   const [typingText, setTypingText] = createSignal(""); // 入力中未確定テキストを逃がしておくための signal
 
   createEffect(() => {
@@ -144,8 +146,10 @@ export function HistoryInput(props: HistoryInputProps): JSX.Element {
         if (historyIndex() < props.history.length - 1) {
           const newIndex = historyIndex() + 1;
           setHistoryIndex(newIndex);
-          setText(props.history[props.history.length - 1 - newIndex]);
-          event.preventDefault(); // デフォルト動作を防止
+          const history = props.history[props.history.length - 1 - newIndex];
+          setText(history);
+          setCommandStr(history); // 密結合！
+          event.preventDefault();
         }
       }
     }
@@ -161,11 +165,14 @@ export function HistoryInput(props: HistoryInputProps): JSX.Element {
       if (currentLine === lastLine && historyIndex() > 0) {
         const newIndex = historyIndex() - 1;
         setHistoryIndex(newIndex);
-        setText(props.history[props.history.length - 1 - newIndex]);
+        const history = props.history[props.history.length - 1 - newIndex];
+        setText(history);
+        setCommandStr(history); // 密結合！
         event.preventDefault();
       } else if (currentLine === lastLine && historyIndex() === 0) {
         setHistoryIndex(-1);
         setText(typingText());
+        setCommandStr(typingText()); // 密結合！
         event.preventDefault();
       }
     }
