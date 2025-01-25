@@ -44,7 +44,6 @@ export default function Prompt(props: Props): JSX.Element {
   const onEnter: JSX.EventHandler<HTMLTextAreaElement, KeyboardEvent> = (
     event,
   ) => {
-    console.log({ onKeyDown: event });
     if (
       event.key === "Enter" &&
       !event.shiftKey &&
