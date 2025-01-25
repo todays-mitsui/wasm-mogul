@@ -1,6 +1,12 @@
 import type { JSX } from "solid-js";
 import styles from "./Settings.module.css";
-import { displayStyle, setDisplayStyle } from "~/signals";
+import {
+  resetContext,
+  clearContext,
+  displayStyle,
+  setDisplayStyle,
+  sideTools,
+} from "~/signals";
 
 export default function Settings(): JSX.Element {
   return (
@@ -42,12 +48,30 @@ export default function Settings(): JSX.Element {
         <legend>Reset Context</legend>
         <ul>
           <li>
-            <button type="button" name="tuber_reset_context">
+            <button
+              type="button"
+              name="tuber_reset_context"
+              onClick={() => {
+                if (confirm("Are you sure you want to reset the context?")) {
+                  resetContext();
+                  sideTools.open("context");
+                }
+              }}
+            >
               Reset to default
             </button>
           </li>
           <li>
-            <button type="button" name="tuber_clear_context">
+            <button
+              type="button"
+              name="tuber_clear_context"
+              onClick={() => {
+                if (confirm("Are you sure you want to clear all functions?")) {
+                  clearContext();
+                  sideTools.open("context");
+                }
+              }}
+            >
               Clear all functions
             </button>
           </li>

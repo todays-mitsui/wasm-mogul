@@ -40,6 +40,14 @@ export const [context, setContext] = makePersisted(
   },
 );
 
+export function resetContext() {
+  setContext(defaultContext());
+}
+
+export function clearContext() {
+  setContext({});
+}
+
 function createToolBoxSignal() {
   const [isOpen, setIsOpen] = createSignal(false);
   return {
@@ -66,6 +74,14 @@ export type SideTools = keyof typeof sideToolSignals;
 export const sideTools = {
   isOpen(name: SideTools) {
     return sideToolSignals[name].isOpen();
+  },
+  open(name: SideTools) {
+    batch(() => {
+      for (const toolBox of Object.values(sideToolSignals)) {
+        toolBox.close();
+      }
+      sideToolSignals[name].open();
+    });
   },
   toggle(name: SideTools) {
     const isOpen = sideToolSignals[name].isOpen();

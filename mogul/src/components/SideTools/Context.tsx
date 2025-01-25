@@ -4,7 +4,7 @@ import { type DisplayStyle, renderFunc } from "~/service/func";
 import styles from "./Context.module.css";
 
 interface ContextProps {
-  displayStyle: DisplayStyle;
+  displayStyle?: DisplayStyle;
 }
 
 export default function Context(props: ContextProps): JSX.Element {

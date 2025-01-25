@@ -24,7 +24,6 @@ export default function SideTools(props: Props): JSX.Element {
         <Context />
       </ToolBox>
       <ToolBox
-        class={styles.settings}
         boxName="settings"
         boxTitle="Settings"
         summary={<SettingsIcon fill="var(--color-text)" />}
