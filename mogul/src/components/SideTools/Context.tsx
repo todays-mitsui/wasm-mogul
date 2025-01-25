@@ -1,6 +1,6 @@
 import { type JSX, For } from "solid-js";
 import { context } from "~/signals";
-import { type DisplayStyle, renderFunc } from "~/service/func";
+import { type DisplayStyle, renderFunc, sortFuncs } from "~/service/func";
 import styles from "./Context.module.css";
 
 interface ContextProps {
@@ -9,16 +9,16 @@ interface ContextProps {
 
 export default function Context(props: ContextProps): JSX.Element {
   const funcs = () =>
-    Object.entries(context()).map(([key, func]) => [key, renderFunc(func)]);
+    sortFuncs(Object.values(context())).map((func) => renderFunc(func));
 
   return (
     <div class={styles.context}>
       <h2>Context</h2>
       <ul>
         <For each={funcs()}>
-          {([, func]) => (
+          {([lhs, rhs]) => (
             <li>
-              <code>{`${func[0]} = ${func[1]}`}</code>
+              <code>{`${lhs} = ${rhs}`}</code>
             </li>
           )}
         </For>
