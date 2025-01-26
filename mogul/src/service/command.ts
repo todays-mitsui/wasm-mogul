@@ -11,6 +11,7 @@ import {
   reduceLast,
   reduceTail,
 } from "~/service/reduce";
+import { unlambda } from "~/service/unlambda";
 import { type Command, parseCommand } from "../../../ski3/pkg/index";
 export { type Command, parseCommand };
 
@@ -156,6 +157,8 @@ export async function runCommand(command: Command) {
     }
 
     case "Unlambda": {
+      const result = unlambda(command.level, command.expr);
+      putConsoleItem({ type: "Unlambda", expr: command.expr, result });
       return;
     }
   }

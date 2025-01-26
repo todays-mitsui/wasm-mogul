@@ -8,7 +8,10 @@ mod parser;
 mod style;
 mod to_string;
 
-pub use calc::{Eval, EvalStep, ReduceResult, Reducer};
+pub use calc::{
+    expand, unlambda_iota, unlambda_recursive, unlambda_recursive_, Eval, EvalStep,
+    RecursiveStrategy, ReduceResult, Reducer,
+};
 pub use context::Context;
 pub use engine::{Command, Engine, RunResult};
 pub use expr::{Expr, Identifier, Path};

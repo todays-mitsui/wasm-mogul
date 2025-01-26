@@ -12,12 +12,14 @@ import {
   type ConsoleItemReduceHead,
   type ConsoleItemReduceLast,
   type ConsoleItemReduceTail,
+  type ConsoleItemUnlambda,
   type ConsoleItemUpdate,
   context,
   sideTools,
 } from "~/signals";
 import styles from "./Console.module.css";
 import { ReduceRow } from "./ReduceRow";
+import { renderExpr } from "~/service/unlambda";
 
 interface Props {
   class?: string | string[];
@@ -65,6 +67,8 @@ function ConsoleUnit(item: ConsoleItem): JSX.Element {
       return <ConsoleUnitQueryUndefined {...item} />;
     case "Context":
       return <ConsoleUnitContext {...item} />;
+    case "Unlambda":
+      return <ConsoleUnitUnlambda {...item} />;
     default:
       return null;
   }
@@ -270,6 +274,24 @@ function ConsoleUnitContext(_props: ConsoleItemContext): JSX.Element {
           );
         }}
       </For>
+    </ul>
+  );
+}
+
+function ConsoleUnitUnlambda(
+  props: ConsoleItemUnlambda & { displayStyle?: DisplayStyle },
+): JSX.Element {
+  const expr = renderExpr(props.expr, props.displayStyle);
+  const result = renderExpr(props.result, props.displayStyle);
+
+  return (
+    <ul class={classNames(styles.unit, styles.unordered, styles.unlambda)}>
+      <li>
+        <code>{expr}</code>
+      </li>
+      <li>
+        <code>{result}</code>
+      </li>
     </ul>
   );
 }

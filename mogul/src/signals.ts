@@ -3,6 +3,7 @@ import { type Accessor, createSignal, batch } from "solid-js";
 import {
   type Context,
   type DisplayStyle,
+  type Expr,
   type FormedExpr,
   type FormedReducedExpr,
   type Func,
@@ -171,6 +172,12 @@ export interface ConsoleItemContext {
   type: "Context";
 }
 
+export interface ConsoleItemUnlambda {
+  type: "Unlambda";
+  expr: Expr;
+  result: Expr;
+}
+
 export type ConsoleItem =
   | ConsoleItemUpdate
   | ConsoleItemDelete
@@ -180,4 +187,5 @@ export type ConsoleItem =
   | ConsoleItemReduceTail
   | ConsoleItemQueryDefined
   | ConsoleItemQueryUndefined
-  | ConsoleItemContext;
+  | ConsoleItemContext
+  | ConsoleItemUnlambda;

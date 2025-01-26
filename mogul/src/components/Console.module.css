@@ -83,6 +83,12 @@
   }
 }
 
+.unlambda {
+  li:not(:first-child)::after {
+    content: "≈";
+  }
+}
+
 .define,
 .reduce,
 .reduce-head,

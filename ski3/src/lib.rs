@@ -5,6 +5,7 @@ mod expression;
 mod function;
 mod identifier;
 mod reducer;
+mod unlambda;
 mod utils;
 
 pub use command::{parse_command, Command};
