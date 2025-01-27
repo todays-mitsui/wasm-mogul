@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { type JSX, createEffect, createSignal, splitProps } from "solid-js";
 import { type Command, parseCommand, runCommand } from "~/service/command";
+import { randomSpell } from "~/service/randomSpell";
 import {
   addCommandHistory,
   commandHistory,
@@ -58,6 +59,10 @@ export default function Prompt(props: Props): JSX.Element {
     }
   };
 
+  const onRandomSpell: JSX.EventHandler<HTMLButtonElement, MouseEvent> = () => {
+    setCommandStr(randomSpell());
+  };
+
   return (
     <div class={classNames(...className, styles.prompt)}>
       <form onSubmit={onSubmit}>
@@ -66,6 +71,7 @@ export default function Prompt(props: Props): JSX.Element {
             class={classNames(styles.button, styles.randomSpell)}
             type="button"
             title="Random Spell"
+            onClick={onRandomSpell}
           >
             Random
           </button>
