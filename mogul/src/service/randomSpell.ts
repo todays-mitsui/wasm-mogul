@@ -4,6 +4,9 @@ import {
   renderExpr,
 } from "../../../ski3/pkg/index";
 import { displayStyle as getDisplayStyle } from "~/signals";
+import { createSignal } from "solid-js";
+
+const [spellIndex, setSpellIndex] = createSignal<number>();
 
 export function randomSpell(displayStyle?: DisplayStyle): string {
   const spell = getRandomSpell();
@@ -16,7 +19,14 @@ export function randomSpell(displayStyle?: DisplayStyle): string {
 }
 
 function getRandomSpell(): Spell {
-  return spells[Math.floor(Math.random() * spells.length)];
+  let i;
+  do {
+    i = Math.floor(Math.random() * spells.length);
+  } while (spellIndex() === i);
+
+  setSpellIndex(i);
+
+  return spells[i];
 }
 
 interface Spell {
@@ -43,7 +53,15 @@ const spells: Spell[] = [
   },
   {
     commandPrefix: "",
+    expr: "NOT(FALSE)",
+  },
+  {
+    commandPrefix: "",
     expr: "AND(TRUE, NOT(FALSE))",
+  },
+  {
+    commandPrefix: "?",
+    expr: "3",
   },
   {
     commandPrefix: "?",
