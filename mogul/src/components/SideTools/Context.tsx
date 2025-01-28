@@ -16,9 +16,9 @@ export default function Context(props: ContextProps): JSX.Element {
       <h2>Context</h2>
       <ul>
         <For each={funcs()}>
-          {([lhs, rhs]) => (
+          {([signature, body]) => (
             <li>
-              <code>{`${lhs} = ${rhs}`}</code>
+              <code>{`${signature} = ${body}`}</code>
             </li>
           )}
         </For>

@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { For, Index, type JSX, Show } from "solid-js";
-import { type DisplayStyle, renderFunc } from "~/service/func";
+import { type DisplayStyle, renderFunc, sortFuncs } from "~/service/func";
 import {
   console,
   type ConsoleItem,
@@ -259,14 +259,14 @@ export function ConsoleUnitQueryUndefined(
 }
 
 function ConsoleUnitContext(_props: ConsoleItemContext): JSX.Element {
-  const functions = Object.values(context()).toSorted((a, b) =>
-    a.name < b.name ? -1 : 1,
+  const funcs = sortFuncs(Object.values(context())).map((func) =>
+    renderFunc(func),
   );
+
   return (
     <ul class={classNames(styles.unit, styles.unordered)}>
-      <For each={functions}>
-        {(func) => {
-          const [signature, body] = renderFunc(func);
+      <For each={funcs}>
+        {([signature, body]) => {
           return (
             <li>
               <code>{`${signature} = ${body}`}</code>
