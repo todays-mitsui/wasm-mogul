@@ -20,12 +20,13 @@ import {
 import styles from "./Console.module.css";
 import { ReduceRow } from "./ReduceRow";
 import { renderExpr } from "~/service/unlambda";
+import { throttle } from "~/lib/throttle";
 
-interface Props {
+interface ConsoleProps {
   class?: string;
 }
 
-export default function Console(props: Props): JSX.Element {
+export default function Console(props: ConsoleProps): JSX.Element {
   let wrapper: HTMLDivElement | undefined;
   createEffect(() => {
     if (wrapper == null) return;
@@ -41,29 +42,34 @@ export default function Console(props: Props): JSX.Element {
       onClick={() => sideTools.closeAll()}
       ref={wrapper}
     >
-      <Index each={consoleOut()} fallback={<div>Loading...</div>}>
-        {(item) => <ConsoleUnit {...item()} />}
-      </Index>
+      <Index each={consoleOut()}>{(item) => <ConsoleUnit {...item()} />}</Index>
     </div>
   );
 }
 
+/**
+ * コンソールへの要素追加を監視して自動で最下部へスクロールする
+ */
 function createObserver(wrapper: HTMLDivElement): MutationObserver {
+  const scrollTo = throttle(() => {
+    setTimeout(() => {
+      wrapper.scrollTo({
+        top: wrapper.scrollHeight,
+        behavior: "smooth",
+      });
+    }, 100);
+  }, 100);
+
   const observer = new MutationObserver((mutationsList) => {
     for (const mutation of mutationsList) {
       if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-        setTimeout(() => {
-          wrapper.scrollTo({
-            top: wrapper.scrollHeight,
-            behavior: "smooth",
-          });
-        }, 100);
+        scrollTo();
       }
     }
   });
   observer.observe(wrapper, {
     childList: true, // 子要素の追加や削除を監視
-    subtree: false, // 子孫要素は監視しない
+    subtree: true, // 子孫要素も監視する
   });
   return observer;
 }
