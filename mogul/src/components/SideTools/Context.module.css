@@ -7,8 +7,13 @@
     color: #666;
   }
 
-  ul {
-    padding-left: .4em;
+  li {
+    padding: 0 .4em;
+    border-radius: 2px;
+
+    &:hover {
+      background-color: #ddd;
+    }
   }
 
   code {
