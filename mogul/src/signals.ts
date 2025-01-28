@@ -22,7 +22,8 @@ const [commandHistory, setCommandHistory] = makePersisted(
 );
 export { commandHistory };
 export function addCommandHistory(command: string) {
-  setCommandHistory((prev) => [...prev, command].slice(-10));
+  const HISTORY_SIZE = 100;
+  setCommandHistory((prev) => [...prev, command].slice(-HISTORY_SIZE));
 }
 
 export const [displayStyle, setDisplayStyle] = makePersisted(
