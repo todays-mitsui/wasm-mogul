@@ -9,17 +9,19 @@ export default function Header() {
       </h1>
       <ul>
         <li>
-          <a
+          <A
             href="https://github.com/todays-mitsui/wasm-mogul"
             target="_blank"
             rel="noreferrer"
           >
             repo
-          </a>
+          </A>
         </li>
+        {/*
         <li>
           <A href="/doc">doc</A>
         </li>
+        */}
       </ul>
     </header>
   );
