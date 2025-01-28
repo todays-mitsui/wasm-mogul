@@ -104,7 +104,7 @@ export const sideTools = {
   },
 };
 
-export const [console, setConsole] = createSignal<ConsoleItem[]>([]);
+export const [consoleOut, setConsoleOut] = createSignal<ConsoleItem[]>([]);
 
 export interface ConsoleItemUpdate {
   type: "Update";

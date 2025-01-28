@@ -1,8 +1,8 @@
 import classNames from "classnames";
-import { For, Index, type JSX, Show } from "solid-js";
+import { For, Index, type JSX, Show, createEffect, onCleanup } from "solid-js";
 import { type DisplayStyle, renderFunc, sortFuncs } from "~/service/func";
 import {
-  console,
+  consoleOut,
   type ConsoleItem,
   type ConsoleItemContext,
   type ConsoleItemDelete,
@@ -22,27 +22,50 @@ import { ReduceRow } from "./ReduceRow";
 import { renderExpr } from "~/service/unlambda";
 
 interface Props {
-  class?: string | string[];
+  class?: string;
 }
 
 export default function Console(props: Props): JSX.Element {
-  const className =
-    props.class == null
-      ? []
-      : Array.isArray(props.class)
-        ? props.class
-        : [props.class];
+  let wrapper: HTMLDivElement | undefined;
+  createEffect(() => {
+    if (wrapper == null) return;
+    const observer = createObserver(wrapper);
+    onCleanup(() => {
+      observer.disconnect();
+    });
+  });
 
   return (
     <div
-      class={classNames(...className, styles.console)}
+      class={classNames(props.class, styles.console)}
       onClick={() => sideTools.closeAll()}
+      ref={wrapper}
     >
-      <Index each={console()} fallback={<div>Loading...</div>}>
+      <Index each={consoleOut()} fallback={<div>Loading...</div>}>
         {(item) => <ConsoleUnit {...item()} />}
       </Index>
     </div>
   );
+}
+
+function createObserver(wrapper: HTMLDivElement): MutationObserver {
+  const observer = new MutationObserver((mutationsList) => {
+    for (const mutation of mutationsList) {
+      if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+        setTimeout(() => {
+          wrapper.scrollTo({
+            top: wrapper.scrollHeight,
+            behavior: "smooth",
+          });
+        }, 100);
+      }
+    }
+  });
+  observer.observe(wrapper, {
+    childList: true, // 子要素の追加や削除を監視
+    subtree: false, // 子孫要素は監視しない
+  });
+  return observer;
 }
 
 // ========================================================================== //

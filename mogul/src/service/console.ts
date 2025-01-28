@@ -1,5 +1,5 @@
-import { type ConsoleItem, setConsole } from "~/signals";
+import { type ConsoleItem, setConsoleOut } from "~/signals";
 
 export function putConsoleItem(item: ConsoleItem) {
-  setConsole((prev) => [...prev, item]);
+  setConsoleOut((prev) => [...prev, item]);
 }
