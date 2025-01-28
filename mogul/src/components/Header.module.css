@@ -5,6 +5,7 @@
   background-color: var(--color-background-gloom);
 
   h1 {
+    font-family: "Slabo 13px", serif;
     font-weight: 400;
     font-size: 1.4rem;
 
