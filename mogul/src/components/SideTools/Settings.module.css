@@ -1,0 +1,56 @@
+.fieldset {
+  border: none;
+
+  &:not(:first-child) {
+    margin-top: 8px;
+  }
+
+  legend {
+    font-size: .9rem;
+    font-weight: 500;
+    color: #666;
+  }
+  label {
+    display: flex;
+    padding-left: .4em;
+    align-items: center;
+    gap: 8px;
+    margin: .2em 0;
+  }
+  small {
+    margin-left: 0.6em;
+    color: #333;
+  }
+  code {
+    padding: 2px 4px;
+    font-family: "Inconsolata", monospace;
+    font-size: .9rem;
+    font-weight: 500;
+    border-radius: 4px;
+    background-color: #ddd;
+  }
+
+  ul {
+    margin-top: .4em;
+    padding-left: .4em;
+  }
+  li:not(:first-child) {
+    margin-top: .4em;
+  }
+
+  button {
+    appearance: none;
+    border: none;
+    background: none;
+
+    padding: .2em .6em;
+    font-size: .9rem;
+    font-weight: 600;
+    border: 1px solid #bababa;
+    border-radius: 4px;
+    background-color: #fafafa;
+  }
+  button:hover {
+    background-color: #ececf1;
+  }
+}

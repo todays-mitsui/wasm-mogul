@@ -1,0 +1,162 @@
+.console {
+  --list-margin: 3px;
+
+  color: var(--text-color);
+  background-color: var(--color-background);
+
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+}
+
+.ordered li::before {
+  content: attr(data-step) " ";
+}
+
+.unordered li::before {
+  content: "-";
+}
+
+.unit {
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--color-border-gloom);
+  }
+
+  li:not(:last-child) {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: 40px 1em auto;
+    gap: 4px;
+    padding: var(--list-margin) 4px var(--list-margin) 0;
+
+    code {
+      grid-column: 2 / 4;
+    }
+  }
+
+  li::before {
+    margin: calc(-1 * var(--list-margin)) 0;
+    padding: 5px 6px 5px 0;
+    color: #aaa;
+    font-family: monospace;
+    font-size: .8em;
+    line-height: 2;
+    text-align: right;
+    background-color: #ececf1;
+  }
+
+  code {
+    font-family: "Inconsolata", monospace;
+    line-height: 1.7;
+    word-break: break-all;
+  }
+}
+
+.define {
+  li:not(:first-child)::after {
+    content: "=";
+  }
+}
+
+.reduce,
+.reduce-head,
+.reduce-tail,
+.reduce-last {
+  li:not(:first-child)::after {
+    content: "⇒";
+  }
+
+  li.omitted {
+    padding: 0;
+    padding-right: 4px;
+    code {
+      color: #999;
+      line-height: 1.4;
+    }
+  }
+  li.omitted::before {
+    content: "-";
+    padding: 0;
+    padding-right: 6px;
+  }
+}
+
+.unlambda {
+  li:not(:first-child)::after {
+    content: "≈";
+  }
+}
+
+.define,
+.reduce,
+.reduce-head,
+.reduce-tail,
+.reduce-last,
+.unlambda {
+  li:not(:first-child)::after {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    color: #999;
+    text-align: center;
+  }
+  li:not(:first-child).omitted::after {
+    line-height: 1.2;
+  }
+
+  li:first-child code {
+    grid-column: 2 / 4;
+  }
+  li:not(:first-child) code {
+    grid-column: 3 / 4;
+  }
+}
+
+.reduce,
+.reduce-head,
+.reduce-tail,
+.reduce-last {
+  li:not(:last-child) :global(.expr-mark-reduced) {
+    display: none;
+  }
+
+  li:hover {
+    :global(.reducible) {
+      outline: 1px solid lightgray;
+      outline-offset: 1px;
+      border-radius: 2px;
+    }
+    :global(.callee) {
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-decoration-color: red;
+      text-decoration-skip-ink: none;
+    }
+    :global(.argument) {
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-decoration-skip-ink: none;
+      &:nth-child(odd) {
+        text-decoration-color: green;
+      }
+      &:nth-child(even) {
+        text-decoration-color: blue;
+      }
+    }
+  }
+
+  li:hover + li {
+    :global(.expr-mark-reduced) {
+      display: inline;
+    }
+    :global(.expr-mark-reducible) {
+      display: none;
+    }
+    :global(.reduced) {
+      outline: 1px solid lightgray;
+      outline-offset: 1px;
+      border-radius: 2px;
+    }
+  }
+}

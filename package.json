@@ -3,17 +3,24 @@
   "name": "ski-mogul",
   "version": "0.2.0",
   "scripts": {
+    "prepare": "husky",
+    "precommit": "npm run --prefix mogul gen:hcm && npm run --prefix mogul fmt",
     "build": "rimraf dist pkg && webpack",
     "start": "rimraf dist pkg && webpack-dev-server --open",
     "test": "cargo test && wasm-pack test --headless",
     "docs:start": "astro dev --root ./docs",
     "docs:build": "astro check --root ./docs && astro build --root ./docs",
-    "build:ski": "wasm-pack build --out-name index --out-dir pkg ski3",
-    "build:ski:watch": "watch \"npm run build:ski\" ski3/src"
+    "ski:build": "npm run ski:cargo-build && npm run ski:bindgen",
+    "ski:cargo-build": "cargo build --manifest-path ski3/Cargo.toml --target wasm32-unknown-unknown --release",
+    "ski:bindgen": "wasm-bindgen --out-dir ski3/pkg --out-name index --target bundler ski3/target/wasm32-unknown-unknown/release/ski3.wasm",
+    "ski:dev:build": "npm run ski:dev:cargo-build && npm run ski:dev:bindgen",
+    "ski:dev:cargo-build": "cargo build --manifest-path ski3/Cargo.toml --target wasm32-unknown-unknown",
+    "ski:dev:bindgen": "wasm-bindgen --out-dir ski3/pkg --out-name index --target bundler ski3/target/wasm32-unknown-unknown/debug/ski3.wasm"
   },
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "^1.7.0",
     "copy-webpack-plugin": "^11.0.0",
+    "husky": "^9.1.7",
     "rimraf": "^5.0.5",
     "ts-loader": "^9.5.1",
     "typescript": "^5.6.3",
