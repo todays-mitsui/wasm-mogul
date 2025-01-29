@@ -44,6 +44,18 @@ const spells: Spell[] = [
     expr: "EQ(ADD(2, 3), 5)",
   },
   {
+    commandPrefix: "!",
+    expr: "EQ(ADD(2, 3), 5)",
+  },
+  {
+    commandPrefix: "!3",
+    expr: "EQ(ADD(2, 3), 5)",
+  },
+  {
+    commandPrefix: "!-3",
+    expr: "EQ(ADD(2, 3), 5)",
+  },
+  {
     commandPrefix: "",
     expr: "EQ(SUB(7, 3), 2)",
   },

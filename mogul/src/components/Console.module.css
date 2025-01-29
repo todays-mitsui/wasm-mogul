@@ -128,7 +128,8 @@
 .reduce-head,
 .reduce-tail,
 .reduce-last {
-  li:not(:last-child) :global(.expr-mark-reduced) {
+  li:not(:last-child) :global(.expr-mark-reduced),
+  li:last-child :global(.expr-mark-reducible) {
     display: none;
   }
 
