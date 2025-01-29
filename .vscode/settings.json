@@ -1,5 +1,5 @@
 {
-  "rust-analyzer.linkedProjects": ["./ski/Cargo.toml", "./tuber/Cargo.toml"],
+  "rust-analyzer.linkedProjects": ["./ski3/Cargo.toml", "./tuber/Cargo.toml"],
   "files.exclude": {
     "mogul/**/*.module.css.d.*": true,
   },
