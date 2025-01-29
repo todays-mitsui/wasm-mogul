@@ -11,6 +11,7 @@ declare const styles:
   & Readonly<{ "omitted": string }>
   & Readonly<{ "omitted": string }>
   & Readonly<{ "unlambda": string }>
+  & Readonly<{ "error": string }>
   & Readonly<{ "define": string }>
   & Readonly<{ "reduce": string }>
   & Readonly<{ "reduceHead": string }>

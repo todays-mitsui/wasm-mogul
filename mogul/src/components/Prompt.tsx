@@ -9,6 +9,7 @@ import {
   setCommandStr,
 } from "~/signals";
 import styles from "./Prompt.module.css";
+import { showError } from "~/service/error";
 
 const [historyIndex, setHistoryIndex] = createSignal(-1);
 
@@ -34,6 +35,7 @@ export default function Prompt(props: Props): JSX.Element {
       command = parseCommand(commandStr());
     } catch (err) {
       console.error(err);
+      if (err instanceof Error) showError(err);
       return;
     }
     console.info({ command });

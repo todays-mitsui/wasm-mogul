@@ -89,6 +89,17 @@
   }
 }
 
+.error {
+  li::before {
+    color: #c14c4c;
+    background-color: #f4b9b9;
+  }
+
+  code {
+    color: #c14c4c;
+  }
+}
+
 .define,
 .reduce,
 .reduce-head,
@@ -117,7 +128,8 @@
 .reduce-head,
 .reduce-tail,
 .reduce-last {
-  li:not(:last-child) :global(.expr-mark-reduced) {
+  li:not(:last-child) :global(.expr-mark-reduced),
+  li:last-child :global(.expr-mark-reducible) {
     display: none;
   }
 

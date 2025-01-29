@@ -1,4 +1,4 @@
-import { For, Index, type JSX, Show, onMount } from "solid-js";
+import { type JSX, onMount } from "solid-js";
 import {
   type ExprRange,
   type ReducibleRange,

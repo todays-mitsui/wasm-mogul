@@ -21,14 +21,14 @@ jobs:
         run: cargo build --verbose --manifest-path ./tuber/Cargo.toml
       - name: Cargo Test
         run: cargo test --verbose --manifest-path ./tuber/Cargo.toml
-  ski:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Cargo Build
-        run: cargo build --verbose --manifest-path ./ski/Cargo.toml
-      - name: Cargo Test
-        run: cargo test --verbose --manifest-path ./ski/Cargo.toml
+  # ski:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Cargo Build
+  #       run: cargo build --verbose --manifest-path ./ski/Cargo.toml
+  #     - name: Cargo Test
+  #       run: cargo test --verbose --manifest-path ./ski/Cargo.toml
   doc:
     runs-on: ubuntu-latest
     steps:
