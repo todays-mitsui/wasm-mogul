@@ -179,6 +179,11 @@ export interface ConsoleItemUnlambda {
   result: Expr;
 }
 
+export interface ConsoleItemParseError {
+  type: "ParseError";
+  message: string;
+}
+
 export type ConsoleItem =
   | ConsoleItemUpdate
   | ConsoleItemDelete
@@ -189,4 +194,5 @@ export type ConsoleItem =
   | ConsoleItemQueryDefined
   | ConsoleItemQueryUndefined
   | ConsoleItemContext
-  | ConsoleItemUnlambda;
+  | ConsoleItemUnlambda
+  | ConsoleItemParseError;

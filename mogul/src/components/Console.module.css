@@ -89,6 +89,17 @@
   }
 }
 
+.error {
+  li::before {
+    color: #c14c4c;
+    background-color: #f4b9b9;
+  }
+
+  code {
+    color: #c14c4c;
+  }
+}
+
 .define,
 .reduce,
 .reduce-head,

@@ -14,6 +14,7 @@ import {
   type ConsoleItemReduceTail,
   type ConsoleItemUnlambda,
   type ConsoleItemUpdate,
+  type ConsoleItemParseError,
   context,
   sideTools,
 } from "~/signals";
@@ -98,6 +99,8 @@ function ConsoleUnit(item: ConsoleItem): JSX.Element {
       return <ConsoleUnitContext {...item} />;
     case "Unlambda":
       return <ConsoleUnitUnlambda {...item} />;
+    case "ParseError":
+      return <ConsoleUnitParseError {...item} />;
     default:
       return null;
   }
@@ -307,9 +310,12 @@ function ConsoleUnitContext(_props: ConsoleItemContext): JSX.Element {
   );
 }
 
-function ConsoleUnitUnlambda(
+export function ConsoleUnitUnlambda(
   props: ConsoleItemUnlambda & { displayStyle?: DisplayStyle },
 ): JSX.Element {
+  const { expr: _e, result: _r } = props;
+  console.log({ _e, _r });
+
   const expr = renderExpr(props.expr, props.displayStyle);
   const result = renderExpr(props.result, props.displayStyle);
 
@@ -320,6 +326,18 @@ function ConsoleUnitUnlambda(
       </li>
       <li>
         <code>{result}</code>
+      </li>
+    </ul>
+  );
+}
+
+export function ConsoleUnitParseError(
+  props: ConsoleItemParseError,
+): JSX.Element {
+  return (
+    <ul class={classNames(styles.unit, styles.unordered, styles.error)}>
+      <li>
+        <code>{props.message}</code>
       </li>
     </ul>
   );
