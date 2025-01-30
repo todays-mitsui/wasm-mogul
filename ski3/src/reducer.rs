@@ -20,7 +20,7 @@ impl Reducer {
     pub fn new(context: Context, expr: Expr, displayStyle: Option<DisplayStyle>) -> Self {
         let tuber_context = context.into();
         let tuber_expr = expr.into();
-        let reducer = tuber::Reducer::new(tuber_context, tuber_expr, false);
+        let reducer = tuber::Reducer::new(tuber_context, tuber_expr);
         let display_style = displayStyle
             .map(tuber::DisplayStyle::from)
             .unwrap_or(tuber::DisplayStyle::EcmaScript);
