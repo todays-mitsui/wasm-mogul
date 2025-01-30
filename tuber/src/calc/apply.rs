@@ -59,12 +59,41 @@ mod tests {
     use super::*;
     use crate::expr;
     use crate::func;
+    use crate::Identifier;
+    use std::collections::HashMap;
 
     fn setup() -> (Context, Aliases) {
         let i = func::new("i", vec!["x"], "x");
         let k = func::new("k", vec!["x", "y"], "x");
         let x = func::new("x", vec!["x"], expr::a("x", "x"));
-        (Context::from(vec![i, k, x]), Aliases::new())
+
+        let mut aliases: HashMap<Identifier, Expr> = HashMap::new();
+        aliases.insert("_".into(), expr::l("x", expr::a("x", "x")));
+        aliases.insert("_1".into(), "TRUE".into());
+        aliases.insert("_2".into(), "FALSE".into());
+
+        (Context::from(vec![i, k, x]), aliases.into())
+    }
+
+    #[test]
+    fn test_aliases() {
+        let (context, aliases) = setup();
+
+        // _ => ^x.`xx
+        let mut expr = expr::v("_");
+        let args = vec![];
+        let result = apply(&context, &aliases, &mut expr, args);
+
+        assert!(result.is_ok());
+        assert_eq!(expr, expr::l("x", expr::a("x", "x")));
+
+        // _2 => FALSE
+        let mut expr = expr::v("_2");
+        let args = vec![];
+        let result = apply(&context, &aliases, &mut expr, args);
+
+        assert!(result.is_ok());
+        assert_eq!(expr, "FALSE".into());
     }
 
     #[test]
