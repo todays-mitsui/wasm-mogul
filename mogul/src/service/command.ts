@@ -53,6 +53,13 @@ export async function runCommand(command: Command) {
             },
           ]);
         },
+        onEnd: (result) => {
+          updateFunction({
+            name: "_",
+            params: [],
+            body: result.expr,
+          });
+        },
       });
       return;
     }
@@ -104,6 +111,13 @@ export async function runCommand(command: Command) {
               formed,
             },
           ]);
+        },
+        onEnd: (result) => {
+          updateFunction({
+            name: "_",
+            params: [],
+            body: result.expr,
+          });
         },
       });
       return;

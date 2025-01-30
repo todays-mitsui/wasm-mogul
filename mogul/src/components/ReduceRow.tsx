@@ -6,26 +6,35 @@ import {
   markReducible,
 } from "~/lib/mark";
 
-export function ReduceRow(props: {
+interface ReduceRowProps {
   expr: string;
   reducedRange?: ExprRange | null;
   reducibleRange?: ReducibleRange | null;
-}): JSX.Element {
-  let reducedRef: HTMLSpanElement | undefined;
-  if (props.reducedRange != null) {
-    const reduced = markReduced(props.expr, props.reducedRange);
-    onMount(() => {
-      reducedRef?.appendChild(reduced);
-    });
-  }
+}
 
+export function ReduceRow(props: ReduceRowProps): JSX.Element {
+  console.log({ ...props });
+
+  let reducedRef: HTMLSpanElement | undefined;
   let reducibleRef: HTMLSpanElement | undefined;
-  if (props.reducibleRange != null) {
-    const reducible = markReducible(props.expr, props.reducibleRange);
-    onMount(() => {
+
+  onMount(() => {
+    if (props.reducedRange == null && props.reducibleRange == null) {
+      if (reducibleRef != null) {
+        reducibleRef.innerText = props.expr;
+      }
+    }
+
+    if (props.reducedRange != null) {
+      const reduced = markReduced(props.expr, props.reducedRange);
+      reducedRef?.appendChild(reduced);
+    }
+
+    if (props.reducibleRange != null) {
+      const reducible = markReducible(props.expr, props.reducibleRange);
       reducibleRef?.appendChild(reducible);
-    });
-  }
+    }
+  });
 
   return (
     <>

@@ -132,6 +132,9 @@
   li:last-child :global(.expr-mark-reducible) {
     display: none;
   }
+  li:first-child :global(.expr-mark-reducible) {
+    display: inline;
+  }
 
   li:hover {
     :global(.reducible) {

@@ -12,6 +12,7 @@ const MAX_STEPS = 1000;
 interface ReduceOptions {
   onInit?: (reducer: Reducer) => void;
   onReduce?: (reduceResult: ReduceResult) => void;
+  onEnd?: (reduceResult: ReduceResult) => void;
   maxSteps?: number;
 }
 
@@ -19,27 +20,30 @@ export async function reduceHead(
   expr: Expr,
   options?: ReduceOptions,
 ): Promise<void> {
-  const { onInit, onReduce, maxSteps } = options ?? {};
+  const { onInit, onReduce, onEnd, maxSteps } = options ?? {};
 
   const reducer = new Reducer(context(), expr, displayStyle());
 
   onInit?.(reducer);
 
+  let reduceResult: ReduceResult | null = null;
   while (true) {
     const result = reducer.next();
 
-    if (result.done) return;
+    if (result.done) break;
 
-    const reduceResult = result.value;
+    reduceResult = result.value;
 
     if (reduceResult == null) continue;
 
     onReduce?.(reduceResult);
 
-    if ((maxSteps ?? MAX_STEPS) <= reduceResult.step) return;
+    if ((maxSteps ?? MAX_STEPS) <= reduceResult.step) break;
 
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
+
+  reduceResult && onEnd?.(reduceResult);
 }
 
 export async function reduceTail(
