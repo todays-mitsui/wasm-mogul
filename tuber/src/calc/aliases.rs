@@ -13,6 +13,10 @@ impl Aliases {
     pub fn get(&self, id: &Identifier) -> Option<&Expr> {
         self.0.get(id)
     }
+
+    pub fn has(&self, id: &Identifier) -> bool {
+        self.0.contains_key(id)
+    }
 }
 
 impl From<HashMap<Identifier, Expr>> for Aliases {
