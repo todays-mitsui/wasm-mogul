@@ -1,3 +1,4 @@
+mod aliases;
 mod apply;
 mod arity;
 mod evaluate;
