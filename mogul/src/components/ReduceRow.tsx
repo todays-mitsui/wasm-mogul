@@ -13,8 +13,6 @@ interface ReduceRowProps {
 }
 
 export function ReduceRow(props: ReduceRowProps): JSX.Element {
-  console.log({ ...props });
-
   let reducedRef: HTMLSpanElement | undefined;
   let reducibleRef: HTMLSpanElement | undefined;
 

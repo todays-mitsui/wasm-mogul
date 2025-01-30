@@ -1,6 +1,5 @@
 import { context, setContext } from "~/signals";
-import type { Func } from "../../../ski3/pkg/index";
-export type { Context } from "../../../ski3/pkg/index";
+import { type Expr, type Func } from "../../../ski3/pkg/index";
 
 export function updateFunction(func: Func) {
   setContext((prev) => ({ ...prev, [func.name]: func }));
@@ -16,4 +15,12 @@ export function deleteFunction(identifier: string) {
 
 export function queryFunction(identifier: string): Func | null {
   return context()[identifier] ?? null;
+}
+
+export function updateUnderscore(expr: Expr) {
+  updateFunction({
+    name: "_",
+    params: [],
+    body: expr,
+  });
 }

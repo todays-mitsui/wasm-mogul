@@ -4,6 +4,7 @@ import {
   deleteFunction,
   queryFunction,
   updateFunction,
+  updateUnderscore,
 } from "~/service/context";
 import {
   type FormedReducedExpr,
@@ -54,11 +55,7 @@ export async function runCommand(command: Command) {
           ]);
         },
         onEnd: (result) => {
-          updateFunction({
-            name: "_",
-            params: [],
-            body: result.expr,
-          });
+          updateUnderscore(result.expr);
         },
       });
       return;
@@ -70,18 +67,27 @@ export async function runCommand(command: Command) {
         readonly formed: FormedReducedExpr;
       } | null>(null);
       await reduceLast(command.expr, {
-        onInit: ({ formed }) => {
-          putConsoleItem({
-            type: "ReduceLast",
-            formed,
-            reduceResult,
-          });
+        onInit: ({ formed, hasNext }) => {
+          hasNext
+            ? putConsoleItem({
+                type: "ReduceLast",
+                formed,
+                reduceResult,
+              })
+            : putConsoleItem({
+                type: "Reduce",
+                formed,
+                reduceResults: () => [],
+              });
         },
         onReduce: ({ step, formed }) => {
           setReduceResult({
             step,
             formed,
           });
+        },
+        onEnd: (result) => {
+          updateUnderscore(result.expr);
         },
       });
       return;
@@ -113,11 +119,7 @@ export async function runCommand(command: Command) {
           ]);
         },
         onEnd: (result) => {
-          updateFunction({
-            name: "_",
-            params: [],
-            body: result.expr,
-          });
+          updateUnderscore(result.expr);
         },
       });
       return;
@@ -147,6 +149,9 @@ export async function runCommand(command: Command) {
               formed,
             },
           ]);
+        },
+        onEnd: (result) => {
+          updateUnderscore(result.expr);
         },
       });
       return;
