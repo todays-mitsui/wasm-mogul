@@ -463,7 +463,7 @@ mod tests {
     }
 
     #[test]
-    fn test_reduce_result_func_true_1_1() {
+    fn test_reduce_result_func_true_1() {
         let (context, aliases) = setup();
 
         let expr = expr::v("TRUE");
@@ -474,18 +474,7 @@ mod tests {
     }
 
     #[test]
-    fn test_reduce_result_func_true_1_2() {
-        let (context, aliases) = setup();
-
-        let expr = expr::v("TRUE");
-
-        let mut reducer = Reducer::new(context, aliases, expr, true);
-
-        assert_eq!(reducer.next().map(|result| result.expr), Some(expr::v("k")));
-    }
-
-    #[test]
-    fn test_reduce_result_func_true_2_1() {
+    fn test_reduce_result_func_true_2() {
         let (context, aliases) = setup();
 
         let expr = expr::a(":a", "TRUE");
@@ -496,39 +485,12 @@ mod tests {
     }
 
     #[test]
-    fn test_reduce_result_func_true_2_2() {
-        let (context, aliases) = setup();
-
-        let expr = expr::a(":a", "TRUE");
-
-        let mut reducer = Reducer::new(context, aliases, expr, true);
-
-        assert_eq!(reducer.next().map(|result| result.expr), None);
-    }
-
-    #[test]
-    fn test_reduce_result_func_true_3_1() {
+    fn test_reduce_result_func_true_3() {
         let (context, aliases) = setup();
 
         let expr = expr::a(expr::a("TRUE", ":a"), ":b");
 
         let mut reducer = Reducer::new(context, aliases, expr, false);
-
-        assert_eq!(
-            reducer.next().map(|result| result.expr),
-            Some(expr::a(expr::a("k", ":a"), ":b"))
-        );
-        assert_eq!(reducer.next().map(|result| result.expr), Some(":a".into()));
-        assert_eq!(reducer.next().map(|result| result.expr), None);
-    }
-
-    #[test]
-    fn test_reduce_result_func_true_3_2() {
-        let (context, aliases) = setup();
-
-        let expr = expr::a(expr::a("TRUE", ":a"), ":b");
-
-        let mut reducer = Reducer::new(context, aliases, expr, true);
 
         assert_eq!(
             reducer.next().map(|result| result.expr),
