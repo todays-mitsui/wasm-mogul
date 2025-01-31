@@ -178,6 +178,7 @@ export async function runCommand(command: Command) {
     case "Unlambda": {
       const result = unlambda(command.level, command.expr);
       putConsoleItem({ type: "Unlambda", expr: command.expr, result });
+      addAlias(result);
       return;
     }
   }
