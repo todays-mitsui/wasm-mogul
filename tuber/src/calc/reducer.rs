@@ -193,9 +193,10 @@ impl From<Expr> for expr::Expr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::calc::aliases;
     use crate::expr;
     use crate::func;
+    use crate::Identifier;
+    use std::collections::HashMap;
 
     fn setup() -> (Context, Aliases) {
         let i = func::new("i", vec!["x"], "x");
@@ -209,7 +210,12 @@ mod tests {
         let _true = func::new("TRUE", Vec::<&str>::new(), expr::a("k", "i"));
         let _false = func::new("FALSE", Vec::<&str>::new(), "k");
 
-        (Context::from(vec![i, k, s, _true, _false]), Aliases::new())
+        let mut aliases: HashMap<Identifier, expr::Expr> = HashMap::new();
+        aliases.insert("_".into(), expr::l("x", expr::a("x", "x")));
+        aliases.insert("_1".into(), "TRUE".into());
+        aliases.insert("_2".into(), "FALSE".into());
+
+        (Context::from(vec![i, k, s, _true, _false]), aliases.into())
     }
 
     #[test]
@@ -238,7 +244,7 @@ mod tests {
     }
 
     #[test]
-    fn test_reducible_path() {
+    fn test_reducible_path_1() {
         let (context, aliases) = setup();
 
         let expr = expr::s("TRUE");
@@ -311,6 +317,43 @@ mod tests {
             expr.reducible_path(&context, &aliases)
                 .map(Vec::<usize>::from),
             Some(vec![1, 1, 1])
+        );
+    }
+
+    #[test]
+    fn test_reducible_path_2() {
+        let (context, aliases) = setup();
+
+        let expr = expr::v("_");
+        let expr = Expr::from(expr);
+        assert_eq!(
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
+            Some(vec![0])
+        );
+
+        let expr = expr::a("_", ":x");
+        let expr = Expr::from(expr);
+        assert_eq!(
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
+            Some(vec![0])
+        );
+
+        let expr = expr::a(":x", "_");
+        let expr = Expr::from(expr);
+        assert_eq!(
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
+            Some(vec![1, 0])
+        );
+
+        let expr = expr::l("x", "_");
+        let expr = Expr::from(expr);
+        assert_eq!(
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
+            None
         );
     }
 
