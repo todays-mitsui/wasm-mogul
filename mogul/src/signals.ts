@@ -2,6 +2,7 @@ import { makePersisted } from "@solid-primitives/storage";
 import { type Accessor, createSignal, batch } from "solid-js";
 import {
   type Context,
+  type Aliases,
   type DisplayStyle,
   type Expr,
   type FormedExpr,
@@ -49,6 +50,8 @@ export function resetContext() {
 export function clearContext() {
   setContext({});
 }
+
+export const [aliases, setAliases] = createSignal<Aliases>({});
 
 function createToolBoxSignal() {
   const [isOpen, setIsOpen] = createSignal(false);

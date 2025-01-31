@@ -4,7 +4,6 @@ import {
   deleteFunction,
   queryFunction,
   updateFunction,
-  updateUnderscore,
 } from "~/service/context";
 import {
   type FormedReducedExpr,
@@ -13,6 +12,7 @@ import {
   reduceTail,
 } from "~/service/reduce";
 import { unlambda } from "~/service/unlambda";
+import { addAlias } from "~/service/aliases";
 import { type Command, parseCommand } from "../../../ski3/pkg/index";
 export { type Command, parseCommand };
 
@@ -55,7 +55,7 @@ export async function runCommand(command: Command) {
           ]);
         },
         onEnd: (result) => {
-          updateUnderscore(result.expr);
+          addAlias(result.expr);
         },
       });
       return;
@@ -87,7 +87,7 @@ export async function runCommand(command: Command) {
           });
         },
         onEnd: (result) => {
-          updateUnderscore(result.expr);
+          addAlias(result.expr);
         },
       });
       return;
@@ -119,7 +119,7 @@ export async function runCommand(command: Command) {
           ]);
         },
         onEnd: (result) => {
-          updateUnderscore(result.expr);
+          addAlias(result.expr);
         },
       });
       return;
@@ -151,7 +151,7 @@ export async function runCommand(command: Command) {
           ]);
         },
         onEnd: (result) => {
-          updateUnderscore(result.expr);
+          addAlias(result.expr);
         },
       });
       return;

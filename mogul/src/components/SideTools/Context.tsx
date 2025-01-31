@@ -1,6 +1,7 @@
 import { type JSX, For } from "solid-js";
 import { context } from "~/signals";
 import { type DisplayStyle, renderFunc, sortFuncs } from "~/service/func";
+import { aliases } from "~/service/aliases";
 import styles from "./Context.module.css";
 
 interface ContextProps {
@@ -14,6 +15,15 @@ export default function Context(props: ContextProps): JSX.Element {
   return (
     <div class={styles.context}>
       <h2>Context</h2>
+      <ul>
+        <For each={aliases()}>
+          {(alias) => (
+            <li>
+              <code>{alias}</code>
+            </li>
+          )}
+        </For>
+      </ul>
       <ul>
         <For each={funcs()}>
           {([signature, body]) => (

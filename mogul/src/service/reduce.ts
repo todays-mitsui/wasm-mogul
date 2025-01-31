@@ -1,4 +1,4 @@
-import { context, displayStyle } from "~/signals";
+import { context, aliases, displayStyle } from "~/signals";
 import {
   type Expr,
   type FormedReducedExpr,
@@ -22,7 +22,7 @@ export async function reduceHead(
 ): Promise<void> {
   const { onInit, onReduce, onEnd, maxSteps } = options ?? {};
 
-  const reducer = new Reducer(context(), expr, displayStyle());
+  const reducer = new Reducer(context(), aliases(), expr, displayStyle());
 
   onInit?.(reducer);
 
@@ -52,7 +52,7 @@ export async function reduceTail(
 ): Promise<void> {
   const { onInit, onReduce, onEnd, maxSteps, count } = options;
 
-  const reducer = new Reducer(context(), expr, displayStyle());
+  const reducer = new Reducer(context(), aliases(), expr, displayStyle());
 
   onInit?.(reducer);
 
@@ -94,7 +94,7 @@ export async function reduceLast(
 ): Promise<void> {
   const { onInit, onReduce, onEnd, maxSteps } = options ?? {};
 
-  const reducer = new Reducer(context(), expr, displayStyle());
+  const reducer = new Reducer(context(), aliases(), expr, displayStyle());
 
   onInit?.(reducer);
 
