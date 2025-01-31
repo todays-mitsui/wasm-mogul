@@ -5,6 +5,10 @@
     font-size: .9rem;
     font-weight: 500;
     color: #666;
+
+    &:not(:first-child) {
+      margin-top: 1em;
+    }
   }
 
   li {

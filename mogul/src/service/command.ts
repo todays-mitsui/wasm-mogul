@@ -12,6 +12,7 @@ import {
   reduceTail,
 } from "~/service/reduce";
 import { unlambda } from "~/service/unlambda";
+import { addAlias } from "~/service/aliases";
 import { type Command, parseCommand } from "../../../ski3/pkg/index";
 export { type Command, parseCommand };
 
@@ -53,6 +54,9 @@ export async function runCommand(command: Command) {
             },
           ]);
         },
+        onEnd: (result) => {
+          addAlias(result.expr);
+        },
       });
       return;
     }
@@ -63,18 +67,27 @@ export async function runCommand(command: Command) {
         readonly formed: FormedReducedExpr;
       } | null>(null);
       await reduceLast(command.expr, {
-        onInit: ({ formed }) => {
-          putConsoleItem({
-            type: "ReduceLast",
-            formed,
-            reduceResult,
-          });
+        onInit: ({ formed, hasNext }) => {
+          hasNext
+            ? putConsoleItem({
+                type: "ReduceLast",
+                formed,
+                reduceResult,
+              })
+            : putConsoleItem({
+                type: "Reduce",
+                formed,
+                reduceResults: () => [],
+              });
         },
         onReduce: ({ step, formed }) => {
           setReduceResult({
             step,
             formed,
           });
+        },
+        onEnd: (result) => {
+          addAlias(result.expr);
         },
       });
       return;
@@ -105,6 +118,9 @@ export async function runCommand(command: Command) {
             },
           ]);
         },
+        onEnd: (result) => {
+          addAlias(result.expr);
+        },
       });
       return;
     }
@@ -134,6 +150,9 @@ export async function runCommand(command: Command) {
             },
           ]);
         },
+        onEnd: (result) => {
+          addAlias(result.expr);
+        },
       });
       return;
     }
@@ -159,6 +178,7 @@ export async function runCommand(command: Command) {
     case "Unlambda": {
       const result = unlambda(command.level, command.expr);
       putConsoleItem({ type: "Unlambda", expr: command.expr, result });
+      addAlias(result);
       return;
     }
   }

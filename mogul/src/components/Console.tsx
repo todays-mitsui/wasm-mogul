@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { For, Index, type JSX, Show, createEffect, onCleanup } from "solid-js";
+import { For, Index, type JSX, Show, onMount, onCleanup } from "solid-js";
 import { type DisplayStyle, renderFunc, sortFuncs } from "~/service/func";
 import {
   consoleOut,
@@ -29,7 +29,7 @@ interface ConsoleProps {
 
 export default function Console(props: ConsoleProps): JSX.Element {
   let wrapper: HTMLDivElement | undefined;
-  createEffect(() => {
+  onMount(() => {
     if (wrapper == null) return;
     const observer = createObserver(wrapper);
     onCleanup(() => {

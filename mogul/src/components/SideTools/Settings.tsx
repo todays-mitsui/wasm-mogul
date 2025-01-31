@@ -1,12 +1,7 @@
 import type { JSX } from "solid-js";
 import styles from "./Settings.module.css";
-import {
-  resetContext,
-  clearContext,
-  displayStyle,
-  setDisplayStyle,
-  sideTools,
-} from "~/signals";
+import { displayStyle, setDisplayStyle, sideTools } from "~/signals";
+import { resetContext, clearContext } from "~/service/context";
 
 export default function Settings(): JSX.Element {
   return (

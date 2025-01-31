@@ -1,12 +1,12 @@
+mod aliases;
 mod apply;
 mod arity;
-mod evaluate;
 mod expand;
 mod reducer;
 mod unlambda;
 
+pub use aliases::Aliases;
 pub use arity::arity;
-pub use evaluate::{Eval, EvalStep};
 pub use expand::expand;
 pub use reducer::{ReduceResult, Reducer};
 pub use unlambda::{

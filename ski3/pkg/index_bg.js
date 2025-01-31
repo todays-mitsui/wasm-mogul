@@ -162,24 +162,6 @@ export function renderExpr(expr, displayStyle) {
 }
 
 /**
- * @param {Func} func
- * @param {DisplayStyle} displayStyle
- * @returns {string}
- */
-export function renderFunc(func, displayStyle) {
-    let deferred1_0;
-    let deferred1_1;
-    try {
-        const ret = wasm.renderFunc(func, displayStyle);
-        deferred1_0 = ret[0];
-        deferred1_1 = ret[1];
-        return getStringFromWasm0(ret[0], ret[1]);
-    } finally {
-        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
-    }
-}
-
-/**
  * @param {Context} context
  * @param {Expr} expr
  * @returns {Expr}
@@ -220,6 +202,24 @@ export function unlambdaIota(context, expr) {
 }
 
 /**
+ * @param {Func} func
+ * @param {DisplayStyle} displayStyle
+ * @returns {string}
+ */
+export function renderFunc(func, displayStyle) {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.renderFunc(func, displayStyle);
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
+
+/**
  * @returns {Context}
  */
 export function defaultContext() {
@@ -246,11 +246,12 @@ export class Reducer {
     }
     /**
      * @param {Context} context
+     * @param {Aliases} aliases
      * @param {Expr} expr
      * @param {DisplayStyle | null} [displayStyle]
      */
-    constructor(context, expr, displayStyle) {
-        const ret = wasm.reducer_new(context, expr, isLikeNone(displayStyle) ? 0 : addToExternrefTable0(displayStyle));
+    constructor(context, aliases, expr, displayStyle) {
+        const ret = wasm.reducer_new(context, aliases, expr, isLikeNone(displayStyle) ? 0 : addToExternrefTable0(displayStyle));
         this.__wbg_ptr = ret >>> 0;
         ReducerFinalization.register(this, this.__wbg_ptr, this);
         return this;

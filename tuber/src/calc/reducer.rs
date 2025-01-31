@@ -1,10 +1,11 @@
 use super::apply::apply;
-use crate::calc;
+use crate::calc::{self, aliases::Aliases};
 use crate::context::Context;
 use crate::expr::{self, Path, PathBuilder};
 
 pub struct Reducer {
     context: Context,
+    aliases: Aliases,
     step: usize,
     expr: Expr,
 }
@@ -16,10 +17,11 @@ pub struct ReduceResult {
 }
 
 impl Reducer {
-    pub fn new(context: Context, expr: expr::Expr) -> Self {
+    pub fn new(context: Context, aliases: Aliases, expr: expr::Expr) -> Self {
         let expr = Expr::from(expr);
         Self {
             context,
+            aliases,
             step: 0,
             expr,
         }
@@ -30,7 +32,7 @@ impl Reducer {
     }
 
     pub fn reducible_path(&self) -> Option<Path> {
-        self.expr.reducible_path(&self.context)
+        self.expr.reducible_path(&self.context, &self.aliases)
     }
 }
 
@@ -38,9 +40,11 @@ impl Iterator for Reducer {
     type Item = ReduceResult;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let reducible_path = self.expr.reducible_path(&self.context)?;
+        let reducible_path = self.expr.reducible_path(&self.context, &self.aliases)?;
 
-        let reduced_path = self.expr.reduce(&self.context, &reducible_path);
+        let reduced_path = self
+            .expr
+            .reduce(&self.context, &self.aliases, &reducible_path);
         self.step += 1;
 
         Some(ReduceResult {
@@ -58,19 +62,25 @@ struct Expr {
 }
 
 impl Expr {
-    fn arity(&self, context: &Context) -> Option<usize> {
-        calc::arity(context, &self.callee)
+    fn arity(&self, context: &Context, aliases: &Aliases) -> Option<usize> {
+        calc::arity(context, aliases, &self.callee)
     }
 
     // self.callee に self.args のうちいくつかの項を与えて簡約可能かどうかを判定する
-    fn callable(&self, context: &Context) -> bool {
+    fn callable(&self, context: &Context, aliases: &Aliases) -> bool {
+        let is_alias = if let expr::Expr::Variable(identity) = &self.callee {
+            aliases.has(identity)
+        } else {
+            false
+        };
+
         // self.callee が arity = 0 の関数であっても、引数を伴わない単項の式なら簡約したくない
         // そのため簡約可能であるためには少なくとも1つ以上の引数を持つべきだ
-        if self.args.len() == 0 {
+        if !is_alias && self.args.len() == 0 {
             return false;
         }
 
-        if let Some(arity) = self.arity(context) {
+        if let Some(arity) = self.arity(context, aliases) {
             // 簡約可能であるためには args が arity より長くなければいけない
             arity <= self.args.len()
         } else {
@@ -81,19 +91,20 @@ impl Expr {
     }
 
     // self.callee に限らず self.args も再帰的にたどって簡約基を含むかどうかを判定する
-    fn reducible(&self, context: &Context) -> bool {
+    fn reducible(&self, context: &Context, aliases: &Aliases) -> bool {
         // TODO: reducible() が呼び出されるたびに args を再帰的に辿っていくのが非効率かもしれない、計算結果をキャッシュする機構を考えたい
-        self.callable(context) || self.args.iter().any(|arg| arg.reducible(context))
+        self.callable(context, aliases)
+            || self.args.iter().any(|arg| arg.reducible(context, aliases))
     }
 
     // 簡約基に至る経路を返す
-    fn reducible_path(&self, context: &Context) -> Option<Path> {
+    fn reducible_path(&self, context: &Context, aliases: &Aliases) -> Option<Path> {
         let mut path = PathBuilder::new();
         let mut expr = self;
 
         loop {
-            if expr.callable(context) {
-                path.set_arity(expr.arity(context).unwrap());
+            if expr.callable(context, aliases) {
+                path.set_arity(expr.arity(context, aliases).unwrap());
                 return Some(path.build());
             } else {
                 match expr
@@ -101,7 +112,7 @@ impl Expr {
                     .iter()
                     .rev()
                     .enumerate()
-                    .find(|(_, arg)| arg.reducible(context))
+                    .find(|(_, arg)| arg.reducible(context, aliases))
                 {
                     Some((index, arg)) => {
                         path.add_route(index + 1);
@@ -124,9 +135,9 @@ impl Expr {
         }
     }
 
-    fn reduce(&mut self, context: &Context, reducible_path: &Path) -> Path {
+    fn reduce(&mut self, context: &Context, aliases: &Aliases, reducible_path: &Path) -> Path {
         let expr = self.reducible_expr(reducible_path);
-        let arity = expr.arity(context).unwrap();
+        let arity = expr.arity(context, aliases).unwrap();
         let args: Vec<expr::Expr> = expr
             .args
             .drain(expr.args.len() - arity..)
@@ -137,7 +148,7 @@ impl Expr {
 
         // TODO: エラー握りつぶしてるけど大丈夫？
         // TODO: apply() を reducer::Expr ベースに書き換えたい
-        let _ = apply(context, callee, args);
+        let _ = apply(context, aliases, callee, args);
 
         let mut num_args = 0;
         while let expr::Expr::Apply { lhs, rhs } = callee {
@@ -184,8 +195,10 @@ mod tests {
     use super::*;
     use crate::expr;
     use crate::func;
+    use crate::Identifier;
+    use std::collections::HashMap;
 
-    fn setup() -> Context {
+    fn setup() -> (Context, Aliases) {
         let i = func::new("i", vec!["x"], "x");
         let k = func::new("k", vec!["x", "y"], "x");
         let s = func::new(
@@ -197,15 +210,20 @@ mod tests {
         let _true = func::new("TRUE", Vec::<&str>::new(), expr::a("k", "i"));
         let _false = func::new("FALSE", Vec::<&str>::new(), "k");
 
-        Context::from(vec![i, k, s, _true, _false])
+        let mut aliases: HashMap<Identifier, expr::Expr> = HashMap::new();
+        aliases.insert("_".into(), expr::l("x", expr::a("x", "x")));
+        aliases.insert("_1".into(), "TRUE".into());
+        aliases.insert("_2".into(), "FALSE".into());
+
+        (Context::from(vec![i, k, s, _true, _false]), aliases.into())
     }
 
     #[test]
     fn test_reducer_new() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         let expr = expr::a(":g", expr::a(":f", expr::a("i", ":y")));
-        let reducer = Reducer::new(context.clone(), expr);
+        let reducer = Reducer::new(context.clone(), aliases.clone(), expr);
 
         assert_eq!(
             reducer.expr,
@@ -226,61 +244,116 @@ mod tests {
     }
 
     #[test]
-    fn test_reducible_path() {
-        let context = setup();
+    fn test_reducible_path_1() {
+        let (context, aliases) = setup();
 
         let expr = expr::s("TRUE");
         let expr = Expr::from(expr);
-        assert_eq!(expr.reducible_path(&context).map(Vec::<usize>::from), None);
+        assert_eq!(
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
+            None
+        );
 
         let expr = expr::v("TRUE");
         let expr = Expr::from(expr);
-        assert_eq!(expr.reducible_path(&context).map(Vec::<usize>::from), None);
+        assert_eq!(
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
+            None
+        );
 
         let expr = expr::a(":i", ":x");
         let expr = Expr::from(expr);
-        assert_eq!(expr.reducible_path(&context).map(Vec::<usize>::from), None);
+        assert_eq!(
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
+            None
+        );
 
         let expr = expr::a("i", ":x");
         let expr = Expr::from(expr);
         assert_eq!(
-            expr.reducible_path(&context).map(Vec::<usize>::from),
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
             Some(vec![1])
         );
 
         let expr = expr::a(expr::a("i", ":x"), ":y");
         let expr = Expr::from(expr);
         assert_eq!(
-            expr.reducible_path(&context).map(Vec::<usize>::from),
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
             Some(vec![1])
         );
 
         let expr = expr::a(":f", expr::a("i", ":x"));
         let expr = Expr::from(expr);
         assert_eq!(
-            expr.reducible_path(&context).map(Vec::<usize>::from),
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
             Some(vec![1, 1])
         );
 
         let expr = expr::a(expr::a("i", ":x"), expr::a("i", ":y"));
         let expr = Expr::from(expr);
         assert_eq!(
-            expr.reducible_path(&context).map(Vec::<usize>::from),
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
             Some(vec![1])
         );
 
         let expr = expr::a(expr::a(":i", ":x"), expr::a("i", ":y"));
         let expr = Expr::from(expr);
         assert_eq!(
-            expr.reducible_path(&context).map(Vec::<usize>::from),
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
             Some(vec![2, 1])
         );
 
         let expr = expr::a(":g", expr::a(":f", expr::a("i", ":y")));
         let expr = Expr::from(expr);
         assert_eq!(
-            expr.reducible_path(&context).map(Vec::<usize>::from),
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
             Some(vec![1, 1, 1])
+        );
+    }
+
+    #[test]
+    fn test_reducible_path_2() {
+        let (context, aliases) = setup();
+
+        let expr = expr::v("_");
+        let expr = Expr::from(expr);
+        assert_eq!(
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
+            Some(vec![0])
+        );
+
+        let expr = expr::a("_", ":x");
+        let expr = Expr::from(expr);
+        assert_eq!(
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
+            Some(vec![0])
+        );
+
+        let expr = expr::a(":x", "_");
+        let expr = Expr::from(expr);
+        assert_eq!(
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
+            Some(vec![1, 0])
+        );
+
+        let expr = expr::l("x", "_");
+        let expr = Expr::from(expr);
+        assert_eq!(
+            expr.reducible_path(&context, &aliases)
+                .map(Vec::<usize>::from),
+            None
         );
     }
 
@@ -312,11 +385,12 @@ mod tests {
     #[test]
     fn test_reduce_result_lambda_i() {
         let context = Context::new();
+        let aliases = Aliases::new();
 
         let i = expr::l("x", "x");
         let expr = expr::a(i, ":a");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(reducer.next().map(|result| result.expr), Some(expr::s("a")));
         assert_eq!(reducer.next().map(|result| result.expr), None);
@@ -325,11 +399,12 @@ mod tests {
     #[test]
     fn test_reduce_result_lambda_k_1() {
         let context = Context::new();
+        let aliases = Aliases::new();
 
         let k = expr::l("x", expr::l("y", "x"));
         let expr = expr::a(k, ":a");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(
             reducer.next().map(|result| result.expr),
@@ -341,11 +416,12 @@ mod tests {
     #[test]
     fn test_reduce_result_lambda_k_2() {
         let context = Context::new();
+        let aliases = Aliases::new();
 
         let k = expr::l("x", expr::l("y", "x"));
         let expr = expr::a(expr::a(k, ":a"), ":b");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(
             reducer.next().map(|result| result.expr),
@@ -357,33 +433,33 @@ mod tests {
 
     #[test]
     fn test_reduce_result_func_true_1() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         let expr = expr::v("TRUE");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(reducer.next().map(|result| result.expr), None);
     }
 
     #[test]
     fn test_reduce_result_func_true_2() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         let expr = expr::a(":a", "TRUE");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(reducer.next().map(|result| result.expr), None);
     }
 
     #[test]
     fn test_reduce_result_func_true_3() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         let expr = expr::a(expr::a("TRUE", ":a"), ":b");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(
             reducer.next().map(|result| result.expr),
@@ -399,11 +475,11 @@ mod tests {
 
     #[test]
     fn test_reduce_result_func_i() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         let expr = expr::a("i", ":a");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(reducer.next().map(|result| result.expr), Some(":a".into()));
         assert_eq!(reducer.next().map(|result| result.expr), None);
@@ -411,11 +487,11 @@ mod tests {
 
     #[test]
     fn test_reduce_result_func_k_1() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         let expr = expr::a("k", ":a");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         // k の arity が2なのに対して引数を1つしか与えていないので簡約されない
         assert_eq!(reducer.next().map(|result| result.expr), None);
@@ -423,11 +499,11 @@ mod tests {
 
     #[test]
     fn test_reduce_result_func_k_2() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         let expr = expr::a(expr::a("k", ":a"), ":b");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(reducer.next().map(|result| result.expr), Some(":a".into()));
         assert_eq!(reducer.next().map(|result| result.expr), None);
@@ -435,11 +511,11 @@ mod tests {
 
     #[test]
     fn test_reduce_result_func_s_1() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         let expr = expr::a("s", ":a");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         // s の arity が3なのに対して引数を1つしか与えていないので簡約されない
         assert_eq!(reducer.next().map(|result| result.expr), None);
@@ -447,11 +523,11 @@ mod tests {
 
     #[test]
     fn test_reduce_result_func_s_2() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         let expr = expr::a(expr::a("s", ":a"), ":b");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         // s の arity が3なのに対して引数を2つしか与えていないので簡約されない
         assert_eq!(reducer.next().map(|result| result.expr), None);
@@ -459,11 +535,11 @@ mod tests {
 
     #[test]
     fn test_reduce_result_func_s_3() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         let expr = expr::a(expr::a(expr::a("s", ":a"), ":b"), ":c");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(
             reducer.next().map(|result| result.expr),
@@ -475,23 +551,23 @@ mod tests {
 
     #[test]
     fn test_reduce_result_skk() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         let expr = expr::a(expr::a(expr::a("s", "k"), "k"), ":a");
 
-        let reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(reducer.last().map(|result| result.expr), Some(":a".into()));
     }
 
     #[test]
     fn test_reduce_result_right_tree_1() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         // `:a``k:b:c
         let expr = expr::a(expr::s("a"), expr::a(expr::a("k", ":b"), ":c"));
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(
             reducer.next().map(|result| result.expr),
@@ -502,12 +578,12 @@ mod tests {
 
     #[test]
     fn test_reduce_result_right_tree_2() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         // ```:a`i:b`i:c
         let expr = expr::a(expr::a(":a", expr::a("i", ":b")), expr::a("i", ":c"));
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(
             reducer.next().map(|result| result.expr),
@@ -522,7 +598,7 @@ mod tests {
 
     #[test]
     fn test_reduce() {
-        let context = setup();
+        let (context, aliases) = setup();
 
         // ```s^x.`x:a^x.`x:b:c
         let expr = expr::a(
@@ -533,7 +609,7 @@ mod tests {
             ":c",
         );
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         assert_eq!(
             reducer.next().map(|result| result.expr),
@@ -561,10 +637,10 @@ mod tests {
 
     #[test]
     fn test_eval_next_path() {
-        let context = setup();
+        let (context, aliases) = setup();
         let expr = expr::a(expr::a(expr::a("s", "k"), "k"), ":a");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
         assert_eq!(
             reducer.reducible_path().as_ref().map(Vec::<usize>::from),
             Some(vec![3])
@@ -585,10 +661,10 @@ mod tests {
 
     #[test]
     fn test_reducer_reducible_path() {
-        let context = setup();
+        let (context, aliases) = setup();
         let expr = expr::a(expr::a(expr::a("s", "i"), expr::a("k", ":b")), ":a");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
         assert_eq!(
             reducer.reducible_path().as_ref().map(Vec::<usize>::from),
             Some(vec![3])
@@ -615,10 +691,10 @@ mod tests {
 
     #[test]
     fn test_reducer_reduced_path_1() {
-        let context = setup();
+        let (context, aliases) = setup();
         let expr = expr::a(expr::a(expr::a("s", "k"), "k"), ":a");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         let result = reducer.next().unwrap();
         assert_eq!(Vec::<usize>::from(&result.reduced_path), vec![2]);
@@ -629,10 +705,10 @@ mod tests {
 
     #[test]
     fn test_reducer_reduced_path_2() {
-        let context = setup();
+        let (context, aliases) = setup();
         let expr = expr::a(expr::a(expr::a("s", "i"), expr::a("k", ":b")), ":a");
 
-        let mut reducer = Reducer::new(context, expr);
+        let mut reducer = Reducer::new(context, aliases, expr);
 
         let result = reducer.next().unwrap();
         assert_eq!(Vec::<usize>::from(&result.reduced_path), vec![2]);
