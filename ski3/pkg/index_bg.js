@@ -180,6 +180,14 @@ export function renderFunc(func, displayStyle) {
 }
 
 /**
+ * @returns {Context}
+ */
+export function defaultContext() {
+    const ret = wasm.defaultContext();
+    return ret;
+}
+
+/**
  * @param {Context} context
  * @param {Expr} expr
  * @returns {Expr}
@@ -216,14 +224,6 @@ export function unlambdaRecursive_(context, expr) {
  */
 export function unlambdaIota(context, expr) {
     const ret = wasm.unlambdaIota(context, expr);
-    return ret;
-}
-
-/**
- * @returns {Context}
- */
-export function defaultContext() {
-    const ret = wasm.defaultContext();
     return ret;
 }
 

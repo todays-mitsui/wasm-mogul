@@ -8,32 +8,32 @@ use wasm_bindgen::prelude::*;
 
 #[derive(Tsify, Serialize, Deserialize, Debug)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct Func {
-    n: Identifier,
-    p: Vec<Identifier>,
-    b: Expr,
-}
+pub struct Func(
+    /* name   */ Identifier,
+    /* params */ Vec<Identifier>,
+    /* body   */ Expr,
+);
 
 impl From<tuber::Func> for Func {
     fn from(tuber_func: tuber::Func) -> Func {
-        Func {
-            n: tuber_func.name().to_string(),
-            p: tuber_func
+        Func(
+            tuber_func.name().to_string(),
+            tuber_func
                 .params()
                 .iter()
                 .map(|id| id.as_str().to_string())
                 .collect(),
-            b: Expr::from(tuber_func.body().clone()),
-        }
+            Expr::from(tuber_func.body().clone()),
+        )
     }
 }
 
 impl From<Func> for tuber::Func {
     fn from(ski_func: Func) -> tuber::Func {
         tuber::Func::new(
-            ski_func.n.into(),
-            ski_func.p.into_iter().map(|id| id.into()).collect(),
-            ski_func.b.into(),
+            ski_func.0.into(),
+            ski_func.1.into_iter().map(|id| id.into()).collect(),
+            ski_func.2.into(),
         )
     }
 }
