@@ -22,7 +22,7 @@ export function renderFunc(
 
 export function sortFuncs(funcs: Func[]): Func[] {
   const taggedFuncs: [Func, Tag][] = funcs.map<[Func, Tag]>((func) => {
-    const { name } = func;
+    const { n: name } = func;
     return [func, sortTag(name)];
   });
 
