@@ -43,7 +43,13 @@ export const [context, setContext] = makePersisted(
   },
 );
 
-export const [aliases, setAliases] = createSignal<Aliases>({});
+export const [aliases, setAliases] = makePersisted(
+  createSignal<Aliases>({}),
+  {
+    name: "aliases",
+    storage: sessionStorage,
+  },
+);
 
 function createToolBoxSignal() {
   const [isOpen, setIsOpen] = createSignal(false);
