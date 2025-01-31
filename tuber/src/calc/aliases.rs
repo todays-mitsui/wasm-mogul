@@ -24,3 +24,12 @@ impl From<HashMap<Identifier, Expr>> for Aliases {
         Self(map)
     }
 }
+
+impl IntoIterator for Aliases {
+    type Item = (Identifier, Expr);
+    type IntoIter = std::collections::hash_map::IntoIter<Identifier, Expr>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}

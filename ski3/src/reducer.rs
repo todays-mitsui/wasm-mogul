@@ -1,3 +1,4 @@
+use crate::aliases::Aliases;
 use crate::context::Context;
 use crate::display_style::DisplayStyle;
 use crate::expression::Expr;
@@ -17,10 +18,16 @@ pub struct Reducer {
 impl Reducer {
     #[allow(non_snake_case)]
     #[wasm_bindgen(constructor)]
-    pub fn new(context: Context, expr: Expr, displayStyle: Option<DisplayStyle>) -> Self {
+    pub fn new(
+        context: Context,
+        aliases: Aliases,
+        expr: Expr,
+        displayStyle: Option<DisplayStyle>,
+    ) -> Self {
         let tuber_context = context.into();
+        let tuber_aliases = aliases.into();
         let tuber_expr = expr.into();
-        let reducer = tuber::Reducer::new(tuber_context, tuber_expr);
+        let reducer = tuber::Reducer::new(tuber_context, tuber_aliases, tuber_expr);
         let display_style = displayStyle
             .map(tuber::DisplayStyle::from)
             .unwrap_or(tuber::DisplayStyle::EcmaScript);

@@ -1,3 +1,4 @@
+mod aliases;
 mod command;
 mod context;
 mod display_style;
@@ -8,6 +9,7 @@ mod reducer;
 mod unlambda;
 mod utils;
 
+pub use aliases::Aliases;
 pub use command::{parse_command, Command};
 pub use context::{default_context, Context};
 pub use display_style::DisplayStyle;

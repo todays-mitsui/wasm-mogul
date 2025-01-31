@@ -5,6 +5,7 @@ mod expand;
 mod reducer;
 mod unlambda;
 
+pub use aliases::Aliases;
 pub use arity::arity;
 pub use expand::expand;
 pub use reducer::{ReduceResult, Reducer};
