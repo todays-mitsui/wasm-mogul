@@ -1,4 +1,5 @@
 use crate::display_style::DisplayStyle;
+use crate::identifier::Identifier;
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 use tuber::{self, Format};
@@ -7,29 +8,24 @@ use wasm_bindgen::prelude::*;
 #[derive(Tsify, Serialize, Deserialize, Debug)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub enum Expr {
-    Variable { identifier: String },
-    Symbol { identifier: String },
-    Apply { lhs: Box<Expr>, rhs: Box<Expr> },
-    Lambda { param: String, body: Box<Expr> },
+    /* Variable */ V(Identifier),
+    /* Symbol   */ S(Identifier),
+    /* Apply    */ A(Box<Expr>, Box<Expr>),
+    /* Lambda   */ L(Identifier, Box<Expr>),
 }
 
 impl From<tuber::Expr> for Expr {
     fn from(tuber_expr: tuber::Expr) -> Expr {
         match tuber_expr {
-            tuber::Expr::Variable(name) => Expr::Variable {
-                identifier: name.as_ref().to_string(),
-            },
-            tuber::Expr::Symbol(name) => Expr::Symbol {
-                identifier: name.as_ref().to_string(),
-            },
-            tuber::Expr::Apply { lhs, rhs } => Expr::Apply {
-                lhs: Box::new((*lhs).clone().into()),
-                rhs: Box::new((*rhs).clone().into()),
-            },
-            tuber::Expr::Lambda { param, body } => Expr::Lambda {
-                param: param.as_ref().to_string(),
-                body: Box::new((*body).clone().into()),
-            },
+            tuber::Expr::Variable(name) => Expr::V(name.as_ref().to_string()),
+            tuber::Expr::Symbol(name) => Expr::S(name.as_ref().to_string()),
+            tuber::Expr::Apply { lhs, rhs } => Expr::A(
+                Box::new((*lhs).clone().into()),
+                Box::new((*rhs).clone().into()),
+            ),
+            tuber::Expr::Lambda { param, body } => {
+                Expr::L(param.as_ref().to_string(), Box::new((*body).clone().into()))
+            }
         }
     }
 }
@@ -37,13 +33,13 @@ impl From<tuber::Expr> for Expr {
 impl From<Expr> for tuber::Expr {
     fn from(ski_expr: Expr) -> tuber::Expr {
         match ski_expr {
-            Expr::Variable { identifier } => tuber::Expr::Variable(identifier.into()),
-            Expr::Symbol { identifier } => tuber::Expr::Symbol(identifier.into()),
-            Expr::Apply { lhs, rhs } => tuber::Expr::Apply {
+            Expr::V(identifier) => tuber::Expr::Variable(identifier.into()),
+            Expr::S(identifier) => tuber::Expr::Symbol(identifier.into()),
+            Expr::A(lhs, rhs) => tuber::Expr::Apply {
                 lhs: Box::new((*lhs).into()),
                 rhs: Box::new((*rhs).into()),
             },
-            Expr::Lambda { param, body } => tuber::Expr::Lambda {
+            Expr::L(param, body) => tuber::Expr::Lambda {
                 param: param.into(),
                 body: Box::new((*body).into()),
             },

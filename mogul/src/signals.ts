@@ -40,6 +40,15 @@ export const [context, setContext] = makePersisted(
   {
     name: "context",
     storage: sessionStorage,
+    serialize: (context: Context) => JSON.stringify(Object.values(context)),
+    deserialize: (json: string) => {
+      const funcs: Func[] = JSON.parse(json);
+      const context: Context = {};
+      for (const func of funcs) {
+        context[func[0]] = func;
+      }
+      return context
+    },
   },
 );
 

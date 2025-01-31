@@ -162,6 +162,32 @@ export function renderExpr(expr, displayStyle) {
 }
 
 /**
+ * @param {Func} func
+ * @param {DisplayStyle} displayStyle
+ * @returns {string}
+ */
+export function renderFunc(func, displayStyle) {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.renderFunc(func, displayStyle);
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
+
+/**
+ * @returns {Context}
+ */
+export function defaultContext() {
+    const ret = wasm.defaultContext();
+    return ret;
+}
+
+/**
  * @param {Context} context
  * @param {Expr} expr
  * @returns {Expr}
@@ -198,32 +224,6 @@ export function unlambdaRecursive_(context, expr) {
  */
 export function unlambdaIota(context, expr) {
     const ret = wasm.unlambdaIota(context, expr);
-    return ret;
-}
-
-/**
- * @param {Func} func
- * @param {DisplayStyle} displayStyle
- * @returns {string}
- */
-export function renderFunc(func, displayStyle) {
-    let deferred1_0;
-    let deferred1_1;
-    try {
-        const ret = wasm.renderFunc(func, displayStyle);
-        deferred1_0 = ret[0];
-        deferred1_1 = ret[1];
-        return getStringFromWasm0(ret[0], ret[1]);
-    } finally {
-        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
-    }
-}
-
-/**
- * @returns {Context}
- */
-export function defaultContext() {
-    const ret = wasm.defaultContext();
     return ret;
 }
 

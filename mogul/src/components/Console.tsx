@@ -313,9 +313,6 @@ function ConsoleUnitContext(_props: ConsoleItemContext): JSX.Element {
 export function ConsoleUnitUnlambda(
   props: ConsoleItemUnlambda & { displayStyle?: DisplayStyle },
 ): JSX.Element {
-  const { expr: _e, result: _r } = props;
-  console.log({ _e, _r });
-
   const expr = renderExpr(props.expr, props.displayStyle);
   const result = renderExpr(props.result, props.displayStyle);
 
