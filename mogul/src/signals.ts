@@ -43,14 +43,6 @@ export const [context, setContext] = makePersisted(
   },
 );
 
-export function resetContext() {
-  setContext(defaultContext());
-}
-
-export function clearContext() {
-  setContext({});
-}
-
 export const [aliases, setAliases] = createSignal<Aliases>({});
 
 function createToolBoxSignal() {
