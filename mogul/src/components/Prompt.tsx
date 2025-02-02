@@ -248,6 +248,7 @@ function ElasticInput(props: ElasticInputProps): JSX.Element {
       ref={textareaRef}
       onInput={onInput}
       rows={props.rows ?? 1}
+      autofocus
       {...remainingProps}
     />
   );
