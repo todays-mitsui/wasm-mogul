@@ -1,3 +1,8 @@
+import { Analytics } from 'vercel-analytics-solid/solidstart';
+
 export default function Page() {
-  return <main>docs</main>;
+  return <>
+          <Analytics />
+          <main>docs</main>
+  </>;
 }

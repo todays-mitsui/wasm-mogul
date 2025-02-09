@@ -10,7 +10,6 @@ export default function App() {
       root={(props) => (
         <MetaProvider>
           <Title>skiMogul - Lambda Calculus</Title>
-          <Analytics />
           <Suspense>{props.children}</Suspense>
         </MetaProvider>
       )}
