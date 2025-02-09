@@ -17,11 +17,9 @@ export default function Header() {
             repo
           </A>
         </li>
-        {/*
         <li>
-          <A href="/doc">doc</A>
+          <A href="/docs">docs</A>
         </li>
-        */}
       </ul>
     </header>
   );
